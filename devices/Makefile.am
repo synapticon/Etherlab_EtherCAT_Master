@@ -29,11 +29,13 @@
 
 SUBDIRS = \
 	ccat \
+	cx2100 \
 	e1000 \
 	e1000e
 
 DIST_SUBDIRS = \
 	ccat \
+	cx2100 \
 	e1000 \
 	e1000e
 

@@ -39,17 +39,13 @@ AC_PREREQ(2.59)
 # - Update version number below
 # - make dist-bzip2
 #
-AC_INIT([ethercat],[1.5.2-sncn-7],[fp@igh-essen.com])
+AC_INIT([ethercat],[1.5.2],[fp@igh-essen.com])
 AC_CONFIG_AUX_DIR([autoconf])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 subdir-objects])
 AC_PREFIX_DEFAULT([/opt/etherlab])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_MACRO_DIR([m4])
-
-# get separate version of libethercat_wrapper
-LIBETHERCAT_WRAPPER_VERSION=`cat libethercat_wrapper/Version`
-AC_SUBST(LIBETHERCAT_WRAPPER_VERSION)
 
 #------------------------------------------------------------------------------
 # Global
@@ -212,7 +208,7 @@ AC_ARG_ENABLE([8139too],
                 ;;
         esac
     ],
-    [enable8139too=0] # disabled by default
+    [enable8139too=$enablekernel]
 )
 
 AM_CONDITIONAL(ENABLE_8139TOO, test "x$enable8139too" = "x1")
@@ -434,6 +430,109 @@ fi
 
 AC_SUBST(KERNEL_E1000E,[$kernele1000e])
 AC_SUBST(E1000E_LAYOUT, [$e1000elayout])
+
+#------------------------------------------------------------------------------
+# igb driver
+#------------------------------------------------------------------------------
+
+AC_ARG_ENABLE([igb],
+    AS_HELP_STRING([--enable-igb],
+                   [Enable igb driver]),
+    [
+        case "${enableval}" in
+            yes) enableigb=1
+                ;;
+            no) enableigb=0
+                ;;
+            *) AC_MSG_ERROR([Invalid value for --enable-igb])
+                ;;
+        esac
+    ],
+    [enableigb=0] # disabled by default
+)
+
+AM_CONDITIONAL(ENABLE_IGB, test "x$enableigb" = "x1")
+AC_SUBST(ENABLE_IGB,[$enableigb])
+
+AC_ARG_WITH([igb-kernel],
+    AC_HELP_STRING(
+        [--with-igb-kernel=<X.Y.Z>],
+        [igb kernel (only if differing)]
+    ),
+    [
+        kerneligb=[$withval]
+    ],
+    [
+        kerneligb=$linuxversion
+    ]
+)
+
+if test "x${enableigb}" = "x1"; then
+    AC_MSG_CHECKING([for kernel for igb driver])
+
+    if test ! -f "${srcdir}/devices/igb/igb_main-${kerneligb}-orig.c"; then
+        AC_MSG_ERROR([kernel $kerneligb not available for igb driver!])
+    fi
+
+    AC_MSG_RESULT([$kerneligb])
+fi
+
+AC_SUBST(KERNEL_IGB,[$kerneligb])
+
+#------------------------------------------------------------------------------
+# cx2100 driver
+#------------------------------------------------------------------------------
+
+AC_ARG_ENABLE([cx2100],
+    AS_HELP_STRING([--enable-cx2100],
+                   [Enable cx2100 driver]),
+    [
+        case "${enableval}" in
+            yes) enablecx2100=1
+                ;;
+            no) enablecx2100=0
+                ;;
+            *) AC_MSG_ERROR([Invalid value for --enable-cx2100])
+                ;;
+        esac
+    ],
+    [enablecx2100=0] # disabled by default
+)
+
+AM_CONDITIONAL(ENABLE_CX2100, test "x$enablecx2100" = "x1")
+AC_SUBST(ENABLE_CX2100,[$enablecx2100])
+
+AC_ARG_WITH([cx2100-kernel],
+    AC_HELP_STRING(
+        [--with-cx2100-kernel=<X.Y.Z>],
+        [cx2100 kernel (only if differing)]
+    ),
+    [
+        kernelcx2100=[$withval]
+    ],
+    [
+        kernelcx2100=$linuxversion
+    ]
+)
+
+if test "x${enablecx2100}" = "x1"; then
+    AC_MSG_CHECKING([for kernel for cx2100 driver])
+
+    kernels=`ls -1 ${srcdir}/devices/cx2100/ | grep -oE "^cx2100-.*" | cut -d "-" -f 2 | uniq`
+    found=0
+    for k in $kernels; do
+        if test "$kernelcx2100" = "$k"; then
+            found=1
+        fi
+    done
+    if test $found -ne 1; then
+        AC_MSG_ERROR([kernel $kernelcx2100 not available for cx2100 driver!])
+    fi
+
+    AC_MSG_RESULT([$kernelcx2100])
+fi
+
+AC_SUBST(KERNEL_CX2100,[$kernelcx2100])
 
 #------------------------------------------------------------------------------
 # r8169 driver
@@ -913,36 +1012,6 @@ fi
 AM_CONDITIONAL(ENABLE_USERLIB, test "x$userlib" = "x1")
 
 #------------------------------------------------------------------------------
-# Generate ethercat wrapper library
-#------------------------------------------------------------------------------
-
-AC_MSG_CHECKING([whether to build the ethercat wrapper library])
-
-AC_ARG_ENABLE([ethercat_wrapper],
-    AS_HELP_STRING([--enable-libethercat_wrapper],
-                   [Generation of the ethercat wrapper library (default: yes)]),
-    [
-        case "${enableval}" in
-            yes) ethercat_wrapper=1
-                ;;
-            no) ethercat_wrapper=0
-                ;;
-            *) AC_MSG_ERROR([Invalid value for --enable-libethercat_wrapper])
-                ;;
-        esac
-    ],
-    [ethercat_wrapper=1]
-)
-
-if test "x${ethercat_wrapper}" = "x1"; then
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
-
-AM_CONDITIONAL(ENABLE_USERLIB, test "x$ethercat_wrapper" = "x1")
-
-#------------------------------------------------------------------------------
 # TTY driver
 #------------------------------------------------------------------------------
 
@@ -1132,10 +1201,14 @@ AC_CONFIG_FILES([
         devices/Makefile
         devices/ccat/Kbuild
         devices/ccat/Makefile
+        devices/cx2100/Kbuild
+        devices/cx2100/Makefile
         devices/e1000/Kbuild
         devices/e1000/Makefile
         devices/e1000e/Kbuild
         devices/e1000e/Makefile
+        devices/igb/Kbuild
+        devices/igb/Makefile
         ethercat.spec
         examples/Kbuild
         examples/Makefile
@@ -1155,7 +1228,6 @@ AC_CONFIG_FILES([
         examples/xenomai_posix/Makefile
         include/Makefile
         lib/Makefile
-        libethercat_wrapper/Makefile
         m4/Makefile
         master/Kbuild
         master/Makefile
