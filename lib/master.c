@@ -533,6 +533,48 @@ int ecrt_master_read_idn(ec_master_t *master, uint16_t slave_position,
 
 /****************************************************************************/
 
+int ecrt_master_setup_domain_memory(ec_master_t *master)
+{
+    ec_ioctl_master_activate_t io;
+    int ret;
+
+    ret = ioctl(master->fd, EC_IOCTL_SETUP_DOMAIN_MEMORY, &io);
+    if (EC_IOCTL_IS_ERROR(ret)) {
+        fprintf(stderr, "Failed to activate master: %s\n",
+                strerror(EC_IOCTL_ERRNO(ret)));
+        return -EC_IOCTL_ERRNO(ret);
+    }
+
+    // will return 0 process_data_size if domain data has already been set up
+    if (io.process_data_size) {
+        master->process_data_size = io.process_data_size;
+
+#ifdef USE_RTDM
+        /* memory-mapping was already done in kernel. The user-space addess is
+         * provided in the ioctl data.
+         */
+        master->process_data = io.process_data;
+#else
+        master->process_data = mmap(0, master->process_data_size,
+                PROT_READ | PROT_WRITE, MAP_SHARED, master->fd, 0);
+        if (master->process_data == MAP_FAILED) {
+            fprintf(stderr, "Failed to map process data: %s\n",
+                    strerror(errno));
+            master->process_data = NULL;
+            master->process_data_size = 0;
+            return -errno;
+        }
+#endif
+
+        // Access the mapped region to cause the initial page fault
+        master->process_data[0] = 0x00;
+    }
+
+    return 0;
+}
+
+/*****************************************************************************/
+
 int ecrt_master_activate(ec_master_t *master)
 {
     ec_ioctl_master_activate_t io;
@@ -545,9 +587,10 @@ int ecrt_master_activate(ec_master_t *master)
         return -EC_IOCTL_ERRNO(ret);
     }
 
-    master->process_data_size = io.process_data_size;
+    // will return 0 process_data_size if domain data has already been set up
+    if (io.process_data_size) {
+        master->process_data_size = io.process_data_size;
 
-    if (master->process_data_size) {
 #ifdef USE_RTDM
         /* memory-mapping was already done in kernel. The user-space addess is
          * provided in the ioctl data.
@@ -574,18 +617,19 @@ int ecrt_master_activate(ec_master_t *master)
 
 /****************************************************************************/
 
-int ecrt_master_rescan(ec_master_t *master)
+void ecrt_master_deactivate_slaves(ec_master_t *master)
 {
-    int ret = ioctl(master->fd, EC_IOCTL_MASTER_RESCAN, NULL);
+    int ret;
+
+    ret = ioctl(master->fd, EC_IOCTL_DEACTIVATE_SLAVES, NULL);
     if (EC_IOCTL_IS_ERROR(ret)) {
-        fprintf(stderr, "Failed to rescan the bus: %s\n",
-                strerror(EC_IOCTL_ERRNO(ret)));
-        return -EC_IOCTL_ERRNO(ret);
+        fprintf(stderr, "Failed to deactivate slaves: %s\n",
+                strerror(EC_IOCTL_IS_ERROR(ret)));
+        return;
     }
-    return 0;
 }
 
-/****************************************************************************/
+/*****************************************************************************/
 
 void ecrt_master_deactivate(ec_master_t *master)
 {
@@ -675,21 +719,6 @@ int ecrt_master_link_state(const ec_master_t *master, unsigned int dev_idx,
     if (EC_IOCTL_IS_ERROR(ret)) {
         fprintf(stderr, "Failed to get link state: %s\n",
                 strerror(EC_IOCTL_ERRNO(ret)));
-        return -EC_IOCTL_ERRNO(ret);
-    }
-
-    return 0;
-}
-
-int ecrt_master_slave_link_state_request(const ec_master_t *master, uint16_t slave_position, uint8_t state)
-{
-    ec_ioctl_slave_state_t data;
-    data.slave_position = slave_position;
-    data.al_state = state;
-
-    int ret = ioctl(master->fd, EC_IOCTL_SLAVE_STATE, &data);
-    if (EC_IOCTL_IS_ERROR(ret)) {
-        fprintf(stderr, "Failed to request slave state: %d", state);
         return -EC_IOCTL_ERRNO(ret);
     }
 
@@ -799,102 +828,6 @@ void ecrt_master_reset(ec_master_t *master)
         fprintf(stderr, "Failed to reset master: %s\n",
                 strerror(EC_IOCTL_ERRNO(ret)));
     }
-}
-
-/****************************************************************************/
-
-int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
-                          const uint8_t *content, size_t size)
-{
-  ec_ioctl_slave_sii_t data;
-
-  data.slave_position = position;
-  data.offset = 0;
-
-  if (!size || size % 2) {
-    fprintf(
-        stderr,
-        "Failed to write SII: Invalid data size (%ld) - must be non-zero and even.\n",
-        size);
-    return -1;
-  }
-
-  data.nwords = size / 2;
-
-  // allocate buffer and read file into buffer
-  data.words = malloc(size * sizeof(uint8_t));
-  memcpy((uint8_t*) data.words, content, size);
-
-  int ret;
-
-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
-  if (EC_IOCTL_IS_ERROR(ret)) {
-    fprintf(stderr, "Failed to write SII: %s\n", strerror(EC_IOCTL_ERRNO(ret)));
-  }
-
-  free(data.words);
-
-  return ret;
-}
-
-/****************************************************************************/
-
-int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
-                         const char* file_name, uint8_t *content, size_t *size)
-{
-  ec_ioctl_slave_foe_t data;
-
-  data.slave_position = position;
-  strncpy(data.file_name, file_name, sizeof(data.file_name));
-
-  /**
-   * IMPORTANT: The master code doesn't seem to allow reading larger files and
-   * the offset is never used, so there is absolutely no possibility of reading
-   * larger files even with sequential reading.
-   */
-  data.offset = 0;
-  data.buffer_size = 0x8800;
-  data.buffer = content;
-
-  int ret;
-
-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
-  if (EC_IOCTL_IS_ERROR(ret)) {
-    fprintf(stderr, "Failed to read via FoE: %s\n",
-            strerror(EC_IOCTL_ERRNO(ret)));
-  }
-
-  *size = data.data_size;
-
-  return data.result;
-}
-
-/****************************************************************************/
-
-int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
-                          const char* file_name, const uint8_t *content,
-                          size_t size)
-{
-  ec_ioctl_slave_foe_t data;
-
-  data.slave_position = position;
-  strncpy(data.file_name, file_name, sizeof(data.file_name));
-  data.offset = 0;
-  data.buffer_size = size;
-  data.buffer = malloc(size * sizeof(uint8_t));
-  memcpy(data.buffer, content, size);
-
-  int ret;
-
-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
-  if (EC_IOCTL_IS_ERROR(ret)) {
-    fprintf(stderr, "Failed to write via FoE: %s\n",
-            strerror(EC_IOCTL_ERRNO(ret)));
-  }
-
-  free(data.buffer);
-
-  return data.result;
 }
 
 /****************************************************************************/

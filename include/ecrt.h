@@ -229,10 +229,6 @@
  */
 #define EC_COE_EMERGENCY_MSG_SIZE 8
 
-/** Size of SDO access rights field
- */
-#define EC_SDO_ENTRY_ACCESS_COUNTER   3
-
 /******************************************************************************
  * Data types
  *****************************************************************************/
@@ -540,31 +536,6 @@ typedef enum {
     EC_AL_STATE_OP = 8, /**< Operational. */
 } ec_al_state_t;
 
-/*****************************************************************************/
-
-/** Application layer SDO info  structure
- */
-typedef struct {
-    uint16_t index;
-    uint8_t  maxindex;
-    uint8_t  object_code;
-    char     name[EC_MAX_STRING_LENGTH];
-} ec_sdo_info_t;
-
-/*****************************************************************************/
-
-/** Application layer SDO info entry structure
- */
-typedef struct {
-    uint16_t data_type;
-    uint16_t bit_length;
-    uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
-    uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
-    char     description[EC_MAX_STRING_LENGTH];
-} ec_sdo_info_entry_t;
-
-/*****************************************************************************/
-
 /******************************************************************************
  * Global functions
  *****************************************************************************/
@@ -692,6 +663,20 @@ void ecrt_master_callbacks(
  * \return Pointer to the new domain on success, else NULL.
  */
 ec_domain_t *ecrt_master_create_domain(
+        ec_master_t *master /**< EtherCAT master. */
+        );
+
+/** setup the domain's process data memory.
+ *
+ * Call this after all PDO entries have been registered and before activating
+ * the master.
+ *
+ * Call this if you need to access the domain memory before activating the
+ * master
+ *
+ * \return 0 on success, else non-zero.
+ */
+int ecrt_master_setup_domain_memory(
         ec_master_t *master /**< EtherCAT master. */
         );
 
@@ -892,35 +877,6 @@ int ecrt_master_sdo_upload(
         uint32_t *abort_code /**< Abort code of the SDO upload. */
         );
 
-/** Executes a SDO Info request
- *
- * With this request the entries of the slaves object dicionty can be read.
- *
- * \retval  0 Success
- * \retval <0 On Error
- */
-int ecrt_sdo_info_get(
-        ec_master_t *master,     /**< EtherCAT master */
-        uint16_t slave_position, /**< Slave position */
-        uint16_t sdo_position,   /**< SDO position within the dictionary */
-        ec_sdo_info_t *sdo       /**< Pointer to output structure */
-        );
-
-/** Executes a SDO Info Entry request
- *
- * With this request a entry of the slaves object dicionty is requested.
- *
- * \retval  0 Success
- * \retval <0 On Error
- */
-int ecrt_sdo_get_info_entry(
-        ec_master_t *master,        /**< EtherCAT master */
-        uint16_t slave_position,    /**< Slave position */
-        uint16_t index,             /**< Index of the element to request */
-        uint8_t subindex,           /**< Subindex of the element to request */
-        ec_sdo_info_entry_t *entry  /**< Pointer to output structure */
-        );
-
 /** Executes an SoE write request.
  *
  * Starts writing an IDN and blocks until the request was processed, or an
@@ -982,12 +938,17 @@ int ecrt_master_activate(
         ec_master_t *master /**< EtherCAT master. */
         );
 
-/** Triggers master rescan of the bus.
+/** Deactivates the slaves distributed clocks and sends the slaves into PREOP.
  *
- * \return 0 in case of success, else < 0
+ * This can be called prior to ecrt_master_deactivate to avoid the slaves
+ * getting sync errors.
+ *
+ * This method should be called in realtime context.
+ *
+ * Note: EoE slaves will not be changed to PREOP.
  */
-int ecrt_master_rescan(
-        ec_master_t *master
+void ecrt_master_deactivate_slaves(
+        ec_master_t *master /**< EtherCAT master. */
         );
 
 /** Deactivates the master.
@@ -1080,18 +1041,6 @@ int ecrt_master_link_state(
                                 first backup device, ...). */
         ec_master_link_state_t *state /**< Structure to store the information.
                                        */
-        );
-
-/** Set individual slave to state
- *
- * Request slave state during operation.
- *
- * \return Zero on success, otherwise negative error code
- */
-int ecrt_master_slave_link_state_request(
-        const ec_master_t *master, /**< EtherCAT master */
-         uint16_t slave_position,  /**< slave position of slave to request */
-         uint8_t state             /**< State to request slave to go into */
         );
 
 /** Sets the application time.
@@ -1189,41 +1138,6 @@ uint32_t ecrt_master_sync_monitor_process(
 void ecrt_master_reset(
         ec_master_t *master /**< EtherCAT master. */
         );
-
-/**
- * Write SII data to a slave
- *
- * IMPORTANT: Make sure to verify the SII data first:
- * https://github.com/synapticon/Etherlab_EtherCAT_Master/blob/develop/tool/CommandSiiWrite.cpp#L175
- */
-int ecrt_master_write_sii(
-        ec_master_t *master,
-        uint16_t position,
-        const uint8_t *content,
-        size_t size
-        );
-
-/**
- * Read a file from a slave
- */
-int ecrt_master_read_foe(
-          ec_master_t *master,
-          uint16_t position,
-          const char* file_name,
-          uint8_t *content,
-          size_t *size
-          );
-
-/**
- * Write a file to a slave
- */
-int ecrt_master_write_foe(
-          ec_master_t *master,
-          uint16_t position,
-          const char* file_name,
-          const uint8_t *content,
-          size_t size
-          );
 
 /******************************************************************************
  * Slave configuration methods
