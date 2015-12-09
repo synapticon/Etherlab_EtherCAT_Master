@@ -1,0 +1,16 @@
+--- ./master/ethernet.c	2015-08-02 12:41:04.569315351 +0200
++++ ./master/ethernet.c	2015-08-02 12:38:52.575250918 +0200
+@@ -176,7 +176,12 @@
+ 
+     snprintf(eoe->datagram.name, EC_DATAGRAM_NAME_SIZE, name);
+ 
+-    if (!(eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, ether_setup))) {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)) 
++    eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, ether_setup);
++#else 
++    eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, NET_NAME_UNKNOWN, ether_setup);
++#endif
++    if (!eoe->dev) {
+         EC_SLAVE_ERR(slave, "Unable to allocate net_device %s"
+                 " for EoE handler!\n", name);
+         ret = -ENODEV;

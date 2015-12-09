@@ -559,6 +559,7 @@ void ec_fsm_soe_write_next_fragment(
     EC_WRITE_U16(data + 2, incomplete ? fragments_left : req->idn);
     memcpy(data + 4, req->data + fsm->offset, fsm->fragment_size);
 
+    fsm->offset += fsm->fragment_size;
     if (master->debug_level) {
         EC_SLAVE_DBG(slave, 0, "SCC write request:\n");
         ec_print_data(data, EC_SOE_SIZE + fsm->fragment_size);
@@ -604,6 +605,8 @@ void ec_fsm_soe_write_request(
         ec_datagram_t *datagram /**< Datagram to use. */
         )
 {
+
+    ec_soe_request_t *req = fsm->request;
     ec_slave_t *slave = fsm->slave;
     unsigned long diff_ms;
 
@@ -642,7 +645,14 @@ void ec_fsm_soe_write_request(
 
     ec_slave_mbox_prepare_check(slave, datagram); // can not fail.
     fsm->retries = EC_FSM_RETRIES;
-    fsm->state = ec_fsm_soe_write_check;
+
+    if (fsm->offset < req->data_size) {
+        fsm->retries = EC_FSM_RETRIES;
+        ec_fsm_soe_write_next_fragment(fsm, datagram);
+    } else {
+        fsm->state = ec_fsm_soe_write_check; // success
+    }
+
 }
 
 /*****************************************************************************/
@@ -804,8 +814,6 @@ void ec_fsm_soe_write_response(
     } else {
         req->error_code = 0x0000;
     }
-
-    fsm->offset += fsm->fragment_size;
 
     if (fsm->offset < req->data_size) {
         fsm->retries = EC_FSM_RETRIES;

@@ -149,7 +149,11 @@ int ec_gen_device_init(
     dev->socket = NULL;
     dev->rx_buf = NULL;
 
-    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, ether_setup);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)) 
+    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, ether_setup); 
+#else 
+    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, NET_NAME_UNKNOWN, ether_setup);
+#endif
     if (!dev->netdev) {
         return -ENOMEM;
     }

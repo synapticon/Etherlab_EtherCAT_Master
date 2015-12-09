@@ -1,0 +1,7 @@
+if (!nd_net) {
+        printk(KERN_ERR PFX "Failed to obtain net namespace\n");
+        return -EINVAL;
+    }   
+
+    ret = sock_create_kern(nd_net, PF_PACKET, SOCK_RAW, htons(ETH_P_ETHERCAT),
+            &dev->socket);

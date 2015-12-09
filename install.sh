@@ -1,0 +1,9 @@
+#!/bin/bash          
+./bootstrap
+./configure --enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles
+sudo /opt/etherlab/etc/init.d/ethercat stop
+make clean
+make all modules
+sudo make modules_install install
+sudo depmod
+sudo /opt/etherlab/etc/init.d/ethercat start

@@ -1,0 +1,15 @@
+--- ./devices/generic.c	2015-08-02 12:41:04.697318456 +0200
++++ ./devices/generic.c	2015-08-02 12:44:46.004735091 +0200
+@@ -149,7 +149,11 @@
+     dev->socket = NULL;
+     dev->rx_buf = NULL;
+ 
+-    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, ether_setup);
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)) 
++    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, ether_setup); 
++#else 
++    dev->netdev = alloc_netdev(sizeof(ec_gen_device_t *), &null, NET_NAME_UNKNOWN, ether_setup);
++#endif
+     if (!dev->netdev) {
+         return -ENOMEM;
+     }
