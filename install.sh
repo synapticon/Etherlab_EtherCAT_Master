@@ -5,5 +5,6 @@ sudo /opt/etherlab/etc/init.d/ethercat stop
 make clean
 make all modules
 sudo make modules_install install
+sudo ldconfig
 sudo depmod
 sudo /opt/etherlab/etc/init.d/ethercat start
