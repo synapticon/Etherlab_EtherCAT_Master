@@ -216,6 +216,13 @@ struct ccat_eth_priv {
 	struct ccat_dma_mem dma_mem;
         // added ptr to ethercat master struct
         ec_device_t *ecdev;
+        void (*carrier_off) (struct net_device *netdev);
+	bool (*carrier_ok) (const struct net_device *netdev);
+	void (*carrier_on) (struct net_device *netdev);
+	void (*kfree_skb_any) (struct sk_buff *skb);
+	void (*start_queue) (struct net_device *netdev);
+	void (*stop_queue) (struct net_device *netdev);
+	void (*unregister) (struct net_device *netdev);
 };
 
 struct ccat_mac_register {
@@ -736,8 +743,10 @@ static enum hrtimer_restart poll_timer_callback(struct hrtimer *timer)
 	    container_of(timer, struct ccat_eth_priv, poll_timer);
 
 	poll_link(priv);
-	poll_rx(priv);
-	poll_tx(priv);
+	if(!priv->ecdev) { 
+		poll_rx(priv);
+		poll_tx(priv);
+	}
 	hrtimer_forward_now(timer, POLL_TIME);
 	return HRTIMER_RESTART;
 }
@@ -835,7 +844,7 @@ static int ccat_eth_init_netdev(struct ccat_eth_priv *priv)
 	status = register_netdev(priv->netdev);
 	if (status) {
 		pr_info("unable to register network device.\n");
-		ccat_eth_priv_free(priv);
+                ccat_dma_free(priv);
 		free_netdev(priv->netdev);
 		return status;
 	}
@@ -844,16 +853,83 @@ static int ccat_eth_init_netdev(struct ccat_eth_priv *priv)
 	return 0;
 }
 
+static void ecdev_carrier_off(struct net_device *const netdev)
+{
+	struct ccat_eth_priv *const priv = netdev_priv(netdev);
+	ecdev_set_link(priv->ecdev, 0);
+}
+
+static bool ecdev_carrier_ok(const struct net_device *const netdev)
+{
+	struct ccat_eth_priv *const priv = netdev_priv(netdev);
+	return ecdev_get_link(priv->ecdev);
+}
+
+static void ecdev_carrier_on(struct net_device *const netdev)
+{
+	struct ccat_eth_priv *const priv = netdev_priv(netdev);
+	ecdev_set_link(priv->ecdev, 1);
+}
+
+static void ecdev_kfree_skb_any(struct sk_buff *skb)
+{
+	/* never release a skb in EtherCAT mode */
+}
+
+static void ecdev_nop(struct net_device *const netdev)
+{
+	/* dummy called if nothing has to be done in EtherCAT operation mode */
+}
+
+static void unregister_ecdev(struct net_device *const netdev)
+{
+	struct ccat_eth_priv *const priv = netdev_priv(netdev);
+	ecdev_close(priv->ecdev);
+	ecdev_withdraw(priv->ecdev);
+}
+
 static int ccat_eth_priv_init_ecdev(struct ccat_eth_priv *priv) {
-	int status;
+	int status = -EBUSY;
 
         /* use as EtherCAT device */
 	priv->ecdev = ecdev_offer(priv->netdev, ec_poll_rx, THIS_MODULE);
         if (priv->ecdev) {
-        	pr_info("Using as ethercat device.\n");
-	}
+                pr_info("Register as EtherCat device.\n");
+		priv->carrier_off = ecdev_carrier_off;
+		priv->carrier_ok = ecdev_carrier_ok;
+		priv->carrier_on = ecdev_carrier_on;
+		priv->kfree_skb_any = ecdev_kfree_skb_any;
+		priv->start_queue = ecdev_nop;
+		priv->stop_queue = ecdev_nop;
+		priv->unregister = unregister_ecdev;
 
-	status = 1;
+                priv->carrier_off(priv->netdev);
+                if (ecdev_open(priv->ecdev)) {
+			ecdev_withdraw(priv->ecdev);
+		} else {
+                	status = 0;
+		}
+	} else {
+		/* EtherCAT disabled -> prepare normal ethernet mode */
+                pr_info("Register as a network device.\n");
+		priv->carrier_off = netif_carrier_off;
+		priv->carrier_ok = netif_carrier_ok;
+		priv->carrier_on = netif_carrier_on;
+		priv->kfree_skb_any = dev_kfree_skb_any;
+		priv->start_queue = netif_start_queue;
+		priv->stop_queue = netif_stop_queue;
+		priv->unregister = unregister_netdev;
+
+		priv->carrier_off(priv->netdev);
+                if (!register_netdev(priv->netdev)) {
+			status = 0;		
+		}
+        }
+
+        if (status) {
+        	ccat_dma_free(priv);
+        }
+    
         return status;
 }
 
@@ -897,7 +973,12 @@ static int ccat_eth_eim_probe(struct ccat_function *func)
 		return -ENOMEM;
 
 	status = ccat_eth_priv_init_ecdev(priv);
-
+        if (status) {
+        	pr_warn("%s(): ethercat initialization failed.\n", __FUNCTION__);
+		free_netdev(priv->netdev);
+		return status;
+        }
+      
 	status = ccat_eth_priv_init_eim(priv);
 	if (status) {
 		pr_warn("%s(): memory initialization failed.\n", __FUNCTION__);
