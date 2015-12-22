@@ -831,28 +831,6 @@ static struct ccat_eth_priv *ccat_eth_alloc_netdev(struct ccat_function *func)
 	return priv;
 }
 
-static int ccat_eth_init_netdev(struct ccat_eth_priv *priv)
-{
-	int status;
-
-	/* init netdev with MAC and stack callbacks */
-	memcpy_fromio(priv->netdev->dev_addr, priv->reg.mii + 8,
-		      priv->netdev->addr_len);
-	priv->netdev->netdev_ops = &ccat_eth_netdev_ops;
-	netif_carrier_off(priv->netdev);
-
-	status = register_netdev(priv->netdev);
-	if (status) {
-		pr_info("unable to register network device.\n");
-                ccat_dma_free(priv);
-		free_netdev(priv->netdev);
-		return status;
-	}
-	pr_info("registered %s as network device.\n", priv->netdev->name);
-	priv->func->private_data = priv;
-	return 0;
-}
-
 static void ecdev_carrier_off(struct net_device *const netdev)
 {
 	struct ccat_eth_priv *const priv = netdev_priv(netdev);
@@ -888,6 +866,7 @@ static void unregister_ecdev(struct net_device *const netdev)
 	ecdev_withdraw(priv->ecdev);
 }
 
+
 static int ccat_eth_priv_init_ecdev(struct ccat_eth_priv *priv) {
 	int status = -EBUSY;
 
@@ -920,10 +899,10 @@ static int ccat_eth_priv_init_ecdev(struct ccat_eth_priv *priv) {
 		priv->stop_queue = netif_stop_queue;
 		priv->unregister = unregister_netdev;
 
-		priv->carrier_off(priv->netdev);
-                if (!register_netdev(priv->netdev)) {
-			status = 0;		
-		}
+		//priv->carrier_off(priv->netdev);
+                //if (!register_netdev(priv->netdev)) {
+		//	status = 0;		
+		//}
         }
 
         if (status) {
@@ -931,6 +910,37 @@ static int ccat_eth_priv_init_ecdev(struct ccat_eth_priv *priv) {
         }
     
         return status;
+}
+
+static int ccat_eth_init_netdev(struct ccat_eth_priv *priv)
+{
+	int status;
+
+	/* init netdev with MAC and stack callbacks */
+	memcpy_fromio(priv->netdev->dev_addr, priv->reg.mii + 8,
+		      priv->netdev->addr_len);
+	priv->netdev->netdev_ops = &ccat_eth_netdev_ops;
+	netif_carrier_off(priv->netdev);
+
+	status = ccat_eth_priv_init_ecdev(priv);
+        if (status) {
+        	pr_warn("%s(): ethercat initialization failed.\n", __FUNCTION__);
+		free_netdev(priv->netdev);
+		return status;
+        }
+
+
+	/*status = register_netdev(priv->netdev);
+	if (status) {
+		pr_info("unable to register network device.\n");
+                ccat_dma_free(priv);
+		free_netdev(priv->netdev);
+		return status;
+	}
+	pr_info("registered %s as network device.\n", priv->netdev->name);
+	priv->func->private_data = priv;
+        */
+	return 0;
 }
 
 static int ccat_eth_dma_probe(struct ccat_function *func)
@@ -971,13 +981,6 @@ static int ccat_eth_eim_probe(struct ccat_function *func)
 
 	if (!priv)
 		return -ENOMEM;
-
-	status = ccat_eth_priv_init_ecdev(priv);
-        if (status) {
-        	pr_warn("%s(): ethercat initialization failed.\n", __FUNCTION__);
-		free_netdev(priv->netdev);
-		return status;
-        }
       
 	status = ccat_eth_priv_init_eim(priv);
 	if (status) {
