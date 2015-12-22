@@ -53,7 +53,7 @@ static const u8 frameForwardEthernetFrames[] = {
 };
 
 #define FIFO_LENGTH 64
-#define POLL_TIME ktime_set(0, 50 * NSEC_PER_USEC)
+#define POLL_TIME ktime_set(0,  1000 * NSEC_PER_USEC)
 #define CCAT_ALIGNMENT ((size_t)(128 * 1024))
 #define CCAT_ALIGN_CHANNEL(x, c) ((typeof(x))(ALIGN((size_t)((x) + ((c) * CCAT_ALIGNMENT)), CCAT_ALIGNMENT)))
 
@@ -720,7 +720,15 @@ static void poll_rx(struct ccat_eth_priv *const priv)
 static void ec_poll_rx(struct net_device *dev)
 {
 	struct ccat_eth_priv *const priv = netdev_priv(dev);
-	poll_rx(priv);
+	
+        struct ccat_eth_fifo *const fifo = &priv->rx_fifo;
+	const size_t len = fifo->ops->ready(fifo);
+
+        if (len) {
+		ecdev_receive(priv->ecdev, fifo->dma.next->data, len);
+		fifo->ops->add(fifo);
+		ccat_eth_fifo_inc(fifo);
+	}
 }
 
 /**
