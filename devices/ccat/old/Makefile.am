@@ -29,7 +29,9 @@
 
 EXTRA_DIST = \
 	Kbuild.in \
-	module.h 
+	module.h \
+	netdev.h \
+	update.h
 
 BUILT_SOURCES = \
 	Kbuild

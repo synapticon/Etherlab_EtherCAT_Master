@@ -25,23 +25,26 @@
 #  EtherCAT technology and brand is only permitted in compliance with the
 #  industrial property and similar rights of Beckhoff Automation GmbH.
 #
+#  ---
+#
+#  vim: syntax=make
+#
 #------------------------------------------------------------------------------
 
-EXTRA_DIST = \
-	Kbuild.in \
-	module.h 
+TOPDIR := $(src)/../..
 
-BUILT_SOURCES = \
-	Kbuild
+ifeq (@ENABLE_CCAT@,1)
+	EC_CCAT_OBJ := \
+		module.o \
+		netdev.o \
+		update.o
+	obj-m += ec_ccat.o
+	ec_ccat-objs := $(EC_CCAT_OBJ)
+	CFLAGS_ccat_main-ethercat.o = -DREV=$(REV)
+endif
 
-modules:
-	$(MAKE) -C "$(LINUX_SOURCE_DIR)" M="@abs_srcdir@" modules
-
-modules_install:
-	$(MAKE) -C "$(LINUX_SOURCE_DIR)" M="@abs_srcdir@" \
-		INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)" modules_install
-
-clean-local:
-	$(MAKE) -C "$(LINUX_SOURCE_DIR)" M="@abs_srcdir@" clean
+KBUILD_EXTRA_SYMBOLS := \
+	@abs_top_builddir@/$(LINUX_SYMVERS) \
+	@abs_top_builddir@/master/$(LINUX_SYMVERS)
 
 #------------------------------------------------------------------------------
