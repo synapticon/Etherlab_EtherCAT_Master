@@ -26,8 +26,9 @@
 #include <linux/hrtimer.h>
 #include <linux/kernel.h>
 #include <linux/pci.h>
+#include "../ecdev.h"
 
-#define DRV_EXTRAVERSION ""
+#define DRV_EXTRAVERSION "-ec"
 #define DRV_VERSION      "0.14" DRV_EXTRAVERSION
 #define DRV_DESCRIPTION  "Beckhoff CCAT Ethernet/EtherCAT Network Driver"
 

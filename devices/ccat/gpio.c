@@ -21,6 +21,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/gpio.h>
+#include <linux/version.h>
 #include "module.h"
 
 /**
@@ -113,7 +114,9 @@ static void ccat_gpio_set(struct gpio_chip *chip, unsigned nr, int val)
 static const struct gpio_chip ccat_gpio_chip = {
 	.label = KBUILD_MODNAME,
 	.owner = THIS_MODULE,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,12,0))
 	.get_direction = ccat_gpio_get_direction,
+#endif
 	.direction_input = ccat_gpio_direction_input,
 	.get = ccat_gpio_get,
 	.direction_output = ccat_gpio_direction_output,

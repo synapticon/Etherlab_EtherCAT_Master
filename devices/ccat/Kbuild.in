@@ -35,10 +35,10 @@ TOPDIR := $(src)/../..
 
 ifeq (@ENABLE_CCAT@,1)
 	EC_CCAT_OBJ := \
-                gpio.o \
+		gpio.o \
 		module.o \
 		netdev.o \
-                sram.o \
+		sram.o \
 		update.o
 	obj-m += ec_ccat.o
 	ec_ccat-objs := $(EC_CCAT_OBJ)

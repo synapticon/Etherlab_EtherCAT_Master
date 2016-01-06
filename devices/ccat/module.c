@@ -22,12 +22,29 @@
 #include <linux/module.h>
 #include <linux/netdevice.h>
 #include <linux/platform_device.h>
+#include <linux/version.h>
 #include "module.h"
 
 MODULE_DESCRIPTION(DRV_DESCRIPTION);
 MODULE_AUTHOR("Patrick Bruenn <p.bruenn@beckhoff.com>");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(DRV_VERSION);
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,12,27))
+/*
+ * Set both the DMA mask and the coherent DMA mask to the same thing.
+ * Note that we don't check the return value from dma_set_coherent_mask()
+ * as the DMA API guarantees that the coherent DMA mask can be set to
+ * the same or smaller than the streaming DMA mask.
+ */
+static inline int dma_set_mask_and_coherent(struct device *dev, u64 mask)
+{
+	int rc = dma_set_mask(dev, mask);
+	if (rc == 0)
+		dma_set_coherent_mask(dev, mask);
+	return rc;
+}
+#endif
 
 /**
  * configure the drivers capabilities here
