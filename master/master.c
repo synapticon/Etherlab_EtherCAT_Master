@@ -2510,7 +2510,7 @@ void ecrt_master_receive(ec_master_t *master)
     // dequeue all datagrams that timed out
     list_for_each_entry_safe(datagram, next, &master->datagram_queue, queue) {
         if (datagram->state != EC_DATAGRAM_SENT) continue;
-
+/*
 #ifdef EC_HAVE_CYCLES
         if (master->devices[EC_DEVICE_MAIN].cycles_poll -
                 datagram->cycles_sent > timeout_cycles) {
@@ -2540,8 +2540,9 @@ void ecrt_master_receive(ec_master_t *master)
                         " index %02X waited %u us.\n",
                         datagram, datagram->index, time_us);
             }
-#endif /* RT_SYSLOG */
+#endif // RT_SYSLOG 
         }
+*/
     }
 }
 
