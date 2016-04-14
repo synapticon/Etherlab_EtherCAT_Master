@@ -211,13 +211,24 @@ int ec_gen_device_create_socket(
         return -ENOMEM;
     }
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 2, 0)) 
     ret = sock_create_kern(PF_PACKET, SOCK_RAW, htons(ETH_P_ETHERCAT),
             &dev->socket);
-    if (ret) {
-        printk(KERN_ERR PFX "Failed to create socket (ret = %i).\n", ret);
-        return ret;
-    }
+#else
+    struct net *nd_net = dev_net(dev->netdev);
 
+    if (!nd_net) {
+        printk(KERN_ERR PFX "Failed to obtain net namespace\n");
+        return -EINVAL;
+    }   
+
+    ret = sock_create_kern(nd_net, PF_PACKET, SOCK_RAW, htons(ETH_P_ETHERCAT),
+            &dev->socket);
+#endif
+    if (ret) {
+      printk(KERN_ERR PFX "Failed to create socket (ret = %i).\n", ret);
+      return ret;
+    }
     printk(KERN_ERR PFX "Binding socket to interface %i (%s).\n",
             desc->ifindex, desc->name);
 
