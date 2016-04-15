@@ -6897,6 +6897,7 @@ static int e1000_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	u16 eeprom_data = 0;
 	u16 eeprom_apme_mask = E1000_EEPROM_APME;
 	s32 rval = 0;
+        const int MAX_NUMVER_OF_CHECKS = 2; // VECTIONEER: Added for debug
 
 	if (ei->flags2 & FLAG2_DISABLE_ASPM_L0S)
 		aspm_disable_flag = PCIE_LINK_STATE_L0S;
@@ -7066,19 +7067,27 @@ static int e1000_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 */
 	adapter->hw.mac.ops.reset_hw(&adapter->hw);
 
-	/* systems with ASPM and others may see the checksum fail on the first
+	/* systems with ASPM    and others may see the checksum fail on the first
 	 * attempt. Let's give it a few tries
 	 */
-	for (i = 0;; i++) {
+        
+	for (i = 0; i <= MAX_NUMVER_OF_CHECKS; i++) {
 		if (e1000_validate_nvm_checksum(&adapter->hw) >= 0)
 			break;
-		if (i == 2) {
-			dev_err(&pdev->dev, "The NVM Checksum Is Not Valid\n");
-			err = -EIO;
-			goto err_eeprom;
-		}
+	//  	if (i == 2) {
+	//    		dev_err(&pdev->dev, "The NVM Checksum Is Not Valid\n");
+	//    		err = -EIO;
+	//    		goto err_eeprom;
+	//  	}
+
 	}
 
+        if (i == MAX_NUMVER_OF_CHECKS) {
+        	dev_err(&pdev->dev, "e1000_validate_nvm_checksum failed with counter: %d\n",i);
+        } else {
+                pr_info("e1000_validate_nvm_checksum passed\n");
+        }
+	
 	e1000_eeprom_checks(adapter);
 
 	/* copy the MAC address */
