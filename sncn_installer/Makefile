@@ -1,0 +1,38 @@
+SHELL := /bin/bash
+ethercatMasterVersion:=1.5.2
+ethercatMasterZip:=ethercat-$(ethercatMasterVersion).tar.bz2
+udevRulesFile:=99-EtherCAT.rules
+ethercatUserGroup:=$(shell whoami)
+
+$(udevRulesFile):
+	@echo "Generating udev rules file"
+	@echo "KERNEL==\"EtherCAT[0-9]*\", MODE=\"0664\", GROUP=\"$(ethercatUserGroup)\"">$(udevRulesFile)
+	
+ethercatMaster: $(udevRulesFile)
+	tar -xvf $(ethercatMasterZip)
+	cd ethercat-$(ethercatMasterVersion);\
+	./configure --disable-8139too;\
+	make all modules;
+
+ethercatMasterInstall: ethercatMaster
+	cd ethercat-$(ethercatMasterVersion);\
+	sudo make modules_install install;\
+	sudo depmod;\
+	sudo mv ../$(udevRulesFile) /etc/udev/rules.d/$(udevRulesFile);\
+	sudo ln -s /opt/etherlab/etc/init.d/ethercat /etc/init.d/ethercat;\
+	sudo mkdir -p /etc/sysconfig/;\
+	sudo cp /opt/etherlab/etc/sysconfig/ethercat /etc/sysconfig/ethercat;\
+	sudo sed -i 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' /etc/sysconfig/ethercat;\
+	sudo ln -s /opt/etherlab/bin/ethercat /usr/bin/ethercat;\
+	interfaces=`ifconfig | grep "eth[0-9]*" -o`;\
+	for i in $$interfaces;do lastInterface=$$i; done;\
+	interfaceMAC=`ifconfig $$lastInterface | grep "[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}" -o`;\
+	sudo sed -i "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"$$interfaceMAC\"/g" /etc/sysconfig/ethercat;\
+	
+ethercatMasterInstallWithAutoStart: ethercatMasterInstall
+	sudo update-rc.d ethercat defaults;\
+	sudo /etc/init.d/ethercat start;
+	
+clean: 
+	@echo Removing compiled installation files
+	@rm -f -r ethercat-$(ethercatMasterVersion) $(udevRulesFile)
