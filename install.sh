@@ -1,6 +1,6 @@
 #!/bin/bash          
 ./bootstrap
-./configure --enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles --enable-e1000e
+./configure --enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles
 sudo /opt/etherlab/etc/init.d/ethercat stop
 make clean
 make all modules
