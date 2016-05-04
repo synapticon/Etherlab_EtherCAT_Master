@@ -1,0 +1,14 @@
+-----------------------------------------------------------------------
+
+This is a additional README to build a Synapticon release
+
+-----------------------------------------------------------------------
+
+To build a synapticon release follow these steps:
+
+   $ ./bootstrap
+   $ ./configure --enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles
+   $ make dist-sncn
+
+This will build the file EtherCAT_Master.zip which includes the release
+tarball and a Makefile to install this tarball on the target machine.
