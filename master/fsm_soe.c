@@ -609,7 +609,6 @@ void ec_fsm_soe_write_request(
         )
 {
 
-    ec_soe_request_t *req = fsm->request;
     ec_slave_t *slave = fsm->slave;
     unsigned long diff_ms;
 
