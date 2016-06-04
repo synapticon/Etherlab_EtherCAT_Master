@@ -205,6 +205,9 @@ int ec_gen_device_create_socket(
 {
     int ret;
     struct sockaddr_ll sa;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0))
+    struct net *nd_net;
+#endif
 
     dev->rx_buf = kmalloc(EC_GEN_RX_BUF_SIZE, GFP_KERNEL);
     if (!dev->rx_buf) {
@@ -215,7 +218,7 @@ int ec_gen_device_create_socket(
     ret = sock_create_kern(PF_PACKET, SOCK_RAW, htons(ETH_P_ETHERCAT),
             &dev->socket);
 #else
-    struct net *nd_net = dev_net(dev->netdev);
+    nd_net = dev_net(dev->netdev);
 
     if (!nd_net) {
         printk(KERN_ERR PFX "Failed to obtain net namespace\n");
