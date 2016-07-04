@@ -32,7 +32,10 @@ SUBDIRS = \
 	e1000 \
 	e1000e
 
-DIST_SUBDIRS = 
+DIST_SUBDIRS = \
+	ccat \
+	e1000 \
+	e1000e
 
 # using HEADERS to enable tags target
 noinst_HEADERS = \

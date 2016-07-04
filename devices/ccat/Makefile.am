@@ -28,12 +28,7 @@
 #------------------------------------------------------------------------------
 
 EXTRA_DIST = \
-	Kbuild.in \
-	gpio.h \
-	module.h \
-	netdev.h \
-	sram.h \
-	update.h
+	Kbuild.in
 
 BUILT_SOURCES = \
 	Kbuild
