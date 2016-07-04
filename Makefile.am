@@ -100,7 +100,7 @@ dist-hook:
 	fi
 
 dist-sncn: dist
-	@mv $(distdir).tar.gz sncn_installer
+	@mv $(distdir).tar.bz2 sncn_installer
 	@zip -r EtherCAT_Master.zip sncn_installer
 	@echo "Finished with Synapticon installer archive: $(distdir).zip"
 
