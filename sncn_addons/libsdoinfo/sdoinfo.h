@@ -10,6 +10,10 @@
 #ifndef SDOINFO_H
 #define SDOINFO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <ecrt.h>
 #include <stdint.h>
 
@@ -37,5 +41,9 @@ struct _sdo_entry {
 int sdoinfo_get_sdo(ec_master_t *master, struct _sdo_info *sdo, uint16_t slave_pos, uint16_t sdo_position);
 
 int sdoinfo_get_entry(ec_master_t *master, struct _sdo_entry *entry, uint16_t slave_pos, int index, uint8_t subindex);
+
+#ifdef __cplusplus__
+}
+#endif
 
 #endif /* SDOINFO_H */
