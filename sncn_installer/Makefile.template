@@ -24,7 +24,7 @@ ethercatMasterInstall: ethercatMaster
 	sudo cp /opt/etherlab/etc/sysconfig/ethercat /etc/sysconfig/ethercat;\
 	sudo sed -i 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' /etc/sysconfig/ethercat;\
 	sudo ln -s /opt/etherlab/bin/ethercat /usr/bin/ethercat;\
-	interfaces=`ifconfig | grep -e "^e[tn][a-z0-9]*[0-9]" -o`;\
+	interfaces=`ifconfig | grep -e "^e[tn][a-z0-9]*" -o`;\
 	for i in $$interfaces;do lastInterface=$$i; done;\
 	interfaceMAC=`ifconfig $$lastInterface | grep "[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}:[0-9A-Fa-f]\{2\}" -o`;\
 	sudo sed -i "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"$$interfaceMAC\"/g" /etc/sysconfig/ethercat;\
