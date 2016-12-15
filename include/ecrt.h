@@ -225,6 +225,10 @@
  */
 #define EC_COE_EMERGENCY_MSG_SIZE 8
 
+/** Size of SDO access rights field
+ */
+#define EC_SDO_ENTRY_ACCESS_COUNTER   3
+
 /******************************************************************************
  * Data types
  *****************************************************************************/
@@ -531,6 +535,30 @@ typedef enum {
     EC_AL_STATE_SAFEOP = 4, /**< Safe-operational. */
     EC_AL_STATE_OP = 8, /**< Operational. */
 } ec_al_state_t;
+
+/*****************************************************************************/
+
+/** Application layer SDO info  structure
+ */
+typedef struct {
+    uint16_t index;
+    uint8_t  maxindex;
+    char     name[EC_MAX_STRING_LENGTH];
+} ec_sdo_info_t;
+
+/*****************************************************************************/
+
+/** Application layer SDO info entry structure
+ */
+typedef struct {
+    uint16_t data_type;
+    uint16_t bit_length;
+    uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+    uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+    char     description[EC_MAX_STRING_LENGTH];
+} ec_sdo_info_entry_t;
+
+/*****************************************************************************/
 
 /******************************************************************************
  * Global functions
@@ -857,6 +885,35 @@ int ecrt_master_sdo_upload(
         size_t target_size, /**< Size of the target buffer. */
         size_t *result_size, /**< Uploaded data size. */
         uint32_t *abort_code /**< Abort code of the SDO upload. */
+        );
+
+/** Executes a SDO Info request
+ *
+ * With this request the entries of the slaves object dicionty can be read.
+ *
+ * \retval  0 Success
+ * \retval <0 On Error
+ */
+int ecrt_sdo_info_get(
+        ec_master_t *master,     /**< EtherCAT master */
+        uint16_t slave_position, /**< Slave position */
+        uint16_t sdo_position,   /**< SDO position within the dictionary */
+        ec_sdo_info_t *sdo       /**< Pointer to output structure */
+        );
+
+/** Executes a SDO Info Entry request
+ *
+ * With this request a entry of the slaves object dicionty is requested.
+ *
+ * \retval  0 Success
+ * \retval <0 On Error
+ */
+int ecrt_sdo_get_info_entry(
+        ec_master_t *master,        /**< EtherCAT master */
+        uint16_t slave_position,    /**< Slave position */
+        uint16_t index,             /**< Index of the element to request */
+        uint8_t subindex,           /**< Subindex of the element to request */
+        ec_sdo_info_entry_t *entry  /**< Pointer to output structure */
         );
 
 /** Executes an SoE write request.
