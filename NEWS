@@ -6,6 +6,14 @@ vim: spelllang=en spell tw=78
 
 -------------------------------------------------------------------------------
 
+Changes since 1.5.2-sncn-2:
+
+* Ethercat library
+    * Add SDO Info access to libethercat
+
+* Infrastructure:
+    * Fix interface name parsing
+
 Changes since 1.5.2:
 
 * Fixed FoE timeout calculation bug.
