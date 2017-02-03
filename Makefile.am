@@ -101,6 +101,7 @@ dist-hook:
 
 dist-sncn: dist
 	@cp sncn_installer/Makefile.template sncn_installer/Makefile
+	@sed -i 's/%VERSION%/$(VERSION)/' sncn_installer/Makefile
 	@mv $(distdir).tar.bz2 sncn_installer
 	@zip EtherCAT_Master-$(VERSION).zip sncn_installer/$(distdir).tar.bz2 sncn_installer/Makefile
 	@echo "Finished with Synapticon installer archive: $(distdir).zip"

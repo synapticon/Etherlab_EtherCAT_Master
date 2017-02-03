@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-ethercatMasterVersion:=1.5.2
+ethercatMasterVersion:=%VERSION%
 ethercatMasterZip:=ethercat-$(ethercatMasterVersion).tar.bz2
 udevRulesFile:=99-EtherCAT.rules
 ethercatUserGroup:=$(shell whoami)
