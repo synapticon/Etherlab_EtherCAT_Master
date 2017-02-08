@@ -194,6 +194,7 @@ int ecrt_sdo_info_get(ec_master_t *master, uint16_t slave_pos, uint16_t sdo_posi
 
     sdo->index = s.sdo_index;
     sdo->maxindex = s.max_subindex;
+    sdo->object_code = s.object_code;
     memmove(sdo->name, s.name, EC_IOCTL_STRING_SIZE);
 
     return 0;

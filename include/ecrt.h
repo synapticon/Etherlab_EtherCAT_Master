@@ -543,6 +543,7 @@ typedef enum {
 typedef struct {
     uint16_t index;
     uint8_t  maxindex;
+    uint8_t  object_code;
     char     name[EC_MAX_STRING_LENGTH];
 } ec_sdo_info_t;
 

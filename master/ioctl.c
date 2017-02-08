@@ -703,6 +703,7 @@ static ATTRIBUTES int ec_ioctl_slave_sdo(
 
     data.sdo_index = sdo->index;
     data.max_subindex = sdo->max_subindex;
+    data.object_code = sdo->object_code;
     ec_ioctl_strcpy(data.name, sdo->name);
 
     up(&master->master_sem);
