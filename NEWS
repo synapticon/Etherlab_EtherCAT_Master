@@ -6,6 +6,16 @@ vim: spelllang=en spell tw=78
 
 -------------------------------------------------------------------------------
 
+Changes since 1.5.2-sncn-3:
+* Ethercat wrapper library
+    * Add and integrate into build process
+
+* Ethercat library
+    * Add object code to SDO information object
+
+* Ethernet drivers
+    * Fix e1000e update script
+
 Changes since 1.5.2-sncn-2:
 
 * Ethercat library
