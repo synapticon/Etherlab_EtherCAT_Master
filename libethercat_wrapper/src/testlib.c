@@ -377,22 +377,22 @@ int main(int argc, char **argv)
         return 1;
     }
 
-#ifdef DEBUG_APP
-    printf("\nPrint bus topology\n");
-    ecw_print_topology(master);
-    printf("\nprint domain registries\n");
-    ecw_print_domainregs(master);
-    printf("\nPrint all slaves object dictionary\n");
-    ecw_print_allslave_od(master);
+    if (g_dbglvl >= 3) {
+        printf("\nPrint bus topology\n");
+        ecw_print_topology(master);
+        printf("\nprint domain registries\n");
+        ecw_print_domainregs(master);
+        printf("\nPrint all slaves object dictionary\n");
+        ecw_print_allslave_od(master);
 
-    /* master information */
-    get_master_information(master);
-    for (int i = 0; i < ecw_master_slave_count(master); i++) {
-        get_slave_information(master, i);
+        /* master information */
+        get_master_information(master);
+        for (int i = 0; i < ecw_master_slave_count(master); i++) {
+            get_slave_information(master, i);
+        }
+
+        read_object_dictionary(master);
     }
-
-    read_object_dictionary(master);
-#endif /* DEBUG_APP */
 
     /*
      * Activate master and start operation
