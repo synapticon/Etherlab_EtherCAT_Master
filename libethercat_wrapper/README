@@ -1,0 +1,10 @@
+This library allows easy access to a ethercat network provided by the IgH
+EtherCAT master. The nodes are scanned during initialisation and the necessary
+PDO configuration is done automatically with the information from the slaves
+itself.
+
+Additionaly functions for easy access to the object dictionary and the
+contained objects are provided.
+
+
+2017, Synapticon GmbH
