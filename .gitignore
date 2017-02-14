@@ -149,3 +149,8 @@ tool/Makefile
 tool/Makefile.in
 tool/TAGS
 tool/ethercat
+libethercat_wrapper/.libs
+libethercat_wrapper/src/.deps
+libethercat_wrapper/libethercat_wrapper.la
+libethercat_wrapper/llecat.log
+libethercat_wrapper/testlib
