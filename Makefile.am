@@ -44,6 +44,7 @@ endif
 
 if ENABLE_USERLIB
 SUBDIRS += lib
+SUBDIRS += libethercat_wrapper
 endif
 
 if ENABLE_TTY
@@ -62,7 +63,8 @@ DIST_SUBDIRS = \
 	master \
 	script \
 	tool \
-	tty
+	tty \
+	libethercat_wrapper
 
 noinst_HEADERS = \
 	globals.h

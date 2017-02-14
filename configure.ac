@@ -47,6 +47,10 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_MACRO_DIR([m4])
 
+# get separate version of libethercat_wrapper
+LIBETHERCAT_WRAPPER_VERSION=`cat libethercat_wrapper/Version`
+AC_SUBST(LIBETHERCAT_WRAPPER_VERSION)
+
 #------------------------------------------------------------------------------
 # Global
 #------------------------------------------------------------------------------
@@ -909,6 +913,36 @@ fi
 AM_CONDITIONAL(ENABLE_USERLIB, test "x$userlib" = "x1")
 
 #------------------------------------------------------------------------------
+# Generate ethercat wrapper library
+#------------------------------------------------------------------------------
+
+AC_MSG_CHECKING([whether to build the ethercat wrapper library])
+
+AC_ARG_ENABLE([ethercat_wrapper],
+    AS_HELP_STRING([--enable-libethercat_wrapper],
+                   [Generation of the ethercat wrapper library (default: yes)]),
+    [
+        case "${enableval}" in
+            yes) ethercat_wrapper=1
+                ;;
+            no) ethercat_wrapper=0
+                ;;
+            *) AC_MSG_ERROR([Invalid value for --enable-libethercat_wrapper])
+                ;;
+        esac
+    ],
+    [ethercat_wrapper=1]
+)
+
+if test "x${ethercat_wrapper}" = "x1"; then
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+
+AM_CONDITIONAL(ENABLE_USERLIB, test "x$ethercat_wrapper" = "x1")
+
+#------------------------------------------------------------------------------
 # TTY driver
 #------------------------------------------------------------------------------
 
@@ -1121,6 +1155,7 @@ AC_CONFIG_FILES([
         examples/xenomai_posix/Makefile
         include/Makefile
         lib/Makefile
+        libethercat_wrapper/Makefile
         m4/Makefile
         master/Kbuild
         master/Makefile
