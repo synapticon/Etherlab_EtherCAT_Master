@@ -49,7 +49,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <curses.h> // required
 #include <sys/mman.h>
 #include <time.h>
 
