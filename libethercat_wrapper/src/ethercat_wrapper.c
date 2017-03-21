@@ -456,12 +456,6 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     }
     domain_reg_cur = (ec_pdo_entry_reg_t *){ 0 };
 
-    if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
-        fprintf(g_outstream, "ERROR cannot register PDO domain\n");
-        /* FIXME clean up if return NULL */
-        return NULL;
-    }
-
     update_master_state(master);
     update_all_slave_state(master);
 
@@ -480,6 +474,11 @@ void ecw_master_release(Ethercat_Master_t *master)
 
 int ecw_master_start(Ethercat_Master_t *master)
 {
+    if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
+        fprintf(g_outstream, "ERROR cannot register PDO domain\n");
+        return -1;
+    }
+
     if (master->master == NULL || master->domain == NULL) {
         fprintf(g_outstream, "Error, master not fully configured!\n");
         return -1;
