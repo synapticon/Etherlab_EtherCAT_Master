@@ -116,6 +116,16 @@ int ecw_master_send_pdo(Ethercat_Master_t *master);
 Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid);
 
 /**
+ * \brief Request AL state from slave
+ *
+ * \param master   master to request
+ * \param slaveid  id of the slave
+ * \param state    state to request slave to enter
+ * \return  0 on success, negative on error
+ */
+int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, int state);
+
+/**
  * \brief Request the number of slaves the master has read
  *
  * \param master   master to request

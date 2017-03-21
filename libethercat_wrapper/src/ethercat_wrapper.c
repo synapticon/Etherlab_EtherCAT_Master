@@ -715,6 +715,11 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid)
     return (master->slave + slaveid);
 }
 
+int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, int state)
+{
+    return ecrt_master_slave_link_state_request(master->master, slaveid, (uint8_t)state );
+}
+
 /*
  * State updatei functions
  */

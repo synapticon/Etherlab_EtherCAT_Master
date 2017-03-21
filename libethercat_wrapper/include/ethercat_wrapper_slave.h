@@ -73,8 +73,9 @@ enum eObjectType {
  * this is not a problem.
  */
 enum eALState {
-    ALSTATE_INIT
+    ALSTATE_INIT = 1
     ,ALSTATE_PREOP
+    ,ALSTATE_BOOT
     ,ALSTATE_SAFEOP
     ,ALSTATE_OP
 };

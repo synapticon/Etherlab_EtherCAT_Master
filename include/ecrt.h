@@ -1070,6 +1070,18 @@ int ecrt_master_link_state(
                                        */
         );
 
+/** Set individual slave to state
+ *
+ * Request slave state during operation.
+ *
+ * \return Zero on success, otherwise negative error code
+ */
+int ecrt_master_slave_link_state_request(
+        const ec_master_t *master, /**< EtherCAT master */
+         uint16_t slave_position,  /**< slave position of slave to request */
+         uint8_t state             /**< State to request slave to go into */
+        );
+
 /** Sets the application time.
  *
  * The master has to know the application's time when operating slaves with

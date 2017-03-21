@@ -668,6 +668,21 @@ int ecrt_master_link_state(const ec_master_t *master, unsigned int dev_idx,
     return 0;
 }
 
+int ecrt_master_slave_link_state_request(const ec_master_t *master, uint16_t slave_position, uint8_t state)
+{
+    ec_ioctl_slave_state_t data;
+    data.slave_position = slave_position;
+    data.al_state = state;
+
+    int ret = ioctl(master->fd, EC_IOCTL_SLAVE_STATE, &data);
+    if (EC_IOCTL_IS_ERROR(ret)) {
+        fprintf(stderr, "Failed to request slave state: %d", state);
+        return -EC_IOCTL_ERRNO(ret);
+    }
+
+    return 0;
+}
+
 /****************************************************************************/
 
 void ecrt_master_application_time(ec_master_t *master, uint64_t app_time)
