@@ -9,6 +9,7 @@
 #ifndef ETHERCAT_WRAPPER_H
 #define ETHERCAT_WRAPPER_H
 
+#include <ethercat_wrapper_slave.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -123,7 +124,7 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid);
  * \param state    state to request slave to enter
  * \return  0 on success, negative on error
  */
-int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, int state);
+int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, enum eALState state);
 
 /**
  * \brief Request the number of slaves the master has read

@@ -715,9 +715,18 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid)
     return (master->slave + slaveid);
 }
 
-int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, int state)
+int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, enum eALState state)
 {
-    return ecrt_master_slave_link_state_request(master->master, slaveid, (uint8_t)state );
+    uint8_t int_state = ALSTATE_INIT;
+    switch (state) {
+    case ALSTATE_INIT:  int_state = 1; break;
+    case ALSTATE_PREOP:  int_state = 2; break;
+    case ALSTATE_BOOT:  int_state = 3; break;
+    case ALSTATE_SAFEOP:  int_state = 4; break;
+    case ALSTATE_OP:  int_state = 8; break;
+    }
+
+    return ecrt_master_slave_link_state_request(master->master, slaveid, state);
 }
 
 /*
