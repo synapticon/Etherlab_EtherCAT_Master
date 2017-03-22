@@ -100,6 +100,26 @@ enum eValueType get_type_from_bitlength(int bit_length)
     return type;
 }
 
+static int setup_sdo_request(Ethercat_Slave_t *slave)
+{
+    for (size_t sdoindex = 0; sdoindex < slave->sdo_count; sdoindex++) {
+        Sdo_t *sdo = slave->dictionary + sdoindex;
+
+        sdo->request = ecrt_slave_config_create_sdo_request(slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
+
+        if (sdo->request == NULL) {
+            fprintf(g_outstream, "Warning, could not create sdo request for cyclic operation!\n");
+            return -1;
+        } else {
+            ecrt_sdo_request_timeout(sdo->request, SDO_REQUEST_TIMEOUT);
+            sdo->request_state = ecrt_sdo_request_state(sdo->request);
+            sdo->read_request = 0;
+        }
+    }
+
+    return 0;
+}
+
 /*
  * populate the fields:
  * master->slave[*]->[rt]xpdo
@@ -228,15 +248,9 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             memmove(sdo->read_access, entry.read_access, EC_SDO_ENTRY_ACCESS_COUNTER);
             memmove(sdo->write_access, entry.write_access, EC_SDO_ENTRY_ACCESS_COUNTER);
 
-            sdo->request    = ecrt_slave_config_create_sdo_request(slave->config,
-                                            sdo->index, sdo->subindex, (sdo->bit_length / 8));
-            if (sdo->request == NULL) {
-                fprintf(g_outstream, "Warning, could not create sdo request for cyclic operation!\n");
-            } else {
-                ecrt_sdo_request_timeout(sdo->request, SDO_REQUEST_TIMEOUT);
-                sdo->request_state = ecrt_sdo_request_state(sdo->request);
-                sdo->read_request = 0;
-            }
+            /* SDO requests are uploaded at master_start(), they are only
+             * needed when master and slave are in reql time context. */
+            sdo->request = NULL;
 
             if (slave_sdo_upload(slave, sdo) != 0) {
                 fprintf(g_outstream, "Warning, upload of SDO 0x%04x:%d failed\n", sdo->index, sdo->subindex);
@@ -480,6 +494,11 @@ int ecw_master_start(Ethercat_Master_t *master)
         slave->config = ecrt_master_slave_config(master->master, slave->alias, slave->info->position, slave->info->vendor_id, slave->info->product_code);
         if (slave->config == NULL) {
             fprintf(g_outstream, "Error slave (id: %lu) configuration failed.\n", slaveid);
+            return -1;
+        }
+
+        if (setup_sdo_request(slave)) {
+            fprintf(g_outstream, "Error could not setup SDO requests for slave id %lu\n", slaveid);
             return -1;
         }
     }
