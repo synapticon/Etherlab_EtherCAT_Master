@@ -369,11 +369,6 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
         return NULL;
     }
 
-    master->domain = ecrt_master_create_domain(master->master);
-    if (master->domain == NULL) {
-        return NULL;
-    }
-
     /* configure slaves */
     master->info = calloc(1, sizeof(ec_master_info_t));
 
@@ -474,13 +469,29 @@ void ecw_master_release(Ethercat_Master_t *master)
 
 int ecw_master_start(Ethercat_Master_t *master)
 {
-    if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
-        fprintf(g_outstream, "ERROR cannot register PDO domain\n");
+    if (master->master == NULL) {
+        fprintf(g_outstream, "Error, master not configured!\n");
         return -1;
     }
 
-    if (master->master == NULL || master->domain == NULL) {
-        fprintf(g_outstream, "Error, master not fully configured!\n");
+    /* Slave configuration for the master */
+    for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
+        Ethercat_Slave_t *slave = master->slave + slaveid;
+        slave->config = ecrt_master_slave_config(master->master, slave->alias, slave->info->position, slave->info->vendor_id, slave->info->product_code);
+        if (slave->config == NULL) {
+            fprintf(g_outstream, "Error slave (id: %lu) configuration failed.\n", slaveid);
+            return -1;
+        }
+    }
+
+    /* create the domain registry */
+    master->domain = ecrt_master_create_domain(master->master);
+    if (master->domain == NULL) {
+        return -1;
+    }
+
+    if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
+        fprintf(g_outstream, "Error cannot register PDO domain\n");
         return -1;
     }
 
