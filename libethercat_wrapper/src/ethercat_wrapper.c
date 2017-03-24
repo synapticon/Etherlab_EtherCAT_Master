@@ -74,7 +74,7 @@ enum eValueType get_type_from_bitlength(int bit_length)
     enum eValueType type = VALUE_TYPE_NONE;
 
     if (bit_length != 1 && bit_length % 2 != 0) {
-        fprintf(g_outstream, "Error only supports even bit length data types\n");
+        fprintf(g_outstream, "Warning mapping is either padding or wrong!\n");
         return type;
     }
 
@@ -664,9 +664,11 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
                 pdo->value = EC_READ_S32(master->processdata + pdo->offset);
                 break;
 
+            case VALUE_TYPE_PADDING:
             case VALUE_TYPE_NONE:
             default:
-                fprintf(g_outstream, "Warning, unknown value type(%d). No RxPDO update\n", pdo->type);
+                //fprintf(g_outstream, "Warning, unknown value type(%d). No RxPDO update\n", pdo->type);
+                pdo->value = 0;
                 break;
             }
 
@@ -709,9 +711,10 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
                 EC_WRITE_S32(master->processdata + value->offset, value->value);
                 break;
 
+            case VALUE_TYPE_PADDING:
             case VALUE_TYPE_NONE:
             default:
-                fprintf(g_outstream, "Warning, unknown value type(%d). No TxPDO update\n", slave->type);
+                //fprintf(g_outstream, "Warning, unknown value type(%d). No TxPDO update\n", value->type);
                 break;
             }
         }

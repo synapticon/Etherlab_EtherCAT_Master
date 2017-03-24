@@ -50,6 +50,7 @@ enum eValueType {
     ,VALUE_TYPE_SIGNED8
     ,VALUE_TYPE_SIGNED16
     ,VALUE_TYPE_SIGNED32
+    ,VALUE_TYPE_PADDING    /* special type for gaps in PDO mapping for byte alignment */
 };
 
 /**
