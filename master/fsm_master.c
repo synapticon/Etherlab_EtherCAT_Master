@@ -288,6 +288,7 @@ void ec_fsm_master_state_broadcast(
                 "link down on %s device. Clearing slave list.\n",
                 ec_device_names[fsm->dev_idx != 0]);
 
+        ec_master_slaves_not_available(master);
 #ifdef EC_EOE
         ec_master_eoe_stop(master);
         ec_master_clear_eoe_handlers(master);
@@ -347,6 +348,7 @@ void ec_fsm_master_state_broadcast(
             fsm->idle = 0;
             fsm->scan_jiffies = jiffies;
 
+            ec_master_slaves_not_available(master);
 #ifdef EC_EOE
             ec_master_eoe_stop(master);
             ec_master_clear_eoe_handlers(master);
@@ -405,6 +407,7 @@ void ec_fsm_master_state_broadcast(
             master->slave_count = count;
             master->fsm_slave = master->slaves;
 
+            ec_master_slaves_available(master);
             ec_fsm_master_enter_dc_read_old_times(fsm);
             return;
         }
