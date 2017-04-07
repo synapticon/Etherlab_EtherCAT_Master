@@ -20,7 +20,7 @@
  * This function originates from the gist:
  * https://gist.github.com/diabloneo/9619917:w
  */
-void timespec_diff(struct timespec *start,
+inline void timespec_diff(struct timespec *start,
 		   struct timespec *stop,
 		   struct timespec *result)
 {
@@ -45,7 +45,7 @@ void timespec_diff(struct timespec *start,
  * @return the new mean value
  */
 
-double calc_mean(double mean, double current, size_t count)
+inline double calc_mean(double mean, double current, size_t count)
 {
 	double K = 1.0 / (count + 1);
 	return (mean + K * (current - mean));
