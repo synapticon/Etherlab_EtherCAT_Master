@@ -243,6 +243,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             sdo->entry_type = entry.data_type;
             sdo->object_type = sdoi.object_code;
             sdo->bit_length = entry.bit_length;
+            sdo->value      = 0;
 
             memmove(sdo->name, entry.description, EC_MAX_STRING_LENGTH);
             memmove(sdo->read_access, entry.read_access, EC_SDO_ENTRY_ACCESS_COUNTER);
@@ -251,10 +252,6 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             /* SDO requests are uploaded at master_start(), they are only
              * needed when master and slave are in reql time context. */
             sdo->request = NULL;
-
-            if (slave_sdo_upload(slave, sdo) != 0) {
-                fprintf(g_outstream, "Warning, upload of SDO 0x%04x:%d failed\n", sdo->index, sdo->subindex);
-            }
         }
     }
 
