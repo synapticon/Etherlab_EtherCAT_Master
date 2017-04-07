@@ -134,6 +134,18 @@ static void setup_signal_handler(struct sigaction *sa)
     }
 }
 
+static void stop_timer(struct itimerval *tv)
+{
+    tv->it_interval.tv_sec = 0;
+    tv->it_interval.tv_usec = 0;
+    tv->it_value.tv_sec = 0;
+    tv->it_value.tv_usec = 0;
+    if (setitimer(ITIMER_REAL, tv, NULL)) {
+        fprintf(stderr, "Failed to start timer: %s\n", strerror(errno));
+        exit(-1);
+    }
+}
+
 static void setup_timer(struct itimerval *tv)
 {
     /* setup timer */
