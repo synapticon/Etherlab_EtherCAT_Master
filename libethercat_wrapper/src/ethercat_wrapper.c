@@ -734,6 +734,7 @@ size_t ecw_master_slave_count(Ethercat_Master_t *master)
 
 size_t ecw_master_slave_responding(Ethercat_Master_t *master)
 {
+    update_master_state(master);
     return master->master_state.slaves_responding;
 }
 

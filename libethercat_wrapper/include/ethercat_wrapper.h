@@ -137,10 +137,6 @@ size_t ecw_master_slave_count(Ethercat_Master_t *);
 /**
  * \brief Request the number of slaves responding on the bus
  *
- * The number of slaves responding is not necessary the same as the slave
- * count. While the number of slaves is read during initialization phase
- * the slave responding is updated during the cyclic operation.
- *
  * If anything happens on the bus and a slave fails this count will
  * indicate the problem and the using instance can apply proper handling
  * of the situation.
