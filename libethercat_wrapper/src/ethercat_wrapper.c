@@ -740,8 +740,9 @@ size_t ecw_master_slave_responding(Ethercat_Master_t *master)
 
 Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid)
 {
-    if (slaveid <= 0 && slaveid > master->slave_count)
+    if (slaveid < 0 || slaveid >= master->slave_count) {
         return NULL;
+    }
 
     return (master->slave + slaveid);
 }
