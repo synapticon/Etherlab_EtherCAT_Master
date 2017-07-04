@@ -424,12 +424,55 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
             pdo_t *values = NULL;
 
-            if (sm->dir == EC_DIR_OUTPUT) {
-                values = slave->output_values;
-            } else if (sm->dir == EC_DIR_INPUT) {
+            if (sm->dir == EC_DIR_INPUT) {
                 values = slave->input_values;
             } else {
-                fprintf(g_outstream, "ERROR could not determine direction\n");
+                fprintf(g_outstream, "... skip wrong direction\n");
+                continue; /* skip this configuration - FIXME better error handling? */
+            }
+
+            size_t valcount = 0;
+
+            for (int m = 0; m < sm->n_pdos; m++) {
+                ec_pdo_info_t *pdos = sm->pdos + m;
+
+                for (int n = 0; n < pdos->n_entries; n++) {
+                    ec_pdo_entry_info_t *entry = pdos->entries + n;
+
+                    pdo_t *pdoe = (values + valcount);
+                    valcount++;
+
+                    pdoe->type = get_type_from_bitlength(entry->bit_length);
+                    /* FIXME Add proper error handling if VALUE_TYPE_NONE is returnd */
+
+                    domain_reg_cur->alias        = slave->info->alias;
+                    domain_reg_cur->position     = slave->info->position;
+                    domain_reg_cur->vendor_id    = slave->info->vendor_id;
+                    domain_reg_cur->product_code = slave->info->product_code;
+                    domain_reg_cur->index        = entry->index;
+                    domain_reg_cur->subindex     = entry->subindex;
+                    domain_reg_cur->offset       = &(pdoe->offset);
+                    domain_reg_cur->bit_position = &(pdoe->bit_offset);
+                    domain_reg_cur++;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < master->slave_count; i++) {
+        Ethercat_Slave_t *slave = master->slave + i;
+        for (int j = 0; j < slave->info->sync_count; j++) {
+            ec_sync_info_t *sm = slave->sminfo + j;
+            if (0 == sm->n_pdos) { /* if no pdos for this syncmanager proceed to the next one */
+                continue;
+            }
+
+            pdo_t *values = NULL;
+
+            if (sm->dir == EC_DIR_OUTPUT) {
+                values = slave->output_values;
+            } else {
+                fprintf(g_outstream, "... skip wrong direction\n");
                 continue; /* skip this configuration - FIXME better error handling? */
             }
 
