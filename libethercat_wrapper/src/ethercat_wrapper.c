@@ -56,7 +56,6 @@ static FILE *g_outstream = NULL;
 static void update_domain_state(Ethercat_Master_t *master);
 static void update_master_state(Ethercat_Master_t *master);
 static void update_all_slave_state(Ethercat_Master_t *master);
-static void update_sdo_requests(Ethercat_Master_t *master);
 
 
 const char *ecw_master_get_version(void)
@@ -416,6 +415,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
     for (int i = 0; i < master->slave_count; i++) {
         Ethercat_Slave_t *slave = master->slave + i;
+        slave->cyclic_mode = 0; // mark slaves as not in cyclic mode
         for (int j = 0; j < slave->info->sync_count; j++) {
             ec_sync_info_t *sm = slave->sminfo + j;
             if (0 == sm->n_pdos) { /* if no pdos for this syncmanager proceed to the next one */
@@ -531,6 +531,7 @@ int ecw_master_start(Ethercat_Master_t *master)
     /* Slave configuration for the master */
     for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
         Ethercat_Slave_t *slave = master->slave + slaveid;
+        slave->cyclic_mode = 1; // mark slaves as in cyclic mode
         slave->config = ecrt_master_slave_config(master->master, slave->alias, slave->info->position, slave->info->vendor_id, slave->info->product_code);
         if (slave->config == NULL) {
             fprintf(g_outstream, "Error slave (id: %lu) configuration failed.\n", slaveid);
@@ -595,6 +596,12 @@ int ecw_master_stop(Ethercat_Master_t *master)
      * ecrt_slave_config_create_voe_handler() are freed, so pointers to them
      * become invalid.
      */
+     
+    /* mark slaves as not in cyclic mode */
+    for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
+        Ethercat_Slave_t *slave = master->slave + slaveid;
+        slave->cyclic_mode = 0;
+    }
 
     return 0;
 }
@@ -646,8 +653,6 @@ int ecw_master_cyclic_function(Ethercat_Master_t *master)
     update_domain_state(master);
     update_master_state(master);
     update_all_slave_state(master);
-
-    update_sdo_requests(master);
 
     ecw_master_send_pdo(master);
 
@@ -841,22 +846,5 @@ static void update_all_slave_state(Ethercat_Master_t *master)
     for (int i = 0; i < master->slave_count; i++) {
         Ethercat_Slave_t *slave = master->slave + i;
         ecrt_slave_config_state(slave->config, &(slave->state));
-    }
-}
-
-static void update_sdo_requests(Ethercat_Master_t *master)
-{
-    for (int i = 0; i < master->slave_count; i++) {
-        Ethercat_Slave_t *slave = master->slave + i;
-        for (int j = 0; j < slave->sdo_count; j++) {
-            Sdo_t *sdo = slave->dictionary + j;
-            sdo->request_state = ecrt_sdo_request_state(sdo->request);
-            /* I have to update the value here, because the scheduled sdo
-             * request can not be finisehd wihtin the normal operation. */
-            if (sdo->read_request) {
-                sdo->read_request = 0;
-                sdo_read_value(sdo);
-            }
-        }
     }
 }

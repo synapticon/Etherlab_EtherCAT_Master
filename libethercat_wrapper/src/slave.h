@@ -13,6 +13,7 @@
 struct _ecw_slave_t {
     int alias; /* redundant, also in ec_slave_info_t */
     enum eSlaveType type; /* type is determined by the vendor/product numbers */
+    int cyclic_mode;      /* to mark when in cyclic mode */
 
     /* Information structures from libethercat */
     ec_slave_info_t          *info;
