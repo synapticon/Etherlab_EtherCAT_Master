@@ -56,7 +56,7 @@ static void sdo_write_value(Sdo_t *sdo)
 
 static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-    int ret = -1;
+    int ret = -4;
 
     sdo->request_state = ecrt_sdo_request_state(sdo->request);
     switch (sdo->request_state) {
@@ -95,7 +95,7 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 
 static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-    int ret = -1;
+    int ret = -4;
 
     sdo->request_state = ecrt_sdo_request_state(sdo->request);
     switch (sdo->request_state) {
@@ -170,7 +170,7 @@ int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
     ec_master_state_t link_state;
     ecrt_master_state(s->master, &link_state);
     if (link_state.link_up != 1) {
-        return -1;
+        return -2;
     }
 
     if (s->cyclic_mode || link_state.al_states&0x8) {
@@ -185,7 +185,7 @@ int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo)
     ec_master_state_t link_state;
     ecrt_master_state(s->master, &link_state);
     if (link_state.link_up != 1) {
-        return -1;
+        return -2;
     }
 
 
@@ -342,7 +342,7 @@ int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int va
         }
     }
 
-    return -1; /* not found */
+    return -3; /* not found */
 }
 
 int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int *value)
@@ -357,7 +357,7 @@ int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int *v
     }
 
     if (sdo == NULL) {
-        return -1; /* Not found */
+        return -3; /* Not found */
     }
 
     int err = slave_sdo_upload(s, sdo);

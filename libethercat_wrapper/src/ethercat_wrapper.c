@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <syslog.h>
 
 #define SDO_REQUEST_TIMEOUT     500  /* ms taken from etherlab example */
 
@@ -22,6 +23,8 @@
 #define STR(a)       #a
 
 const char *g_version = "v" XSTR(VERSIONING);
+
+#define LIBETHERCAT_WRAPPER_SYSLOG "libethercat_wrapper"
 
 #if 0 /* draft */
 struct _pdo_memory {
@@ -51,8 +54,6 @@ struct _ecw_master_t {
     ec_domain_state_t domain_state;
 };
 
-static FILE *g_outstream = NULL;
-
 static void update_domain_state(Ethercat_Master_t *master);
 static void update_master_state(Ethercat_Master_t *master);
 static void update_all_slave_state(Ethercat_Master_t *master);
@@ -73,7 +74,7 @@ enum eValueType get_type_from_bitlength(int bit_length)
     enum eValueType type = VALUE_TYPE_NONE;
 
     if (bit_length != 1 && bit_length % 2 != 0) {
-        fprintf(g_outstream, "Warning mapping is either padding or wrong!\n");
+        syslog(LOG_WARNING, "Warning mapping is either padding or wrong!");
         return type;
     }
 
@@ -92,7 +93,7 @@ enum eValueType get_type_from_bitlength(int bit_length)
         break;
     default:
         type = VALUE_TYPE_NONE;
-        fprintf(g_outstream, "Warning, bit size: %d not supported\n", bit_length);
+        syslog(LOG_ERR, "Warning, bit size: %d not supported", bit_length);
         break;
     }
 
@@ -107,7 +108,7 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
         sdo->request = ecrt_slave_config_create_sdo_request(slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
 
         if (sdo->request == NULL) {
-            fprintf(g_outstream, "Warning, could not create sdo request for cyclic operation!\n");
+            syslog(LOG_ERR, "Warning, could not create sdo request for cyclic operation!");
             return -1;
         } else {
             ecrt_sdo_request_timeout(sdo->request, SDO_REQUEST_TIMEOUT);
@@ -131,11 +132,15 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
     slave->master       = master->master;
     slave->info         = malloc(sizeof(ec_slave_info_t));
     if (ecrt_master_get_slave(master->master, slaveindex, slave->info) != 0) {
-        fprintf(g_outstream, "Error, could not read slave config for slave %d\n", slaveindex);
+        syslog(LOG_ERR, "Error, could not read slave config for slave %d", slaveindex);
         return -1;
     }
 
     slave->sdo_count   = slave->info->sdo_count;
+    if (slave->sdo_count  == 0) {
+        syslog(LOG_WARNING, "Slave %d has no SDOs", slaveindex);
+    }
+    
     slave->type        = type_map_get_type(slave->info->vendor_id,
                                              slave->info->product_code);
 
@@ -154,7 +159,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             continue;
 
         if (sminfo->pdos == NULL) {
-            //fprintf(g_outstream, "Warning, slave unconfigured\n");
+            //syslog(LOG_ERR, "Warning, slave unconfigured");
             sminfo->pdos = malloc(sminfo->n_pdos * sizeof(ec_pdo_info_t));
         }
 
@@ -163,7 +168,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             ecrt_master_get_pdo(master->master, slave->info->position, j, k, pdoinfo);
 
             if (pdoinfo->entries == NULL) {
-                //fprintf(g_outstream, "Warning pdoinfo.entries is NULL!\n");
+                //syslog(LOG_ERR, "Warning pdoinfo.entries is NULL!");
                 pdoinfo->entries = malloc(pdoinfo->n_entries * sizeof(ec_pdo_entry_info_t));
             }
 
@@ -175,7 +180,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
                 slave->input_values = calloc(slave->inpdocount, sizeof(pdo_t));
             } else {
                 /* FIXME error handling? */
-                fprintf(g_outstream, "WARNING undefined direction\n");
+                syslog(LOG_ERR, "WARNING undefined direction");
             }
 
             for (int l = 0; l < pdoinfo->n_entries; l++) {
@@ -192,12 +197,12 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
 
     slave->config = ecrt_master_slave_config(master->master, slave->alias, slave->info->position, slave->info->vendor_id, slave->info->product_code);
     if (slave->config == NULL) {
-        fprintf(g_outstream, "Error aquire slave configuration\n");
+        syslog(LOG_ERR, "Error aquire slave configuration");
         return -1;
     }
 
     if (ecrt_slave_config_pdos(slave->config, EC_END, slave->sminfo)) {
-        fprintf(g_outstream, "Error, failed to configure PDOs\n");
+        syslog(LOG_ERR, "Error, failed to configure PDOs");
         return -1;
     }
 
@@ -210,11 +215,15 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
     for (int i = 0; i < slave->sdo_count; i++) {
         ec_sdo_info_t sdoi;
         if (ecrt_sdo_info_get(master->master, slave->info->position, i, &sdoi)) {
-            fprintf(g_outstream, "Error, unable to retrieve information of object dictionary info %d\n", i);
+            syslog(LOG_ERR, "Error, unable to retrieve information of object dictionary info %d", i);
             return -1;
         }
 
         object_count += sdoi.maxindex;
+    }
+
+    if (slave->sdo_count && slave->sdo_count == object_count) {
+        syslog(LOG_WARNING, "All Slave %d SDOs have no index", slaveindex);
     }
 
     slave->dictionary = malloc(/*slave->sdo_count */object_count * sizeof(Sdo_t));
@@ -224,7 +233,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
         //size_t current_sdo = 0;
 
         if (ecrt_sdo_info_get(master->master, slave->info->position, i, &sdoi)) {
-            fprintf(g_outstream, "Warning, unable to retrieve information of object dictionary entry %d\n", i);
+            syslog(LOG_WARNING, "Warning, unable to retrieve information of object dictionary entry %d", i);
             continue;
         }
 
@@ -233,7 +242,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             ec_sdo_info_entry_t entry;
 
             if (ecrt_sdo_get_info_entry(master->master, slave->info->position, sdoi.index, j, &entry)) {
-                fprintf(g_outstream, "Warning, cannot read SDO entry index: 0x%04x subindex: %d\n", sdoi.index, j);
+                syslog(LOG_WARNING, "Warning, cannot read SDO entry index: 0x%04x subindex: %d", sdoi.index, j);
                 continue;
             }
 
@@ -261,6 +270,8 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
 
 void ecw_print_topology(Ethercat_Master_t *master)
 {
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
     ec_slave_info_t *slaveinfo;
 
     for (int i = 0; i < master->info->slave_count; i++) {
@@ -268,7 +279,7 @@ void ecw_print_topology(Ethercat_Master_t *master)
         slaveinfo = (master->slave + i)->info;
 
         if (ecrt_master_get_slave(master->master, i, slaveinfo) != 0) {
-            fprintf(g_outstream, "[DEBUG %s] Couldn't read slave config on position %d\n",
+            syslog(LOG_DEBUG, "[DEBUG %s] Couldn't read slave config on position %d",
                         __func__, i);
         }
 
@@ -303,7 +314,7 @@ void ecw_print_topology(Ethercat_Master_t *master)
             for (int j = 0; j < sminfo->n_pdos; j++) {
                 ec_pdo_info_t *pdoinfo = sminfo->pdos + j;
                 if (pdoinfo == NULL) {
-                    fprintf(g_outstream, "ERROR pdoinfo is not available\n");
+                    syslog(LOG_ERR, "ERROR pdoinfo is not available");
                 }
 
                 printf("|    | PDO Info (%d):\n", j);
@@ -319,6 +330,8 @@ void ecw_print_topology(Ethercat_Master_t *master)
             }
         }
     }
+
+    closelog();
 }
 
 void ecw_print_domainregs(Ethercat_Master_t *master)
@@ -361,11 +374,7 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
 
 Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 {
-    if (logfile == NULL) {
-        g_outstream = stderr;
-    } else {
-        g_outstream = logfile;
-    }
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
 
     Ethercat_Master_t *master = malloc(sizeof(Ethercat_Master_t));
     if (master == NULL) {
@@ -383,6 +392,18 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     master->info = calloc(1, sizeof(ec_master_info_t));
 
     int timeout = 1000;
+    ec_master_state_t state;
+    state.link_up = 0;
+    while (state.link_up == 0 && (timeout-- > 0)) {
+        ecrt_master_state(master->master, &state);
+        usleep(1000);
+    }
+    if (timeout <= 0) {
+        syslog(LOG_ERR, "ERROR, link_state timed out");
+        return NULL;
+    }
+
+    timeout = 1000;
     master->info->scan_busy = 1;
     while ((master->info->scan_busy) && (timeout-- > 0)) {
         ecrt_master(master->master, master->info);
@@ -390,7 +411,12 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     }
 
     if (timeout <= 0) {
-        fprintf(g_outstream, "ERROR, scan_busy timed out\n");
+        syslog(LOG_ERR, "ERROR, scan_busy timed out");
+        return NULL;
+    }
+
+    if (master->info->slave_count != state.slaves_responding) {
+        syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
         return NULL;
     }
 
@@ -427,7 +453,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
             if (sm->dir == EC_DIR_INPUT) {
                 values = slave->input_values;
             } else {
-                fprintf(g_outstream, "... skip wrong direction\n");
+                syslog(LOG_WARNING, "... skip wrong direction");
                 continue; /* skip this configuration - FIXME better error handling? */
             }
 
@@ -472,7 +498,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
             if (sm->dir == EC_DIR_OUTPUT) {
                 values = slave->output_values;
             } else {
-                fprintf(g_outstream, "... skip wrong direction\n");
+                syslog(LOG_WARNING, "... skip wrong direction");
                 continue; /* skip this configuration - FIXME better error handling? */
             }
 
@@ -508,6 +534,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     update_master_state(master);
     update_all_slave_state(master);
 
+    closelog();
+
     return master;
 }
 
@@ -523,8 +551,10 @@ void ecw_master_release(Ethercat_Master_t *master)
 
 int ecw_master_start(Ethercat_Master_t *master)
 {
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
     if (master->master == NULL) {
-        fprintf(g_outstream, "Error, master not configured!\n");
+        syslog(LOG_ERR, "Error, master not configured!");
         return -1;
     }
 
@@ -534,12 +564,12 @@ int ecw_master_start(Ethercat_Master_t *master)
         slave->cyclic_mode = 1; // mark slaves as in cyclic mode
         slave->config = ecrt_master_slave_config(master->master, slave->alias, slave->info->position, slave->info->vendor_id, slave->info->product_code);
         if (slave->config == NULL) {
-            fprintf(g_outstream, "Error slave (id: %lu) configuration failed.\n", slaveid);
+            syslog(LOG_ERR, "Error slave (id: %lu) configuration failed.", slaveid);
             return -1;
         }
 
         if (setup_sdo_request(slave)) {
-            fprintf(g_outstream, "Error could not setup SDO requests for slave id %lu\n", slaveid);
+            syslog(LOG_ERR, "Error could not setup SDO requests for slave id %lu", slaveid);
             return -1;
         }
     }
@@ -551,25 +581,27 @@ int ecw_master_start(Ethercat_Master_t *master)
     }
 
     if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
-        fprintf(g_outstream, "Error cannot register PDO domain\n");
+        syslog(LOG_ERR, "Error cannot register PDO domain");
         return -1;
     }
 
     /* FIXME how can I get information about the error leading to no activation
      * of the master */
     if (ecrt_master_activate(master->master) < 0) {
-        fprintf(g_outstream, "Error could not activate master.\n");
+        syslog(LOG_ERR, "Error could not activate master.");
         return -1;
     }
 
     master->processdata = ecrt_domain_data(master->domain);
     if (master->processdata == NULL) {
-        fprintf(g_outstream, "Error unable to get processdata pointer. Disable master again.\n");
+        syslog(LOG_ERR, "Error unable to get processdata pointer. Disable master again.");
         ecrt_master_deactivate(master->master);
         return -1;
     }
 
     update_domain_state(master);
+
+    closelog();
 
     return 0;
 }
@@ -617,15 +649,19 @@ int ecw_master_scan(Ethercat_Master_t *master)
 
 int ecw_master_start_cyclic(Ethercat_Master_t *master)
 {
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
     if (ecrt_master_activate(master->master)) {
-        fprintf(g_outstream, "[ERROR %s] Unable ot activate master\n", __func__);
+        syslog(LOG_ERR, "[ERROR %s] Unable ot activate master", __func__);
         return -1;
     }
 
     if (!(master->processdata = ecrt_domain_data(master->domain))) {
-        fprintf(g_outstream, "[ERROR %s] Cannot access process data space\n", __func__);
+        syslog(LOG_ERR, "[ERROR %s] Cannot access process data space", __func__);
         return -1;
     }
+
+    closelog();
 
     return 0;
 }
@@ -676,6 +712,8 @@ int ecw_master_pdo_exchange(Ethercat_Master_t *master)
 
 int ecw_master_receive_pdo(Ethercat_Master_t *master)
 {
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
     /* FIXME: Check error state and may add handler for broken topology. */
     ecrt_master_receive(master->master);
     ecrt_domain_process(master->domain);
@@ -712,7 +750,7 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
             case VALUE_TYPE_PADDING:
             case VALUE_TYPE_NONE:
             default:
-                //fprintf(g_outstream, "Warning, unknown value type(%d). No RxPDO update\n", pdo->type);
+                //syslog(LOG_ERR, "Warning, unknown value type(%d). No RxPDO update", pdo->type);
                 pdo->value = 0;
                 break;
             }
@@ -721,11 +759,15 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
         }
     }
 
+    closelog();
+
     return 0;
 }
 
 int ecw_master_send_pdo(Ethercat_Master_t *master)
 {
+    openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
     for (int i = 0; i < master->slave_count; i++) {
         Ethercat_Slave_t *slave = master->slave + i;
 
@@ -759,7 +801,7 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
             case VALUE_TYPE_PADDING:
             case VALUE_TYPE_NONE:
             default:
-                //fprintf(g_outstream, "Warning, unknown value type(%d). No TxPDO update\n", value->type);
+                //syslog(LOG_ERR, "Warning, unknown value type(%d). No TxPDO update", value->type);
                 break;
             }
         }
@@ -767,6 +809,8 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
 
     ecrt_domain_queue(master->domain);
     ecrt_master_send(master->master);
+
+    closelog();
 
     return 0;
 }
@@ -820,11 +864,11 @@ static void update_domain_state(Ethercat_Master_t *master)
 
 #if 0 /* for now disable this vast amount of prints FIXME have to figure out why this happend */
     if (ds.working_counter != master->domain_state.working_counter)
-        fprintf(g_outstream, "Working counter differ: %d / %d\n",
+        syslog(LOG_ERR, "Working counter differ: %d / %d",
                 ds.working_counter, master->domain_state.working_counter);
 
     if (ds.wc_state != master->domain_state.wc_state)
-        fprintf(g_outstream, "New WC State: %d / %d\n",
+        syslog(LOG_ERR, "New WC State: %d / %d",
                 ds.wc_state, master->domain_state.wc_state);
 #endif
 
@@ -836,7 +880,7 @@ static void update_master_state(Ethercat_Master_t *master)
     ecrt_master_state(master->master, &(master->master_state));
 
     if (master->slave_count != master->master_state.slaves_responding) {
-        fprintf(g_outstream, "Warning slaves responding: %u expected: %zu\n",
+        syslog(LOG_ERR, "Warning slaves responding: %u expected: %zu",
                 master->master_state.slaves_responding, master->slave_count);
     }
 }
