@@ -31,13 +31,15 @@ SUBDIRS = \
 	ccat \
 	cx2100 \
 	e1000 \
-	e1000e
+	e1000e \
+	igb
 
 DIST_SUBDIRS = \
 	ccat \
 	cx2100 \
 	e1000 \
-	e1000e
+	e1000e \
+	igb
 
 # using HEADERS to enable tags target
 noinst_HEADERS = \
