@@ -110,8 +110,9 @@ ec_eoedev_set_mac(struct net_device *netdev, void *p)
 {
    struct sockaddr *addr = p;
 
-   if (!is_valid_ether_addr(addr->sa_data))
+   if (!is_valid_ether_addr(addr->sa_data)) {
       return -EADDRNOTAVAIL;
+   }
 
    memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
 
@@ -177,10 +178,11 @@ int ec_eoe_init(
 
     snprintf(eoe->datagram.name, EC_DATAGRAM_NAME_SIZE, name);
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)) 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)
+    eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, NET_NAME_UNKNOWN,
+            ether_setup);
+#else
     eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, ether_setup);
-#else 
-    eoe->dev = alloc_netdev(sizeof(ec_eoe_t *), name, NET_NAME_UNKNOWN, ether_setup);
 #endif
     if (!eoe->dev) {
         EC_SLAVE_ERR(slave, "Unable to allocate net_device %s"
@@ -369,29 +371,30 @@ int ec_eoe_send(ec_eoe_t *eoe /**< EoE handler */)
     }
 
 #if EOE_DEBUG_LEVEL >= 2
-    EC_SLAVE_DBG(slave, 0, "EoE %s TX sending fragment %u%s"
-            " with %u octets (%u). %u frames queued.\n",
+    EC_SLAVE_DBG(eoe->slave, 0, "EoE %s TX sending fragment %u%s"
+            " with %zu octets (%zu). %u frames queued.\n",
             eoe->dev->name, eoe->tx_fragment_number,
             last_fragment ? "" : "+", current_size, complete_offset,
             eoe->tx_queued_frames);
 #endif
 
 #if EOE_DEBUG_LEVEL >= 3
-    EC_SLAVE_DBG(master, 0, "");
+    EC_SLAVE_DBG(eoe->slave, 0, "");
     for (i = 0; i < current_size; i++) {
-        printk("%02X ", eoe->tx_frame->skb->data[eoe->tx_offset + i]);
+        printk(KERN_CONT "%02X ", eoe->tx_frame->skb->data[eoe->tx_offset + i]);
         if ((i + 1) % 16 == 0) {
-            printk("\n");
-            EC_SLAVE_DBG(master, 0, "");
+            printk(KERN_CONT "\n");
+            EC_SLAVE_DBG(eoe->slave, 0, "");
         }
     }
-    printk("\n");
+    printk(KERN_CONT "\n");
 #endif
 
     data = ec_slave_mbox_prepare_send(eoe->slave, &eoe->datagram,
             EC_MBOX_TYPE_EOE, current_size + 4);
-    if (IS_ERR(data))
+    if (IS_ERR(data)) {
         return PTR_ERR(data);
+    }
 
     EC_WRITE_U8 (data, EC_EOE_FRAMETYPE_INIT_REQ); // Initiate EoE Request
     EC_WRITE_U8 (data + 1, last_fragment);
@@ -413,12 +416,14 @@ int ec_eoe_send(ec_eoe_t *eoe /**< EoE handler */)
  */
 void ec_eoe_run(ec_eoe_t *eoe /**< EoE handler */)
 {
-    if (!eoe->opened)
+    if (!eoe->opened) {
         return;
+    }
 
     // if the datagram was not sent, or is not yet received, skip this cycle
-    if (eoe->queue_datagram || eoe->datagram.state == EC_DATAGRAM_SENT)
+    if (eoe->queue_datagram || eoe->datagram.state == EC_DATAGRAM_SENT) {
         return;
+    }
 
     // call state function
     eoe->state(eoe);
@@ -643,7 +648,7 @@ void ec_eoe_state_rx_fetch_data(ec_eoe_t *eoe /**< EoE handler */)
 
 #if EOE_DEBUG_LEVEL >= 2
     EC_SLAVE_DBG(eoe->slave, 0, "EoE %s RX fragment %u%s, offset %u,"
-            " frame %u%s, %u octets\n", eoe->dev->name, fragment_number,
+            " frame %u%s, %zu octets\n", eoe->dev->name, fragment_number,
            last_fragment ? "" : "+", fragment_offset, frame_number,
            time_appended ? ", + timestamp" : "",
            time_appended ? rec_size - 8 : rec_size - 4);
@@ -652,13 +657,13 @@ void ec_eoe_state_rx_fetch_data(ec_eoe_t *eoe /**< EoE handler */)
 #if EOE_DEBUG_LEVEL >= 3
     EC_SLAVE_DBG(eoe->slave, 0, "");
     for (i = 0; i < rec_size - 4; i++) {
-        printk("%02X ", data[i + 4]);
+        printk(KERN_CONT "%02X ", data[i + 4]);
         if ((i + 1) % 16 == 0) {
-            printk("\n");
+            printk(KERN_CONT "\n");
             EC_SLAVE_DBG(eoe->slave, 0, "");
         }
     }
-    printk("\n");
+    printk(KERN_CONT "\n");
 #endif
 
     data_size = time_appended ? rec_size - 8 : rec_size - 4;
@@ -904,7 +909,6 @@ int ec_eoedev_open(struct net_device *dev /**< EoE net_device */)
 #if EOE_DEBUG_LEVEL >= 2
     EC_SLAVE_DBG(eoe->slave, 0, "%s opened.\n", dev->name);
 #endif
-    ec_slave_request_state(eoe->slave, EC_SLAVE_STATE_OP);
     return 0;
 }
 
@@ -926,7 +930,6 @@ int ec_eoedev_stop(struct net_device *dev /**< EoE net_device */)
 #if EOE_DEBUG_LEVEL >= 2
     EC_SLAVE_DBG(eoe->slave, 0, "%s stopped.\n", dev->name);
 #endif
-    ec_slave_request_state(eoe->slave, EC_SLAVE_STATE_PREOP);
     return 0;
 }
 
@@ -975,8 +978,9 @@ int ec_eoedev_tx(struct sk_buff *skb, /**< transmit socket buffer */
     EC_SLAVE_DBG(eoe->slave, 0, "EoE %s TX queued frame"
             " with %u octets (%u frames queued).\n",
             eoe->dev->name, skb->len, eoe->tx_queued_frames);
-    if (!eoe->tx_queue_active)
+    if (!eoe->tx_queue_active) {
         EC_SLAVE_WARN(eoe->slave, "EoE TX queue is now full.\n");
+    }
 #endif
 
     return 0;
