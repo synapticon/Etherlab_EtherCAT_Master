@@ -60,6 +60,7 @@ static int eccdev_mmap(struct file *, struct vm_area_struct *);
  * vm_operations_struct is usable.
  */
 #define PAGE_FAULT_VERSION KERNEL_VERSION(2, 6, 23)
+#define VM_FAULT_CHANGE_VERSION KERNEL_VERSION(4, 10, 0)
 
 #if LINUX_VERSION_CODE >= PAGE_FAULT_VERSION
 static int eccdev_vma_fault(struct vm_area_struct *, struct vm_fault *);
@@ -273,8 +274,17 @@ static int eccdev_vma_fault(
     get_page(page);
     vmf->page = page;
 
-    EC_MASTER_DBG(priv->cdev->master, 1, "Vma fault, virtual_address = %p,"
-            " offset = %lu, page = %p\n", vmf->virtual_address, offset, page);
+    EC_MASTER_DBG(
+        priv->cdev->master,
+        1,
+        "Vma fault, virtual_address = %p, offset = %lu, page = %p\n",
+#if LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION
+        vmf->address,
+#else
+        vmf->virtual_address,
+#endif
+        offset,
+        page);
 
     return 0;
 }
