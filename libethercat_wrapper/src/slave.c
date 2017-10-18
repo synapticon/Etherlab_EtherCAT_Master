@@ -435,6 +435,9 @@ enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
     case 2:
         state = ALSTATE_PREOP;
         break;
+    case 3:
+        state = ALSTATE_BOOT;
+        break;
     case 4:
         state = ALSTATE_SAFEOP;
         break;
