@@ -304,19 +304,16 @@ size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s)
 
 Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex)
 {
-    Sdo_t *sdo     = malloc(sizeof(Sdo_t));
-    Sdo_t *current = NULL;
-
     for (int i = 0; i < s->sdo_count; i++) {
-        current = s->dictionary + i;
+        Sdo_t *current = s->dictionary + i;
         if (current->index == index && current->subindex == subindex) {
-            sdo = malloc(sizeof(Sdo_t));
+            Sdo_t *sdo = malloc(sizeof(Sdo_t));
             memmove(sdo, current, sizeof(Sdo_t));
-            break;
+            return sdo;
         }
     }
 
-    return sdo;
+    return NULL;
 }
 
 Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
