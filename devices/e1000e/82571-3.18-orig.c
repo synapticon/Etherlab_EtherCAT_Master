@@ -35,7 +35,7 @@
  * 82583V Gigabit Network Connection
  */
 
-#include "e1000-3.18-ethercat.h"
+#include "e1000.h"
 
 static s32 e1000_get_phy_id_82571(struct e1000_hw *hw);
 static s32 e1000_setup_copper_link_82571(struct e1000_hw *hw);
@@ -63,7 +63,7 @@ static s32 e1000_set_d3_lplu_state_82574(struct e1000_hw *hw, bool active);
 static s32 e1000_init_phy_params_82571(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
-	s32 ret_val __attribute__ ((unused));
+	s32 ret_val;
 
 	if (hw->phy.media_type != e1000_media_type_copper) {
 		phy->type = e1000_phy_none;

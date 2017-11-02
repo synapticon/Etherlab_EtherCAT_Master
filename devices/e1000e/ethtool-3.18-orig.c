@@ -30,7 +30,7 @@
 #include <linux/vmalloc.h>
 #include <linux/pm_runtime.h>
 
-#include "e1000-3.18-ethercat.h"
+#include "e1000.h"
 
 enum { NETDEV_STATS, E1000_STATS };
 

@@ -19,7 +19,7 @@
  * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
  */
 
-#include "e1000-3.18-ethercat.h"
+#include "e1000.h"
 
 /**
  *  e1000e_get_bus_info_pcie - Get PCIe bus information
