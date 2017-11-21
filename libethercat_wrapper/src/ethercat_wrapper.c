@@ -428,7 +428,10 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
     for (int i = 0; i < master->info->slave_count; i++) {
         /* get the PDOs from the buffered syncmanagers */
-        slave_config(master, i);
+        if (slave_config(master, i) != 0) {
+            syslog(LOG_ERR, "ERROR, config slave %d", i);
+            return NULL;
+        }
 
         all_pdo_count += ((master->slave + i)->outpdocount + (master->slave + i)->inpdocount);
     }
@@ -703,7 +706,7 @@ int ecw_master_pdo_exchange(Ethercat_Master_t *master)
 {
     int ret = 0;
 
-    /* receive has to be in front of send, FIXME may merge thse two functions */
+    /* receive has to be in front of send, FIXME may merge these two functions */
     ret = ecw_master_receive_pdo(master);
     ret = ecw_master_send_pdo(master);
 
@@ -891,4 +894,48 @@ static void update_all_slave_state(Ethercat_Master_t *master)
         Ethercat_Slave_t *slave = master->slave + i;
         ecrt_slave_config_state(slave->config, &(slave->state));
     }
+}
+
+void ecw_print_master_state(Ethercat_Master_t *master)
+{
+    ec_master_state_t state;
+    ec_master_link_state_t link_state;
+    printf("master state:\n");
+    
+    ecrt_master_state(master->master, &state);
+    printf("slaves_responding: %d\nal_states: %d\nlink_up %d\n", state.slaves_responding, state.al_states, state.link_up);
+    
+    if (ecrt_master_link_state(master->master, 0, &link_state)) {
+        printf("ecrt_master_link_state failed\n");
+    } else {
+        printf("slaves_responding: %d\nal_states: %d\nlink_up %d\n", link_state.slaves_responding, link_state.al_states, link_state.link_up);
+    }
+}
+
+char * ecw_strerror(int errnum)
+{
+    switch(errnum) {
+    case ECW_SUCCESS:
+        return "ECW_SUCCESS";
+        break;
+    case ECW_ERROR_UNKNOWN:
+        return "ECW_ERROR_UNKNOWN";
+        break;
+    case ECW_ERROR_SDO_REQUEST_BUSY:
+        return "ECW_ERROR_SDO_REQUEST_BUSY";
+        break;
+    case ECW_ERROR_SDO_REQUEST_ERROR:
+        return "ECW_ERROR_SDO_REQUEST_ERROR";
+        break;
+    case ECW_ERROR_SDO_NOT_FOUND:
+        return "ECW_ERROR_SDO_NOT_FOUND";
+        break;
+    case ECW_ERROR_LINK_UP:
+        return "ECW_ERROR_LINK_UP";
+        break;
+    case ECW_ERROR_SDO_UNSUPORTED_BITLENGTH:
+        return "ECW_ERROR_SDO_UNSUPORTED_BITLENGTH";
+        break;
+    }
+    return "ECW_ERROR_UNKNOWN";
 }

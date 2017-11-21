@@ -20,6 +20,17 @@ typedef struct _ecw_slave_t  Ethercat_Slave_t;
 extern "C" {
 #endif
 
+
+/* Error codes */
+#define ECW_SUCCESS                          0
+#define ECW_ERROR_LINK_UP                   -2
+#define ECW_ERROR_UNKNOWN                   -128
+#define ECW_ERROR_SDO_REQUEST_BUSY           1
+#define ECW_ERROR_SDO_REQUEST_ERROR         -1
+#define ECW_ERROR_SDO_NOT_FOUND             -3
+#define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
+
+
 /**
  * \brief Get version string fo this library
  */
@@ -162,6 +173,21 @@ void ecw_print_domainregs(Ethercat_Master_t *master);
  * \brief Debug print of alls slaves object dcitionary
  */
 void ecw_print_allslave_od(Ethercat_Master_t *master);
+
+/**
+ * \brief Debug print master state
+ *
+ * \param master   master to request
+ */
+void ecw_print_master_state(Ethercat_Master_t *master);
+
+/**
+ * \brief Get error name from error number
+ *
+ * \param master   errnum to get
+ * \return string name of error
+ */
+char * ecw_strerror(int errnum);
 
 #ifdef __cplusplus
 }

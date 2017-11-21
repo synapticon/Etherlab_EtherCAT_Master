@@ -8,6 +8,7 @@
 
 #include "slave.h"
 #include "ethercat_wrapper_slave.h"
+#include "ethercat_wrapper.h"
 
 #include <string.h>
 
@@ -56,7 +57,7 @@ static void sdo_write_value(Sdo_t *sdo)
 
 static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-    int ret = -4;
+    int ret = ECW_ERROR_UNKNOWN;
 
     sdo->request_state = ecrt_sdo_request_state(sdo->request);
     switch (sdo->request_state) {
@@ -64,29 +65,29 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
         // here I can schedule
         ecrt_sdo_request_read(sdo->request);
         sdo->read_request = 1;
-        ret = 1;
+        ret = ECW_ERROR_SDO_REQUEST_BUSY;
         break;
     case EC_REQUEST_BUSY:
         // wait
-        ret = 1;
+        ret = ECW_ERROR_SDO_REQUEST_BUSY;
         break;
     case EC_REQUEST_SUCCESS:
         if (sdo->read_request == 1) {
             // the request is finished and the data can be read
             sdo_read_value(sdo);
             sdo->read_request = 0;
-            ret = 0;
+            ret = ECW_SUCCESS;
         } else {
             // this is a new request
             ecrt_sdo_request_read(sdo->request);
             sdo->read_request = 1;
-            ret = 1;
+            ret = ECW_ERROR_SDO_REQUEST_BUSY;
         }
         break;
     case EC_REQUEST_ERROR:
         // request failed, what a pitty
         sdo->read_request = 0;
-        ret = -1;
+        ret = ECW_ERROR_SDO_REQUEST_ERROR;
         break;
     }
 
@@ -95,7 +96,7 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 
 static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-    int ret = -4;
+    int ret = ECW_ERROR_UNKNOWN;
 
     sdo->request_state = ecrt_sdo_request_state(sdo->request);
     switch (sdo->request_state) {
@@ -103,21 +104,21 @@ static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
         // here I can schedule
         sdo_write_value(sdo);
         ecrt_sdo_request_write(sdo->request);
-        ret = 1;
+        ret = ECW_ERROR_SDO_REQUEST_BUSY;
         break;
     case EC_REQUEST_BUSY:
         //wait
-        ret = 1;
+        ret = ECW_ERROR_SDO_REQUEST_BUSY;
         break;
     case EC_REQUEST_SUCCESS:
         // we also schedule here for the next request
         sdo_write_value(sdo);
         ecrt_sdo_request_write(sdo->request);
-        ret = 0;
+        ret = ECW_SUCCESS;
         break;
     case EC_REQUEST_ERROR:
         //error, abort
-        ret = -1;
+        ret = ECW_ERROR_SDO_REQUEST_ERROR;
         break;
     }
 
@@ -170,7 +171,7 @@ int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
     ec_master_state_t link_state;
     ecrt_master_state(s->master, &link_state);
     if (link_state.link_up != 1) {
-        return -2;
+        return ECW_ERROR_LINK_UP;
     }
 
     if (s->cyclic_mode || link_state.al_states&0x8) {
@@ -185,7 +186,7 @@ int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo)
     ec_master_state_t link_state;
     ecrt_master_state(s->master, &link_state);
     if (link_state.link_up != 1) {
-        return -2;
+        return ECW_ERROR_LINK_UP;
     }
 
 
@@ -342,7 +343,7 @@ int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int va
         }
     }
 
-    return -3; /* not found */
+    return ECW_ERROR_SDO_NOT_FOUND; /* not found */
 }
 
 int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int *value)
@@ -357,7 +358,7 @@ int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int *v
     }
 
     if (sdo == NULL) {
-        return -3; /* Not found */
+        return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
     }
 
     int err = slave_sdo_upload(s, sdo);
