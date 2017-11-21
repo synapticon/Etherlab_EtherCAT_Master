@@ -59,6 +59,6 @@ pdo_t *ecw_slave_get_inpdo(Ethercat_Slave_t *s, size_t pdoindex);
  * Necessary special function to allow the cyclic function to get the result of the
  * SDO read request.
  */
-void sdo_read_value(Sdo_t *sdo);
+int sdo_read_value(Sdo_t *sdo);
 
 #endif /* _SLAVE_H */

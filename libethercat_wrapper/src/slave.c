@@ -25,9 +25,10 @@ static const Device_type_map_t type_map[] = {
  * The direct up-/download of SDOs is only possible in non cyclic mode!
  */
 
-void sdo_read_value(Sdo_t *sdo)
+int sdo_read_value(Sdo_t *sdo)
 {
     switch (sdo->bit_length) {
+    case 1:
     case 8:
         sdo->value = (int)EC_READ_U8(ecrt_sdo_request_data(sdo->request));
         break;
@@ -37,12 +38,17 @@ void sdo_read_value(Sdo_t *sdo)
     case 32:
         sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
         break;
+    default:
+        return ECW_ERROR_SDO_UNSUPORTED_BITLENGTH;
+        break;
     }
+    return 0;
 }
 
-static void sdo_write_value(Sdo_t *sdo)
+static int sdo_write_value(Sdo_t *sdo)
 {
     switch (sdo->bit_length) {
+    case 1:
     case 8:
         EC_WRITE_U8(ecrt_sdo_request_data(sdo->request), (uint8_t)(sdo->value & 0xff));
         break;
@@ -52,7 +58,11 @@ static void sdo_write_value(Sdo_t *sdo)
     case 32:
         EC_WRITE_U32(ecrt_sdo_request_data(sdo->request), (uint32_t)(sdo->value & 0xffffffff));
         break;
+    default:
+        return ECW_ERROR_SDO_UNSUPORTED_BITLENGTH;
+        break;
     }
+    return 0;
 }
 
 static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
@@ -74,7 +84,10 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
     case EC_REQUEST_SUCCESS:
         if (sdo->read_request == 1) {
             // the request is finished and the data can be read
-            sdo_read_value(sdo);
+            ret = sdo_read_value(sdo);
+            if (ret != 0) {
+                return ret;
+            }
             sdo->read_request = 0;
             ret = ECW_SUCCESS;
         } else {
@@ -102,7 +115,10 @@ static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
     switch (sdo->request_state) {
     case EC_REQUEST_UNUSED:
         // here I can schedule
-        sdo_write_value(sdo);
+        ret = sdo_write_value(sdo);
+        if (ret != 0) {
+            return ret;
+        }
         ecrt_sdo_request_write(sdo->request);
         ret = ECW_ERROR_SDO_REQUEST_BUSY;
         break;
@@ -112,7 +128,10 @@ static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
         break;
     case EC_REQUEST_SUCCESS:
         // we also schedule here for the next request
-        sdo_write_value(sdo);
+        ret = sdo_write_value(sdo);
+        if (ret != 0) {
+            return ret;
+        }
         ecrt_sdo_request_write(sdo->request);
         ret = ECW_SUCCESS;
         break;

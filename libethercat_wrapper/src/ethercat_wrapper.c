@@ -105,7 +105,11 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
     for (size_t sdoindex = 0; sdoindex < slave->sdo_count; sdoindex++) {
         Sdo_t *sdo = slave->dictionary + sdoindex;
 
-        sdo->request = ecrt_slave_config_create_sdo_request(slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
+        if (sdo->bit_length >= 8) {
+            sdo->request = ecrt_slave_config_create_sdo_request(slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
+        } else {
+            sdo->request = ecrt_slave_config_create_sdo_request(slave->config, sdo->index, sdo->subindex, 1);
+        }
 
         if (sdo->request == NULL) {
             syslog(LOG_ERR, "Warning, could not create sdo request for cyclic operation!");
