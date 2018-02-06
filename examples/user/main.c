@@ -35,6 +35,12 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+<<<<<<< HEAD
+=======
+#include <time.h> /* clock_gettime() */
+#include <sys/mman.h> /* mlockall() */
+#include <sched.h> /* sched_setscheduler() */
+>>>>>>> bee92fc1... Use sched_setscheduler() to set priority in user example.
 
 /****************************************************************************/
 
@@ -389,12 +395,26 @@ int main(int argc, char **argv)
         return -1;
     }
 
+<<<<<<< HEAD
 #if PRIORITY
     pid_t pid = getpid();
     if (setpriority(PRIO_PROCESS, pid, -19))
         fprintf(stderr, "Warning: Failed to set priority: %s\n",
                 strerror(errno));
 #endif
+=======
+    /* Set priority */
+
+    struct sched_param param = {};
+    param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+
+    printf("Using priority %i.", param.sched_priority);
+    if (sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+        perror("sched_setscheduler failed");
+    }
+
+    /* Lock memory */
+>>>>>>> bee92fc1... Use sched_setscheduler() to set priority in user example.
 
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
