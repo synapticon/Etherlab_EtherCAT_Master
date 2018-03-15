@@ -258,6 +258,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
             sdo->value      = 0;
 
             memmove(sdo->name, entry.description, EC_MAX_STRING_LENGTH);
+            memmove(sdo->object_name, sdoi.name, EC_MAX_STRING_LENGTH);
             memmove(sdo->read_access, entry.read_access, EC_SDO_ENTRY_ACCESS_COUNTER);
             memmove(sdo->write_access, entry.write_access, EC_SDO_ENTRY_ACCESS_COUNTER);
 

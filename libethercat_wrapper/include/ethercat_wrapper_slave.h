@@ -109,6 +109,7 @@ typedef struct _sdo_t {
     enum eObjectType object_type;
     int      entry_type;
     char     name[EC_MAX_STRING_LENGTH];
+    char     object_name[EC_MAX_STRING_LENGTH];
     uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
     uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
 
