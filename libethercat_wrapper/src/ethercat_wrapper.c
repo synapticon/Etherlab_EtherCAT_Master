@@ -377,6 +377,112 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
     }
 }
 
+int ecw_preemptive_slave_count(int master_id)
+{
+  ec_master_t *master = ecrt_open_master(master_id);
+  int slave_count = -1;
+
+  if (master) {
+    int timeout = 1000;
+    ec_master_state_t state;
+    state.link_up = 0;
+    while (state.link_up == 0 && (timeout-- > 0)) {
+      ecrt_master_state(master, &state);
+      usleep(1000);
+    }
+
+    if (timeout <= 0) {
+      syslog(LOG_ERR, "ERROR, link_state timed out");
+      return -1;
+    }
+
+    ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
+    timeout = 1000;
+    info->scan_busy = 1;
+    while ((info->scan_busy) && (timeout-- > 0)) {
+      ecrt_master(master, info);
+      usleep(1000);
+    }
+
+    if (timeout <= 0) {
+      syslog(LOG_ERR, "ERROR, scan_busy timed out");
+      return -1;
+    }
+
+    if (info->slave_count != state.slaves_responding) {
+      syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
+      return -1;
+    }
+
+    slave_count = info->slave_count;
+    free(info);
+
+    ec_master_clear(master);
+    free(master);
+  }
+
+  return slave_count;
+}
+
+int ecw_preemptive_slave_sdo_count(int master_id, int slave_index)
+{
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master) {
+    int timeout = 1000;
+    ec_master_state_t state;
+    state.link_up = 0;
+    while (state.link_up == 0 && (timeout-- > 0)) {
+      ecrt_master_state(master, &state);
+      usleep(1000);
+    }
+    if (timeout <= 0) {
+      syslog(LOG_ERR, "ERROR, link_state timed out");
+      return -1;
+    }
+
+    ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
+    timeout = 1000;
+    info->scan_busy = 1;
+    while ((info->scan_busy) && (timeout-- > 0)) {
+      ecrt_master(master, info);
+      usleep(1000);
+    }
+
+    if (timeout <= 0) {
+      syslog(LOG_ERR, "ERROR, scan_busy timed out");
+      return -1;
+    }
+
+    if (info->slave_count != state.slaves_responding) {
+      syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
+      return -1;
+    }
+
+    if (slave_index >= info->slave_count) {
+      syslog(LOG_ERR, "ERROR, invalid slave index");
+      return -1;
+    }
+
+    ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+    if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+      syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+             slave_index);
+      return -1;
+    }
+
+    free(info);
+    free(slave_info);
+
+    ec_master_clear(master);
+    free(master);
+
+    return slave_info->sdo_count;
+  }
+
+  return -1;
+}
+
 Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 {
     openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);

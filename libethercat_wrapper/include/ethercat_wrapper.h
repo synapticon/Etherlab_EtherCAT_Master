@@ -37,6 +37,27 @@ extern "C" {
 const char *ecw_master_get_version(void);
 
 /**
+ * \brief Return the number of slaves without initializing or reserving the
+ * master first
+ *
+ * \param master_id   id of the masater to use, for single master use 0
+ *
+ * \return number of slaves, or -1 on error
+ */
+int ecw_preemptive_slave_count(int master_id);
+
+/**
+ * \brief Return the number of SDOs of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the masater to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return number of SDOs, or -1 on error
+ */
+int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
+
+/**
  * \brief Create ethercat master object and initialize
  *
  * The init process scans the bus and configures all slaves.
