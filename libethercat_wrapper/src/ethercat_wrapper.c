@@ -384,33 +384,18 @@ int ecw_preemptive_slave_count(int master_id)
 
   if (master) {
     int timeout = 1000;
-    ec_master_state_t state;
-    state.link_up = 0;
-    while (state.link_up == 0 && (timeout-- > 0)) {
-      ecrt_master_state(master, &state);
-      usleep(1000);
-    }
-
-    if (timeout <= 0) {
-      syslog(LOG_ERR, "ERROR, link_state timed out");
-      return -1;
-    }
 
     ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
     timeout = 1000;
     info->scan_busy = 1;
-    while ((info->scan_busy) && (timeout-- > 0)) {
+    info->link_up = 0;
+    while (info->link_up == 0 && info->scan_busy && (timeout-- > 0)) {
       ecrt_master(master, info);
       usleep(1000);
     }
 
     if (timeout <= 0) {
-      syslog(LOG_ERR, "ERROR, scan_busy timed out");
-      return -1;
-    }
-
-    if (info->slave_count != state.slaves_responding) {
-      syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
+      syslog(LOG_ERR, "ERROR, link_up or scan_busy timed out");
       return -1;
     }
 
@@ -430,32 +415,18 @@ int ecw_preemptive_slave_sdo_count(int master_id, int slave_index)
 
   if (master) {
     int timeout = 1000;
-    ec_master_state_t state;
-    state.link_up = 0;
-    while (state.link_up == 0 && (timeout-- > 0)) {
-      ecrt_master_state(master, &state);
-      usleep(1000);
-    }
-    if (timeout <= 0) {
-      syslog(LOG_ERR, "ERROR, link_state timed out");
-      return -1;
-    }
 
     ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
     timeout = 1000;
     info->scan_busy = 1;
-    while ((info->scan_busy) && (timeout-- > 0)) {
+    info->link_up = 0;
+    while (info->link_up == 0 && info->scan_busy && (timeout-- > 0)) {
       ecrt_master(master, info);
       usleep(1000);
     }
 
     if (timeout <= 0) {
-      syslog(LOG_ERR, "ERROR, scan_busy timed out");
-      return -1;
-    }
-
-    if (info->slave_count != state.slaves_responding) {
-      syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
+      syslog(LOG_ERR, "ERROR, link_up or scan_busy timed out");
       return -1;
     }
 
