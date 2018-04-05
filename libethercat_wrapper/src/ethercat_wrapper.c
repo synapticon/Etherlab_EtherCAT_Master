@@ -377,6 +377,125 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
     }
 }
 
+ec_master_info_t* ecw_preemptive_master_info(int master_id)
+{
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return NULL;
+  }
+
+  int timeout = 1000;
+  ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
+  info->scan_busy = 1;
+  info->link_up = 0;
+  while (info->link_up == 0 && info->scan_busy && (timeout-- > 0)) {
+    ecrt_master(master, info);
+    usleep(1000);
+  }
+
+  ecrt_release_master(master);
+
+  if (timeout <= 0) {
+    syslog(LOG_ERR, "ERROR, link_up or scan_busy timed out");
+    return NULL;
+  }
+
+  return info;
+}
+
+int ecw_preemptive_slave_count(int master_id)
+{
+  ec_master_info_t *info = ecw_preemptive_master_info(master_id);
+
+  if (info == NULL) {
+    return -1;
+  }
+
+  int slave_count = info->slave_count;
+
+  free(info);
+
+  return slave_count;
+}
+
+int ecw_preemptive_slave_index_check(int master_id, int slave_index)
+{
+  // Check if the slave index is valid
+  ec_master_info_t *info = ecw_preemptive_master_info(master_id);
+
+  if (info == NULL) {
+    return 0;
+  }
+
+  if (slave_index < 0 && slave_index >= info->slave_count) {
+    syslog(LOG_ERR, "ERROR, invalid slave index");
+    return 0;
+  }
+
+  free(info);
+
+  return 1;
+}
+
+int ecw_preemptive_slave_sdo_count(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int sdo_count = slave_info->sdo_count;
+
+  free(slave_info);
+
+  return sdo_count;
+}
+
+int ecw_preemptive_slave_state(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int al_state = slave_info->al_state;
+
+  free(slave_info);
+
+  return al_state;
+}
+
 Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 {
     openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);

@@ -14,12 +14,11 @@
 #include <unistd.h>
 
 typedef struct _ecw_master_t Ethercat_Master_t;
-typedef struct _ecw_slave_t  Ethercat_Slave_t;
+typedef struct _ecw_slave_t Ethercat_Slave_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /* Error codes */
 #define ECW_SUCCESS                          0
@@ -30,18 +29,49 @@ extern "C" {
 #define ECW_ERROR_SDO_NOT_FOUND             -3
 #define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
 
-
 /**
  * \brief Get version string fo this library
  */
 const char *ecw_master_get_version(void);
 
 /**
+ * \brief Return the number of slaves without initializing or reserving the
+ * master first
+ *
+ * \param master_id   id of the master to use, for single master use 0
+ *
+ * \return number of slaves, or -1 on error
+ */
+int ecw_preemptive_slave_count(int master_id);
+
+/**
+ * \brief Return the number of SDOs of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return number of SDOs, or -1 on error
+ */
+int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
+
+/**
+ * \brief Return the current state of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return the state of the slave, or -1 on error
+ */
+int ecw_preemptive_slave_state(int master_id, int slave_index);
+
+/**
  * \brief Create ethercat master object and initialize
  *
  * The init process scans the bus and configures all slaves.
  *
- * \param master_id   id of the masater to use, for single master use 0
+ * \param master_id   id of the master to use, for single master use 0
  * \param log         pointer to file descriptor for logging
  * \return initialized master object or NULL on error
  */
@@ -135,7 +165,8 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid);
  * \param state    state to request slave to enter
  * \return  0 on success, negative on error
  */
-int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid, enum eALState state);
+int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
+                        enum eALState state);
 
 /**
  * \brief Request the number of slaves the master has read
