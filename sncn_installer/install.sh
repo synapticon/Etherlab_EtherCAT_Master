@@ -20,8 +20,8 @@ do_configure() {
 
   if [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
     sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat stop
-  elif [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
-    sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat stop
+  elif [[ -f "${ETHERCAT_START_PREFIX}/etc/init.d/ethercat" ]]; then
+    sudo ${ETHERCAT_START_PREFIX}/etc/init.d/ethercat stop
   fi
 }
 
@@ -70,8 +70,8 @@ do_setup_interfaces () {
 do_start() {
   if [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
     sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat start
-  elif [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
-    sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat start
+  elif [[ -f "${ETHERCAT_START_PREFIX}/etc/init.d/ethercat" ]]; then
+    sudo ${ETHERCAT_START_PREFIX}/etc/init.d/ethercat start
   fi
 }
 
