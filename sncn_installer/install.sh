@@ -42,28 +42,26 @@ do_setup_interfaces () {
   echo "KERNEL==\"EtherCAT[0-9]*\", MODE=\"0664\", GROUP=\"${ETHERCAT_USER_GROUP}\"" | sudo tee --append ${UDEV_RULES_FILE}
 
   # Add detected interfaces and delete old ones
-  sudo sed -i '/MASTER._DEVICE/d' /etc/sysconfig/ethercat
-  interfaces=$(ifconfig | grep -e "^e[tn][a-z0-9]*" -o)
+  sudo sed -i '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
 
   # Intel Up square 2
   # 2nd ethernet is used for this board
   if [[ -n $(lscpu | sed '13q;d' | grep "Intel(R) Pentium(R) CPU N4200 @ 1.10GHz") ]];then
     MAC=$(cat /sys/class/net/enp3s0/address)
-    echo "MASTER0_DEVICE=\"${MAC}\"" | sudo tee --append ${ETHERCAT_SYSCONFIG}
   else
   # Standard laptop
     if [[ -n "${1}" ]];then
       # Use interface passed as parameter if it is passed
       iface="${1}"
       MAC=$(cat /sys/class/net/${iface}/address)
-      echo "MASTER0_DEVICE=\"${MAC}\"" | sudo tee --append ${ETHERCAT_SYSCONFIG}
     else
       # Takes the first interface randomly if not
+      interfaces=$(ifconfig | grep -e "^e[tn][a-z0-9]*" -o)
       iface=$(${interfaces} | cut -d " " -f1)
       MAC=$(cat /sys/class/net/${iface}/address)
-      echo "MASTER0_DEVICE=\"${MAC}\"" | sudo tee --append ${ETHERCAT_SYSCONFIG}
     fi
   fi
+  sudo sed -i 's/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"${MAC}\"/g' ${ETHERCAT_SYSCONFIG}
   sudo sed -i 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' ${ETHERCAT_SYSCONFIG}
 }
 
