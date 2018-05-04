@@ -771,6 +771,7 @@ int ecw_master_stop(Ethercat_Master_t *master)
  */
 int ecw_master_scan(Ethercat_Master_t *master)
 {
+    update_all_slave_state(master);
     return 0;
 }
 
