@@ -13,13 +13,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-typedef struct _ecw_master_t Ethercat_Master_t;
-typedef struct _ecw_slave_t Ethercat_Slave_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Error codes */
 #define ECW_SUCCESS                          0
 #define ECW_ERROR_LINK_UP                   -2
@@ -28,6 +21,33 @@ extern "C" {
 #define ECW_ERROR_SDO_REQUEST_ERROR         -1
 #define ECW_ERROR_SDO_NOT_FOUND             -3
 #define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
+
+/* -> Ethercat_Master_t */
+struct _ecw_master_t {
+  int id;
+  /* master information */
+  ec_master_t *master;
+
+  /* variables for data structures */
+  ec_domain_t *domain;
+  ec_pdo_entry_reg_t *domain_reg;
+  uint8_t *processdata; /* FIXME are they needed here? */
+
+  /* slaves */
+  Ethercat_Slave_t *slave;  ///<< list of slaves
+  size_t slave_count;
+
+  /* diagnostic data structures */
+  ec_master_state_t master_state;
+  ec_domain_state_t domain_state;
+};
+
+typedef struct _ecw_master_t Ethercat_Master_t;
+typedef struct _ecw_slave_t Ethercat_Slave_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief Get version string fo this library
@@ -87,9 +107,9 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *log);
 void ecw_master_release(Ethercat_Master_t *);
 
 /**
- * \brief Set master in op state
+ * \brief Set master in operation state
  *
- * Starts the master cyclic opeeration.
+ * Starts the master cyclic operation.
  */
 int ecw_master_start(Ethercat_Master_t *);
 
@@ -100,7 +120,7 @@ int ecw_master_stop(Ethercat_Master_t *);
 
 int ecw_master_scan(Ethercat_Master_t *);
 
-#ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommendet */
+#ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommended */
 int ecw_master_start_cyclic(Ethercat_Master_t *);
 int ecw_master_stop_cyclic(Ethercat_Master_t *master);
 #else
@@ -115,8 +135,8 @@ int ecw_master_cyclic_function(Ethercat_Master_t *);
 #endif
 
 /*
- * The following fucntions are necessary in the cyclic task/function to assure the
- * PDO data are exchanged with the kernel module.
+ * The following functions are necessary in the cyclic task/function to assure
+ * the PDO data are exchanged with the kernel module.
  */
 
 /**
@@ -201,7 +221,7 @@ void ecw_print_topology(Ethercat_Master_t *master);
 void ecw_print_domainregs(Ethercat_Master_t *master);
 
 /**
- * \brief Debug print of alls slaves object dcitionary
+ * \brief Debug print of all slaves object dictionary
  */
 void ecw_print_allslave_od(Ethercat_Master_t *master);
 
@@ -218,7 +238,7 @@ void ecw_print_master_state(Ethercat_Master_t *master);
  * \param master   errnum to get
  * \return string name of error
  */
-char * ecw_strerror(int errnum);
+char *ecw_strerror(int errnum);
 
 #ifdef __cplusplus
 }
