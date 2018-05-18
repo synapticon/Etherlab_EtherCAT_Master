@@ -13,13 +13,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-typedef struct _ecw_master_t Ethercat_Master_t;
-typedef struct _ecw_slave_t Ethercat_Slave_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Error codes */
 #define ECW_SUCCESS                          0
 #define ECW_ERROR_LINK_UP                   -2
@@ -28,6 +21,33 @@ extern "C" {
 #define ECW_ERROR_SDO_REQUEST_ERROR         -1
 #define ECW_ERROR_SDO_NOT_FOUND             -3
 #define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
+
+/* -> Ethercat_Master_t */
+struct _ecw_master_t {
+  int id;
+  /* master information */
+  ec_master_t *master;
+
+  /* variables for data structures */
+  ec_domain_t *domain;
+  ec_pdo_entry_reg_t *domain_reg;
+  uint8_t *processdata; /* FIXME are they needed here? */
+
+  /* slaves */
+  Ethercat_Slave_t *slave;  ///<< list of slaves
+  size_t slave_count;
+
+  /* diagnostic data structures */
+  ec_master_state_t master_state;
+  ec_domain_state_t domain_state;
+};
+
+typedef struct _ecw_master_t Ethercat_Master_t;
+typedef struct _ecw_slave_t Ethercat_Slave_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief Get version string fo this library

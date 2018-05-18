@@ -33,26 +33,6 @@ struct _pdo_memory {
 };
 #endif
 
-/* -> Ethercat_Master_t */
-struct _ecw_master_t {
-  int id;
-  /* master information */
-  ec_master_t *master;
-
-  /* variables for data structures */
-  ec_domain_t *domain;
-  ec_pdo_entry_reg_t *domain_reg;
-  uint8_t *processdata; /* FIXME are they needed here? */
-
-  /* slaves */
-  Ethercat_Slave_t *slave;  ///<< list of slaves
-  size_t slave_count;
-
-  /* diagnostic data structures */
-  ec_master_state_t master_state;
-  ec_domain_state_t domain_state;
-};
-
 static void update_domain_state(Ethercat_Master_t *master);
 static void update_master_state(Ethercat_Master_t *master);
 static void update_all_slave_state(Ethercat_Master_t *master);
