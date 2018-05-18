@@ -31,39 +31,39 @@ extern "C" {
  * \see ecw_slave_get_type
  */
 enum eSlaveType {
-    SLAVE_TYPE_UNKNOWN  = 0   /**< default unknown type */
-    ,SLAVE_TYPE_CIA402_DRIVE  /**< Somanet motor drive with CiA402 protocol */
-    ,SLAVE_TYPE_DIGITAL_IO    /**< SomanetDigital I/O board */
-    ,SLAVE_TYPE_ENDEFFECTOR_IO  /**< MABI Endeffector board */
-    ,SLAVE_TYPE_ECATIO        /* FIXME remove because it's DEPRECATED */
+  SLAVE_TYPE_UNKNOWN = 0, /**< default unknown type */
+  SLAVE_TYPE_CIA402_DRIVE, /**< Somanet motor drive with CiA402 protocol */
+  SLAVE_TYPE_DIGITAL_IO, /**< SomanetDigital I/O board */
+  SLAVE_TYPE_ENDEFFECTOR_IO, /**< MABI Endeffector board */
+  SLAVE_TYPE_ECATIO /* FIXME remove because it's DEPRECATED */
 };
 
 /**
  * \brief EtherCAT value types
  */
 enum eValueType {
-    VALUE_TYPE_NONE = 0
-    ,VALUE_TYPE_UNSIGNED1
-    ,VALUE_TYPE_UNSIGNED8
-    ,VALUE_TYPE_UNSIGNED16
-    ,VALUE_TYPE_UNSIGNED32
-    ,VALUE_TYPE_SIGNED8
-    ,VALUE_TYPE_SIGNED16
-    ,VALUE_TYPE_SIGNED32
-    ,VALUE_TYPE_PADDING    /* special type for gaps in PDO mapping for byte alignment */
+  VALUE_TYPE_NONE = 0,
+  VALUE_TYPE_UNSIGNED1,
+  VALUE_TYPE_UNSIGNED8,
+  VALUE_TYPE_UNSIGNED16,
+  VALUE_TYPE_UNSIGNED32,
+  VALUE_TYPE_SIGNED8,
+  VALUE_TYPE_SIGNED16,
+  VALUE_TYPE_SIGNED32,
+  VALUE_TYPE_PADDING /* special type for gaps in PDO mapping for byte alignment */
 };
 
 /**
  * \brief Object types for object dictionary entries
  */
 enum eObjectType {
-    OBJECT_TYPE_UNDEF      = 0 /**< unknown/undefined type */
-    ,OBJECT_TYPE_DOMAIN    = 2
-    ,OBJECT_TYPE_DEFTYPE   = 5
-    ,OBJECT_TYPE_DEFSTRUCT = 6
-    ,OBJECT_TYPE_VAR       = 7 /**< Type for simple variable */
-    ,OBJECT_TYPE_ARRAY     = 8 /**< Complex type array */
-    ,OBJECT_TYPE_RECORD    = 9/**< Complex type record */
+  OBJECT_TYPE_UNDEF = 0, /**< unknown/undefined type */
+  OBJECT_TYPE_DOMAIN = 2,
+  OBJECT_TYPE_DEFTYPE = 5,
+  OBJECT_TYPE_DEFSTRUCT = 6,
+  OBJECT_TYPE_VAR = 7, /**< Type for simple variable */
+  OBJECT_TYPE_ARRAY = 8, /**< Complex type array */
+  OBJECT_TYPE_RECORD = 9/**< Complex type record */
 };
 
 /**
@@ -74,11 +74,11 @@ enum eObjectType {
  * this is not a problem.
  */
 enum eALState {
-    ALSTATE_INIT = 1
-    ,ALSTATE_PREOP
-    ,ALSTATE_BOOT
-    ,ALSTATE_SAFEOP
-    ,ALSTATE_OP
+  ALSTATE_INIT = 1,
+  ALSTATE_PREOP,
+  ALSTATE_BOOT,
+  ALSTATE_SAFEOP,
+  ALSTATE_OP
 };
 
 /**
@@ -90,10 +90,10 @@ typedef struct _ecw_slave_t Ethercat_Slave_t;
  * \brief Type for PDO values
  */
 typedef struct {
-    int value;
-    unsigned int offset;
-    unsigned int bit_offset;
-    enum eValueType type;
+  int value;
+  unsigned int offset;
+  unsigned int bit_offset;
+  enum eValueType type;
 } pdo_t;
 
 /**
@@ -102,34 +102,34 @@ typedef struct {
  * Every entry in the slaves object dictionary has at least this type
  */
 typedef struct _sdo_t {
-    uint16_t index;
-    uint8_t  subindex;
-    int      value;
-    int      bit_length;
-    enum eObjectType object_type;
-    int      entry_type;
-    char     name[EC_MAX_STRING_LENGTH];
-    char     object_name[EC_MAX_STRING_LENGTH];
-    uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
-    uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+  uint16_t index;
+  uint8_t subindex;
+  int value;
+  int bit_length;
+  enum eObjectType object_type;
+  int entry_type;
+  char name[EC_MAX_STRING_LENGTH];
+  char object_name[EC_MAX_STRING_LENGTH];
+  uint8_t read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+  uint8_t write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
 
-    ec_sdo_request_t *request;
-    ec_request_state_t request_state;
-    int read_request;
+  ec_sdo_request_t *request;
+  ec_request_state_t request_state;
+  int read_request;
 } Sdo_t;
 
 /**
  * \brief Slave information type
  */
 typedef struct {
-    int        position;                   /**< Position of the slave on the bus */
-    uint32_t   vendor_id;                   /**< Vendor ID of the device (assigned by ETG) */
-    uint32_t   product_code;                /**< Product code of the device */
-    uint32_t   revision_number;             /**< Revision number of the device */
-    uint32_t   serial_number;               /**< Serial number of the device */
-    uint8_t    sync_manager_count;          /**< Number of Sync Manager */
-    uint8_t    sdo_count;                   /**< number of SDO objects */
-    char       name[EC_MAX_STRING_LENGTH];  /**< String name of the device */
+  int position; /**< Position of the slave on the bus */
+  uint32_t vendor_id; /**< Vendor ID of the device (assigned by ETG) */
+  uint32_t product_code; /**< Product code of the device */
+  uint32_t revision_number; /**< Revision number of the device */
+  uint32_t serial_number; /**< Serial number of the device */
+  uint8_t sync_manager_count; /**< Number of Sync Manager */
+  uint8_t sdo_count; /**< number of SDO objects */
+  char name[EC_MAX_STRING_LENGTH]; /**< String name of the device */
 } Ethercat_Slave_Info_t;
 
 /**
@@ -140,10 +140,10 @@ typedef struct {
  * \see ecw_slave_get_type
  */
 typedef struct {
-    uint32_t        vendor_id;        /**< Vendor ID of the device (assigned by ETG) */
-    uint32_t        product_code;     /**< Product code of the device */
-    uint32_t        revision_number;  /**< Revision number of the device */
-    enum eSlaveType type;             /**< Type of the device (if available) */
+  uint32_t vendor_id; /**< Vendor ID of the device (assigned by ETG) */
+  uint32_t product_code; /**< Product code of the device */
+  uint32_t revision_number; /**< Revision number of the device */
+  enum eSlaveType type; /**< Type of the device (if available) */
 } Device_type_map_t;
 
 /* FIXME this seem to be unused / unnecessary */
@@ -215,7 +215,8 @@ int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
  * \param value    Value to write to the object
  * \return 0 on success
  */
-int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int value);
+int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
+                            int value);
 
 /**
  * \brief Request the current value of one object
@@ -226,7 +227,8 @@ int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int va
  * \param *value   Pointer to variable to store requested value
  * \return 0 on success
  */
-int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex, int *value);
+int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
+                            int *value);
 
 /**
  * \brief Get object with index and subindex from object dictionary

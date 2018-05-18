@@ -218,7 +218,7 @@ void ecw_print_master_state(Ethercat_Master_t *master);
  * \param master   errnum to get
  * \return string name of error
  */
-char * ecw_strerror(int errnum);
+char *ecw_strerror(int errnum);
 
 #ifdef __cplusplus
 }
