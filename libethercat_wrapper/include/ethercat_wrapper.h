@@ -107,9 +107,9 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *log);
 void ecw_master_release(Ethercat_Master_t *);
 
 /**
- * \brief Set master in op state
+ * \brief Set master in operation state
  *
- * Starts the master cyclic opeeration.
+ * Starts the master cyclic operation.
  */
 int ecw_master_start(Ethercat_Master_t *);
 
@@ -120,7 +120,7 @@ int ecw_master_stop(Ethercat_Master_t *);
 
 int ecw_master_scan(Ethercat_Master_t *);
 
-#ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommendet */
+#ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommended */
 int ecw_master_start_cyclic(Ethercat_Master_t *);
 int ecw_master_stop_cyclic(Ethercat_Master_t *master);
 #else
@@ -135,8 +135,8 @@ int ecw_master_cyclic_function(Ethercat_Master_t *);
 #endif
 
 /*
- * The following fucntions are necessary in the cyclic task/function to assure the
- * PDO data are exchanged with the kernel module.
+ * The following functions are necessary in the cyclic task/function to assure
+ * the PDO data are exchanged with the kernel module.
  */
 
 /**
@@ -221,7 +221,7 @@ void ecw_print_topology(Ethercat_Master_t *master);
 void ecw_print_domainregs(Ethercat_Master_t *master);
 
 /**
- * \brief Debug print of alls slaves object dcitionary
+ * \brief Debug print of all slaves object dictionary
  */
 void ecw_print_allslave_od(Ethercat_Master_t *master);
 

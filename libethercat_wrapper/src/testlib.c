@@ -60,7 +60,7 @@
 #include "ethercat_wrapper.h"
 #include "ethercat_wrapper_slave.h"
 
-#include "slave.h"  /* this is a internal header - jsut for testing included here */
+#include "slave.h"  /* this is a internal header - just for testing included here */
 
 /****************************************************************************/
 
@@ -192,7 +192,7 @@ static char *get_watchdog_mode_string(ec_watchdog_mode_t watchdog_mode)
     case EC_WD_DISABLE:
       return "disable";
     default:
-      return "Fucked up";
+      return "Error: Unknown watchdog mode!";
   }
 
   return "none";
@@ -214,7 +214,7 @@ static char *get_direction_string(ec_direction_t dir)
       return "count";
       break;
     default:
-      return "fucked up";
+      return "Error: Unknown direction string!";
       break;
   }
 
@@ -331,7 +331,7 @@ static void cmdline(int argc, char **argv, char **target_file)
       case 'l':
         g_dbglvl = atoi(optarg);
         if (g_dbglvl < 0 || g_dbglvl > MAXDBGLVL) {
-          fprintf(stderr, "Error unsuported debug level %d.\n", g_dbglvl);
+          fprintf(stderr, "Error unsupported debug level %d.\n", g_dbglvl);
           exit(1);
         }
         break;
@@ -356,7 +356,7 @@ static void read_object_dictionary_slave(Ethercat_Master_t *master, int slaveid)
     Sdo_t *sdo = ecw_slave_get_sdo_index(slave, j);
 
     printf("  Sdo (%d)\n", j);
-    printf("    0x%04x:%d len: %d (%d/%d) '%s'\n", sdo->index, sdo->subindex,
+    printf("    0x%04x:%d length: %d (%d/%d) '%s'\n", sdo->index, sdo->subindex,
            sdo->bit_length, sdo->object_type, sdo->entry_type, sdo->name);
 
     free(sdo);
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
 
   FILE *llecatlog = fopen("./llecat.log", "w+");
   if (llecatlog == NULL) {
-    fprintf(stderr, "Warning, could not open logfile\n");
+    fprintf(stderr, "Warning, could not open the log file\n");
   }
 
   //ec_slave_config_t *sc;
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
       time_mean = calc_mean(time_mean, (double) time_diff.tv_nsec,
                             time_counter++);
 
-//      printf("[DEBUG] set target position %d on node 0\n", outbound[0]);
+//    printf("[DEBUG] set target position %d on node 0\n", outbound[0]);
 
       Ethercat_Slave_t *slave = ecw_slave_get(master, 0);
       int value = ecw_slave_get_in_value(slave, 0);

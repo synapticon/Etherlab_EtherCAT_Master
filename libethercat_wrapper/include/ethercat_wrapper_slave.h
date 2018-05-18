@@ -70,7 +70,7 @@ enum eObjectType {
  * \brief Application layer states
  *
  * FIXME according to the API of the libethercat the BOOTSTRAP mode is not
- * represented here. If the bootloader is not used with the motionmaster
+ * represented here. If the bootloader is not used with the motion master
  * this is not a problem.
  */
 enum eALState {
@@ -82,7 +82,7 @@ enum eALState {
 };
 
 /**
- * \brief Ethercat slave type
+ * \brief EtherCAT slave type
  */
 typedef struct _ecw_slave_t Ethercat_Slave_t;
 
@@ -155,7 +155,7 @@ void ecw_slave_release(Ethercat_Slave_t *);
  *
  * The slave id used here is the position of the slave on the bus.
  *
- * \param slave   Slave object to requst
+ * \param slave   Slave object to request
  * \return the id of the slave
  */
 int ecw_slave_get_slaveid(Ethercat_Slave_t *s);
@@ -163,7 +163,7 @@ int ecw_slave_get_slaveid(Ethercat_Slave_t *s);
 /**
  * \brief Request the type of the slave
  *
- * \param slave   Slave object to requst
+ * \param slave   Slave object to request
  * \return the type of the slave \see eSlaveType
  */
 enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s);
@@ -171,7 +171,7 @@ enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s);
 /**
  * \brief Request the current application layer state of the slave
  *
- * This function is usefull in cyclic operation to monitor the current
+ * This function is useful in cyclic operation to monitor the current
  * state of the slaves on the bus.
  *
  * \param s   slave object to request
@@ -233,7 +233,7 @@ int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
 /**
  * \brief Get object with index and subindex from object dictionary
  *
- * Create a copy of the object dictionary object ad position `sdoindex` and
+ * Create a copy of the object dictionary object at position `sdoindex` and
  * return this to the user. The calling application must take care to clean
  * up this object.
  *
@@ -258,7 +258,7 @@ Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex);
 Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex);
 
 /**
- * \brief low level access to write sdo value to slave
+ * \brief low level access to write SDO value to slave
  *
  * WARNING: this function does not automatically update the value of the SDO in
  * the local object dictionary.
@@ -270,7 +270,7 @@ Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex);
 int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo);
 
 /**
- * \brief low level access to read sdo value to slave
+ * \brief low level access to read SDO value to slave
  *
  * WARNING: this function does not automatically update the value of the SDO in
  * the local object dictionary.
@@ -296,7 +296,7 @@ size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s);
  * \brief Get slave information
  *
  * \param slave  Slave to request
- * \param info   reference to slavae information \see Ethercat_Slave_Info_t
+ * \param info   reference to slave information \see Ethercat_Slave_Info_t
  * \return 0, != 0 on error
  */
 int ecw_slave_get_info(Ethercat_Slave_t *slave, Ethercat_Slave_Info_t *info);
@@ -305,7 +305,7 @@ int ecw_slave_get_info(Ethercat_Slave_t *slave, Ethercat_Slave_Info_t *info);
  * \brief Get slave type string
  *
  * \param type  the type of the slave \see type_map_get_type
- * \return c sstring of the requested type
+ * \return c string of the requested type
  */
 char *ecw_slave_type_string(enum eSlaveType type);
 

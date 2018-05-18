@@ -12,7 +12,7 @@
 
 #include <string.h>
 
-/* list of supported ethercat slaves */
+/* list of supported ETherCAT slaves */
 static const Device_type_map_t type_map[] = { { 0x22d2, 0x201, 0x0a000002,
     SLAVE_TYPE_CIA402_DRIVE }, { 0x22d2, 0x202, 0, SLAVE_TYPE_DIGITAL_IO }, {
     0x22d2, 0x203, 0, SLAVE_TYPE_ENDEFFECTOR_IO }, { 0 } };
@@ -97,7 +97,7 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
       }
       break;
     case EC_REQUEST_ERROR:
-      // request failed, what a pitty
+      // request failed, what a pity
       sdo->read_request = 0;
       ret = ECW_ERROR_SDO_REQUEST_ERROR;
       break;
@@ -179,8 +179,8 @@ static int slave_sdo_download_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
  * SDO upload and download to slaves
  *
  * If at least one lease is in op mode the master is in the cyclic
- * operation and the direct sdo up-/download may hang up the kernel
- * module. So in cyclic operation the schedule sdo request must be
+ * operation and the direct SDO up-/download may hang up the kernel
+ * module. So in cyclic operation the schedule SDO request must be
  * used to be safe.
  */
 int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)

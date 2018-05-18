@@ -108,7 +108,7 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
 
 /*
  * populate the fields:
- * master->slave[*]->[rt]xpdo
+ * master->slave[*]->[RT]xPDO
  *
  * FIXME Move to slave.c:ecw_slave_scan()
  */
@@ -118,7 +118,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
   slave->master = master->master;
   slave->info = malloc(sizeof(ec_slave_info_t));
   if (ecrt_master_get_slave(master->master, slaveindex, slave->info) != 0) {
-    syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
            slaveindex);
     return -1;
   }
@@ -148,7 +148,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
       continue;
 
     if (sminfo->pdos == NULL) {
-      //syslog(LOG_ERR, "Warning, slave unconfigured");
+      //syslog(LOG_ERR, "Warning, slave not configured");
       sminfo->pdos = malloc(sminfo->n_pdos * sizeof(ec_pdo_info_t));
     }
 
@@ -191,7 +191,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
                                            slave->info->vendor_id,
                                            slave->info->product_code);
   if (slave->config == NULL) {
-    syslog(LOG_ERR, "Error aquire slave configuration");
+    syslog(LOG_ERR, "Error acquiring slave configuration");
     return -1;
   }
 
@@ -263,7 +263,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
       EC_SDO_ENTRY_ACCESS_COUNTER);
 
       /* SDO requests are uploaded at master_start(), they are only
-       * needed when master and slave are in reql time context. */
+       * needed when master and slave are in real time context. */
       sdo->request = NULL;
     }
   }
@@ -285,7 +285,8 @@ void ecw_print_topology(Ethercat_Master_t *master)
     slaveinfo = (master->slave + i)->info;
 
     if (ecrt_master_get_slave(master->master, i, slaveinfo) != 0) {
-      syslog(LOG_DEBUG, "[DEBUG %s] Couldn't read slave config on position %d",
+      syslog(LOG_DEBUG,
+             "[DEBUG %s] Couldn't read slave configuration on position %d",
              __func__, i);
     }
 
@@ -299,28 +300,28 @@ void ecw_print_topology(Ethercat_Master_t *master)
     printf("\nDEBUG Output\n-------------\n");
     printf("Slave index: %d\n", slave->info->position);
     printf("      type:  %s\n", ecw_slave_type_string(slave->type));
-    printf("  # Syncmanager: %d\n", slave->info->sync_count);
+    printf("  # Sync manager: %d\n", slave->info->sync_count);
 
-    printf("  out pdo count: %lu\n", slave->outpdocount);
-    printf("  in  pdo count: %lu\n", slave->inpdocount);
+    printf("  out PDO count: %lu\n", slave->outpdocount);
+    printf("  in  PDO count: %lu\n", slave->inpdocount);
 
     for (int i = 0; i < slave->info->sync_count; i++) {
       ec_sync_info_t *sminfo = slave->sminfo + i;
 
-      printf("| Slave: %d, Syncmanager: %d\n", slave->info->position, i);
+      printf("| Slave: %d, Sync manager: %d\n", slave->info->position, i);
       printf("|    index: 0x%04x\n", sminfo->index);
       printf("|    direction: %d\n", sminfo->dir);
       printf("|    # of PDOs: %d\n", sminfo->n_pdos);
 
       if (sminfo->n_pdos == 0) {
-        fprintf(stdout, "[INFO] no pdos to assaign... continue \n");
+        fprintf(stdout, "[INFO] no PDOs to assign... continue \n");
         continue;
       }
 
       for (int j = 0; j < sminfo->n_pdos; j++) {
         ec_pdo_info_t *pdoinfo = sminfo->pdos + j;
         if (pdoinfo == NULL) {
-          syslog(LOG_ERR, "ERROR pdoinfo is not available");
+          syslog(LOG_ERR, "ERROR PDO info is not available");
         }
 
         printf("|    | PDO Info (%d):\n", j);
@@ -369,7 +370,7 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
     for (int i = 0; i < slave->sdo_count; i++) {
       sdo = slave->dictionary + i;
 
-      printf("    +-> Object Numder: %d ", i);
+      printf("    +-> Object Number: %d ", i);
       printf(", 0x%04x:%d", sdo->index, sdo->subindex);
       printf(", %d, %d", sdo->value, sdo->bit_length);
       printf(", %d", sdo->object_type);
@@ -455,7 +456,7 @@ int ecw_preemptive_slave_sdo_count(int master_id, int slave_index)
 
   ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
   if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
-    syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
            slave_index);
     return -1;
   }
@@ -484,7 +485,7 @@ int ecw_preemptive_slave_state(int master_id, int slave_index)
 
   ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
   if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
-    syslog(LOG_ERR, "Error, could not read slave config for slave %d",
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
            slave_index);
     return -1;
   }
@@ -556,7 +557,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   for (int i = 0; i < info->slave_count; i++) {
     /* get the PDOs from the buffered syncmanagers */
     if (slave_config(master, i) != 0) {
-      syslog(LOG_ERR, "ERROR, config slave %d", i);
+      syslog(LOG_ERR, "ERROR, configuration slave %d", i);
       return NULL;
     }
 
@@ -602,7 +603,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           valcount++;
 
           pdoe->type = get_type_from_bitlength(entry->bit_length);
-          /* FIXME Add proper error handling if VALUE_TYPE_NONE is returnd */
+          /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
 
           domain_reg_cur->alias = slave->info->alias;
           domain_reg_cur->position = slave->info->position;
@@ -622,7 +623,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     Ethercat_Slave_t *slave = master->slave + i;
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
-      if (0 == sm->n_pdos) { /* if no pdos for this syncmanager proceed to the next one */
+      if (0 == sm->n_pdos) { /* if no PDOs for this sync manager proceed to the next one */
         continue;
       }
 
@@ -647,7 +648,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           valcount++;
 
           pdoe->type = get_type_from_bitlength(entry->bit_length);
-          /* FIXME Add proper error handling if VALUE_TYPE_NONE is returnd */
+          /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
 
           domain_reg_cur->alias = slave->info->alias;
           domain_reg_cur->position = slave->info->position;
@@ -676,7 +677,7 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   /* for each slave */
   free(master->domain);
-  free(master->slave); /* FIXME have to recursivly clean up this slave! */
+  free(master->slave); /* FIXME have to recursively clean up this slave! */
   ecrt_release_master(master->master);
   free(master);
 }
@@ -731,8 +732,9 @@ int ecw_master_start(Ethercat_Master_t *master)
 
   master->processdata = ecrt_domain_data(master->domain);
   if (master->processdata == NULL) {
-    syslog(LOG_ERR,
-           "Error unable to get processdata pointer. Disable master again.");
+    syslog(
+        LOG_ERR,
+        "Error unable to get the process data pointer. Disable master again.");
     ecrt_master_deactivate(master->master);
     return -1;
   }
@@ -754,8 +756,8 @@ int ecw_master_stop(Ethercat_Master_t *master)
 
   /* The documentation of this function in ecrt.h is kind of misleading. It
    * states that this function shouldn't be called in real-time context. On the
-   * otherhand the offical IgH documentation states this function as counterpart
-   * to ecrt_master_activate(). */
+   * other hand, the official IgH documentation states this function as
+   * counterpart to ecrt_master_activate(). */
   ecrt_master_deactivate(master->master);
 
   /* This function frees the following data structures (internally):
@@ -791,7 +793,7 @@ int ecw_master_start_cyclic(Ethercat_Master_t *master)
   LOG_USER);
 
   if (ecrt_master_activate(master->master)) {
-    syslog(LOG_ERR, "[ERROR %s] Unable ot activate master", __func__);
+    syslog(LOG_ERR, "[ERROR %s] Unable to activate the master", __func__);
     return -1;
   }
 

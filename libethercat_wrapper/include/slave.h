@@ -18,7 +18,7 @@ struct _ecw_slave_t {
   ec_slave_info_t *info;
   ec_sync_info_t *sminfo;
   ec_slave_config_t *config;
-  ec_master_t *master; /* referece to theh mastser interface this slave is connected */
+  ec_master_t *master; /* reference to the master interface this slave is connected */
   ec_slave_config_state_t state; /* read with ecrt_slave_config_state() */
 
   /*
