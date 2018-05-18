@@ -38,7 +38,6 @@ struct _ecw_master_t {
   int id;
   /* master information */
   ec_master_t *master;
-  ec_master_info_t *info;
 
   /* variables for data structures */
   ec_domain_t *domain;
@@ -301,7 +300,7 @@ void ecw_print_topology(Ethercat_Master_t *master)
 
   ec_slave_info_t *slaveinfo;
 
-  for (int i = 0; i < master->info->slave_count; i++) {
+  for (int i = 0; i < master->slave_count; i++) {
     (master->slave + i)->info = malloc(sizeof(ec_slave_info_t));
     slaveinfo = (master->slave + i)->info;
 
@@ -536,9 +535,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     return NULL;
   }
 
-  /* configure slaves */
-  master->info = calloc(1, sizeof(ec_master_info_t));
-
+  /* wait for the master and get its state */
   int timeout = 1000;
   ec_master_state_t state;
   state.link_up = 0;
@@ -551,10 +548,13 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     return NULL;
   }
 
+  /* configure slaves */
+  ec_master_info_t *info = calloc(1, sizeof(ec_master_info_t));
+
   timeout = 1000;
-  master->info->scan_busy = 1;
-  while ((master->info->scan_busy) && (timeout-- > 0)) {
-    ecrt_master(master->master, master->info);
+  info->scan_busy = 1;
+  while ((info->scan_busy) && (timeout-- > 0)) {
+    ecrt_master(master->master, info);
     usleep(1000);
   }
 
@@ -563,17 +563,17 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     return NULL;
   }
 
-  if (master->info->slave_count != state.slaves_responding) {
+  if (info->slave_count != state.slaves_responding) {
     syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
     return NULL;
   }
 
-  master->slave_count = master->info->slave_count;
+  master->slave_count = info->slave_count;
   master->slave = malloc(master->slave_count * sizeof(Ethercat_Slave_t));
 
   size_t all_pdo_count = 0;
 
-  for (int i = 0; i < master->info->slave_count; i++) {
+  for (int i = 0; i < info->slave_count; i++) {
     /* get the PDOs from the buffered syncmanagers */
     if (slave_config(master, i) != 0) {
       syslog(LOG_ERR, "ERROR, config slave %d", i);
@@ -583,6 +583,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     all_pdo_count += ((master->slave + i)->outpdocount
         + (master->slave + i)->inpdocount);
   }
+
+  free(info);
 
   /*
    * Register domain for PDO exchange
@@ -695,7 +697,6 @@ void ecw_master_release(Ethercat_Master_t *master)
   /* for each slave */
   free(master->domain);
   free(master->slave); /* FIXME have to recursivly clean up this slave! */
-  free(master->info);
   ecrt_release_master(master->master);
   free(master);
 }
