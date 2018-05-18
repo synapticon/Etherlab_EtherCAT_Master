@@ -186,7 +186,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
   ec_sync_info_t *sminfo = slave->sminfo + slave->info->sync_count;
   *sminfo = (ec_sync_info_t ) { 0xff };
 
-  slave->config = ecrt_master_slave_config(master->master, slave->alias,
+  slave->config = ecrt_master_slave_config(master->master, slave->info->alias,
                                            slave->info->position,
                                            slave->info->vendor_id,
                                            slave->info->product_code);
@@ -695,7 +695,7 @@ int ecw_master_start(Ethercat_Master_t *master)
   for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
     Ethercat_Slave_t *slave = master->slave + slaveid;
     slave->cyclic_mode = 1;  // mark slaves as in cyclic mode
-    slave->config = ecrt_master_slave_config(master->master, slave->alias,
+    slave->config = ecrt_master_slave_config(master->master, slave->info->alias,
                                              slave->info->position,
                                              slave->info->vendor_id,
                                              slave->info->product_code);
