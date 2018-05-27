@@ -191,7 +191,7 @@ int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
     return ECW_ERROR_LINK_UP;
   }
 
-  if (s->cyclic_mode || link_state.al_states & 0x8) {
+  if (s->cyclic_mode || (link_state.al_states & 0x8)) {
     return slave_sdo_upload_request(s, sdo);
   }
 
@@ -206,7 +206,7 @@ int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo)
     return ECW_ERROR_LINK_UP;
   }
 
-  if (s->cyclic_mode || link_state.al_states & 0x8) {
+  if (s->cyclic_mode || (link_state.al_states & 0x8)) {
     int ret = slave_sdo_download_request(s, sdo);
     return ret;
   }
@@ -270,194 +270,194 @@ int ecw_slave_set_out_value(Ethercat_Slave_t *s, size_t pdoindex, int value)
   return 0;
 }
 
-int ( ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex))
-    {
-      pdo_t *pdo = ecw_slave_get_inpdo(s, pdoindex);
-      return pdo->value;
-    }
+int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex)
+{
+  pdo_t *pdo = ecw_slave_get_inpdo(s, pdoindex);
+  return pdo->value;
+}
 
-    int ecw_slave_set_inpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
-    {
-      if (pdo->value != (s->input_values + pdoindex)->value
-          || pdo->type != (s->input_values + pdoindex)->type
-          || pdo->offset != (s->input_values + pdoindex)->offset) {
-        memmove((s->input_values + pdoindex), pdo, sizeof(pdo_t));
-      }
+int ecw_slave_set_inpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+{
+  if (pdo->value != (s->input_values + pdoindex)->value
+      || pdo->type != (s->input_values + pdoindex)->type
+      || pdo->offset != (s->input_values + pdoindex)->offset) {
+    memmove((s->input_values + pdoindex), pdo, sizeof(pdo_t));
+  }
 
-      return 0;
-    }
+  return 0;
+}
 
-    pdo_t *ecw_slave_get_inpdo(Ethercat_Slave_t *s, size_t pdoindex)
-    {
-      return (s->input_values + pdoindex);
-    }
+pdo_t *ecw_slave_get_inpdo(Ethercat_Slave_t *s, size_t pdoindex)
+{
+  return (s->input_values + pdoindex);
+}
 
-    int ecw_slave_set_outpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
-    {
-      if (pdo->value != (s->output_values + pdoindex)->value
-          || pdo->type != (s->output_values + pdoindex)->type
-          || pdo->offset != (s->output_values + pdoindex)->offset) {
-        memmove((s->output_values + pdoindex), pdo, sizeof(pdo_t));
-      }
+int ecw_slave_set_outpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+{
+  if (pdo->value != (s->output_values + pdoindex)->value
+      || pdo->type != (s->output_values + pdoindex)->type
+      || pdo->offset != (s->output_values + pdoindex)->offset) {
+    memmove((s->output_values + pdoindex), pdo, sizeof(pdo_t));
+  }
 
-      return 0;
-    }
+  return 0;
+}
 
-    pdo_t *ecw_slave_get_outpdo(Ethercat_Slave_t *s, size_t pdoindex)
-    {
-      return (s->output_values + pdoindex);
-    }
+pdo_t *ecw_slave_get_outpdo(Ethercat_Slave_t *s, size_t pdoindex)
+{
+  return (s->output_values + pdoindex);
+}
 
-    /*
-     * SDO handling
-     */
+/*
+ * SDO handling
+ */
 
-    size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s)
-    {
-      return (size_t) s->sdo_count;
-    }
+size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s)
+{
+  return (size_t) s->sdo_count;
+}
 
-    Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex)
-    {
-      for (int i = 0; i < s->sdo_count; i++) {
-        Sdo_t *current = s->dictionary + i;
-        if (current->index == index && current->subindex == subindex) {
-          Sdo_t *sdo = malloc(sizeof(Sdo_t));
-          memmove(sdo, current, sizeof(Sdo_t));
-          return sdo;
-        }
-      }
-
-      return NULL;
-    }
-
-    Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
-    {
-      if (sdoindex >= s->sdo_count) {
-        return NULL;
-      }
-
+Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex)
+{
+  for (int i = 0; i < s->sdo_count; i++) {
+    Sdo_t *current = s->dictionary + i;
+    if (current->index == index && current->subindex == subindex) {
       Sdo_t *sdo = malloc(sizeof(Sdo_t));
-      Sdo_t *od = s->dictionary + sdoindex;
-      memmove(sdo, od, sizeof(Sdo_t));
-
+      memmove(sdo, current, sizeof(Sdo_t));
       return sdo;
     }
+  }
 
-    int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
-                                int value)
-    {
-      Sdo_t *current = NULL;
+  return NULL;
+}
 
-      for (int i = 0; i < s->sdo_count; i++) {
-        current = s->dictionary + i;
-        if (current->index == index && current->subindex == subindex) {
-          current->value = value;
-          int err = slave_sdo_download(s, current);
-          return err;
-        }
-      }
+Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
+{
+  if (sdoindex >= s->sdo_count) {
+    return NULL;
+  }
 
-      return ECW_ERROR_SDO_NOT_FOUND; /* not found */
-    }
+  Sdo_t *sdo = malloc(sizeof(Sdo_t));
+  Sdo_t *od = s->dictionary + sdoindex;
+  memmove(sdo, od, sizeof(Sdo_t));
 
-    int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
-                                int *value)
-    {
-      Sdo_t *sdo = NULL;  //ecw_slave_get_sdo(s, index, subindex);
-      for (int i = 0; i < s->sdo_count; i++) {
-        Sdo_t *current = s->dictionary + i;
-        if (current->index == index && current->subindex == subindex) {
-          sdo = current;
-          break;
-        }
-      }
+  return sdo;
+}
 
-      if (sdo == NULL) {
-        return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
-      }
+int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
+                            int value)
+{
+  Sdo_t *current = NULL;
 
-      int err = slave_sdo_upload(s, sdo);
-      if (err == 0) {
-        *value = sdo->value;
-      }
-
+  for (int i = 0; i < s->sdo_count; i++) {
+    current = s->dictionary + i;
+    if (current->index == index && current->subindex == subindex) {
+      current->value = value;
+      int err = slave_sdo_download(s, current);
       return err;
     }
+  }
 
-    int ecw_slave_get_info(Ethercat_Slave_t *s, Ethercat_Slave_Info_t *info)
-    {
-      if (info == NULL || s == NULL) {
-        return -1;
-      }
+  return ECW_ERROR_SDO_NOT_FOUND; /* not found */
+}
 
-      info->position = s->info->position;
-      info->vendor_id = s->info->vendor_id;
-      info->product_code = s->info->product_code;
-      info->revision_number = s->info->revision_number;
-      info->serial_number = s->info->serial_number;
-      info->sync_manager_count = s->info->sync_count;
-      info->sdo_count = s->info->sdo_count;
-      strncpy(info->name, s->info->name, EC_MAX_STRING_LENGTH);
-
-      return 0;
+int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
+                            int *value)
+{
+  Sdo_t *sdo = NULL;  //ecw_slave_get_sdo(s, index, subindex);
+  for (int i = 0; i < s->sdo_count; i++) {
+    Sdo_t *current = s->dictionary + i;
+    if (current->index == index && current->subindex == subindex) {
+      sdo = current;
+      break;
     }
+  }
 
-    char *ecw_slave_type_string(enum eSlaveType type)
-    {
-      char *typestring;
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
+  }
 
-      switch (type) {
-        case SLAVE_TYPE_CIA402_DRIVE:
-          typestring = "CiA402 Drive";
-          break;
-        case SLAVE_TYPE_DIGITAL_IO:
-        case SLAVE_TYPE_ECATIO: /* FIXME remove because it's DEPRECATED */
-          typestring = "Digital I/O";
-          break;
-        case SLAVE_TYPE_UNKNOWN:
-        default:
-          typestring = "Unknown";
-          break;
-      }
+  int err = slave_sdo_upload(s, sdo);
+  if (err == 0) {
+    *value = sdo->value;
+  }
 
-      return typestring;
+  return err;
+}
+
+int ecw_slave_get_info(Ethercat_Slave_t *s, Ethercat_Slave_Info_t *info)
+{
+  if (info == NULL || s == NULL) {
+    return -1;
+  }
+
+  info->position = s->info->position;
+  info->vendor_id = s->info->vendor_id;
+  info->product_code = s->info->product_code;
+  info->revision_number = s->info->revision_number;
+  info->serial_number = s->info->serial_number;
+  info->sync_manager_count = s->info->sync_count;
+  info->sdo_count = s->info->sdo_count;
+  strncpy(info->name, s->info->name, EC_MAX_STRING_LENGTH);
+
+  return 0;
+}
+
+char *ecw_slave_type_string(enum eSlaveType type)
+{
+  char *typestring;
+
+  switch (type) {
+    case SLAVE_TYPE_CIA402_DRIVE:
+      typestring = "CiA402 Drive";
+      break;
+    case SLAVE_TYPE_DIGITAL_IO:
+    case SLAVE_TYPE_ECATIO: /* FIXME remove because it's DEPRECATED */
+      typestring = "Digital I/O";
+      break;
+    case SLAVE_TYPE_UNKNOWN:
+    default:
+      typestring = "Unknown";
+      break;
+  }
+
+  return typestring;
+}
+
+enum eSlaveType type_map_get_type(uint32_t vendor, uint32_t product)
+{
+  for (int i = 0; type_map[i].vendor_id != 0; i++) {
+    if (type_map[i].vendor_id == vendor
+        && type_map[i].product_code == product) {
+      return type_map[i].type;
     }
+  }
 
-    enum eSlaveType type_map_get_type(uint32_t vendor, uint32_t product)
-    {
-      for (int i = 0; type_map[i].vendor_id != 0; i++) {
-        if (type_map[i].vendor_id == vendor
-            && type_map[i].product_code == product) {
-          return type_map[i].type;
-        }
-      }
+  return SLAVE_TYPE_UNKNOWN;
+}
 
-      return SLAVE_TYPE_UNKNOWN;
-    }
+enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
+{
+  unsigned int raw = s->state.al_state;
+  enum eALState state = ALSTATE_INIT;
 
-    enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
-    {
-      unsigned int raw = s->state.al_state;
-      enum eALState state = ALSTATE_INIT;
+  switch (raw) {
+    case 1:
+      state = ALSTATE_INIT;
+      break;
+    case 2:
+      state = ALSTATE_PREOP;
+      break;
+    case 3:
+      state = ALSTATE_BOOT;
+      break;
+    case 4:
+      state = ALSTATE_SAFEOP;
+      break;
+    case 8:
+      state = ALSTATE_OP;
+      break;
+  }
 
-      switch (raw) {
-        case 1:
-          state = ALSTATE_INIT;
-          break;
-        case 2:
-          state = ALSTATE_PREOP;
-          break;
-        case 3:
-          state = ALSTATE_BOOT;
-          break;
-        case 4:
-          state = ALSTATE_SAFEOP;
-          break;
-        case 8:
-          state = ALSTATE_OP;
-          break;
-      }
-
-      return state;
-    }
+  return state;
+}
