@@ -11,7 +11,8 @@ WORK_DIR="${SCRIPT_DIR}/.."
 ETHERCAT_SYSCONFIG="/etc/sysconfig/ethercat"
 ETHERCAT_INSTALL_PREFIX=""
 ETHERCAT_START_PREFIX="/opt/etherlab"
-CONFIGURE_FLAGS="--enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles"
+ARCH_FLAG=$(if [[ $(arch) != "a"* ]]; then echo "--enable-cycles" ; fi) #check for arm architecture
+CONFIGURE_FLAGS="--enable-sii-assign --disable-8139too --enable-hrtimer ${ARCH_FLAG}"
 
 do_configure() {
   cd ${WORK_DIR}
