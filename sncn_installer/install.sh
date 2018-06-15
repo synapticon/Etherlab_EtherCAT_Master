@@ -55,9 +55,9 @@ do_setup_interfaces () {
       iface="${1}"
       MAC=$(cat /sys/class/net/${iface}/address)
     else
-      # Takes the first interface randomly if not
-      interfaces=$(ifconfig | grep -e "^e[tn][a-z0-9]*" -o)
-      iface=$(echo ${interfaces} | cut -d " " -f1)
+      # Takes the first interface randomly if not passed
+      interfaces=$(ip link show  | grep -oP "(^\d*: )\K(e[tn][a-z0-9]*)")
+      iface=$(echo ${interfaces} | head -n1 | cut -d " " -f1)
       MAC=$(cat /sys/class/net/${iface}/address)
     fi
   fi
