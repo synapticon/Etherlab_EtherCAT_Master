@@ -902,6 +902,7 @@ void ec_fsm_coe_dict_desc_response(
     fsm->subindex = 0;
     fsm->retries = EC_FSM_RETRIES;
 
+    EC_SLAVE_DBG(slave, 1, "SDO dictionary received index %04x.\n", sdo->index);
     if (ec_fsm_coe_dict_prepare_entry(fsm, datagram)) {
         fsm->state = ec_fsm_coe_error;
     }
