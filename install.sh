@@ -1,4 +1,5 @@
 #!/bin/bash          
+echo -n "char* gitlog = \"" > master/gitlog.h && git log | cut -c 8-15 -z >> master/gitlog.h && echo "\";" >> master/gitlog.h
 ./bootstrap
 ./configure --enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles
 sudo /opt/etherlab/etc/init.d/ethercat stop
