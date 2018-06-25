@@ -7,11 +7,13 @@ syntax: glob
 **.mod.c
 **.o
 **.o.cmd
+**.o.d
 **.swp
 **/.deps/*.Po
 **/.tmp_*.gcno
 **~
 .tmp_versions
+.tags
 ChangeLog
 Doxyfile
 Kbuild
