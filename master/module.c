@@ -58,7 +58,7 @@ static char *main_devices[MAX_MASTERS]; /**< Main devices parameter. */
 static unsigned int master_count; /**< Number of masters. */
 static char *backup_devices[MAX_MASTERS]; /**< Backup devices parameter. */
 static unsigned int backup_count; /**< Number of backup devices. */
-static unsigned int debug_level;  /**< Debug level parameter. */
+static unsigned int debug_level = 1;  /**< Debug level parameter. */
 
 static ec_master_t *masters; /**< Array of masters. */
 static struct semaphore master_sem; /**< Master semaphore. */
