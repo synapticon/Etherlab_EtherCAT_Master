@@ -245,6 +245,12 @@ int ec_fsm_coe_exec(
     datagram_used =
         fsm->state != ec_fsm_coe_end && fsm->state != ec_fsm_coe_error;
 
+    if (fsm->state == ec_fsm_coe_error) {
+        EC_ERR("ec_fsm_coe_error slave %u, subindex %u\n",
+            fsm->slave->ring_position, fsm->subindex);
+        dump_stack();
+    }
+
     if (datagram_used) {
         fsm->datagram = datagram;
     } else {
