@@ -284,6 +284,21 @@ int ec_fsm_slave_action_process_sdo(
     // Found pending SDO request. Execute it!
     EC_SLAVE_DBG(slave, 1, "Processing SDO request...\n");
 
+    if (slave->config) {
+        ec_sdo_request_t *req;
+        if (list_empty(&slave->config->sdo_requests)) {
+            EC_SLAVE_DBG(slave, 1, "No SDO requests in config->sdo_requests!\n");
+        }
+        list_for_each_entry(req, &slave->config->sdo_requests, list) {
+            if (req->state == EC_INT_REQUEST_QUEUED || req->state == EC_INT_REQUEST_BUSY) {
+                EC_SLAVE_DBG(slave, 1, "Busy - processing internal SDO request!\n");
+                return 0;
+            }
+        }
+    } else {
+        EC_SLAVE_DBG(slave, 1, "slave->config is NULL\n");
+    }
+
     // Start SDO transfer
     fsm->state = ec_fsm_slave_state_sdo_request;
     ec_fsm_coe_transfer(&fsm->fsm_coe, slave, request);
