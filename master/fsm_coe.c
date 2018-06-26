@@ -245,12 +245,6 @@ int ec_fsm_coe_exec(
     datagram_used =
         fsm->state != ec_fsm_coe_end && fsm->state != ec_fsm_coe_error;
 
-    if (fsm->state == ec_fsm_coe_error) {
-        EC_ERR("ec_fsm_coe_error slave %u, subindex %u\n",
-            fsm->slave->ring_position, fsm->subindex);
-        dump_stack();
-    }
-
     if (datagram_used) {
         fsm->datagram = datagram;
     } else {
@@ -908,7 +902,6 @@ void ec_fsm_coe_dict_desc_response(
     fsm->subindex = 0;
     fsm->retries = EC_FSM_RETRIES;
 
-    EC_SLAVE_DBG(slave, 1, "SDO dictionary received index %04x.\n", sdo->index);
     if (ec_fsm_coe_dict_prepare_entry(fsm, datagram)) {
         fsm->state = ec_fsm_coe_error;
     }
@@ -1173,6 +1166,9 @@ void ec_fsm_coe_dict_entry_response(
         }
 
         return;
+    } else {
+        EC_SLAVE_DBG(slave, 1, "Finished index 0x%04x, with subindex 0x%02x\n",
+            fsm->sdo->index, fsm->subindex);
     }
 
     // another SDO description to fetch?
@@ -1186,6 +1182,9 @@ void ec_fsm_coe_dict_entry_response(
         }
 
         return;
+    } else {
+        EC_SLAVE_DBG(slave, 1, "Finished SDO dictionaries at index 0x%04x, and subindex 0x%02x\n",
+            fsm->sdo->index, fsm->subindex);
     }
 
     fsm->state = ec_fsm_coe_end;
