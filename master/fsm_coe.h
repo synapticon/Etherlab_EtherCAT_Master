@@ -76,6 +76,7 @@ void ec_fsm_coe_transfer(ec_fsm_coe_t *, ec_slave_t *, ec_sdo_request_t *);
 
 int ec_fsm_coe_exec(ec_fsm_coe_t *, ec_datagram_t *);
 int ec_fsm_coe_success(const ec_fsm_coe_t *);
+int ec_fsm_coe_failure(const ec_fsm_coe_t *);
 
 /*****************************************************************************/
 

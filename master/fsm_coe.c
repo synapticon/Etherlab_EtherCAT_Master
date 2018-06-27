@@ -266,6 +266,16 @@ int ec_fsm_coe_success(
     return fsm->state == ec_fsm_coe_end;
 }
 
+/** Returns, if the state machine terminated with failure.
+ * \return non-zero if failure.
+ */
+int ec_fsm_coe_failure(
+        const ec_fsm_coe_t *fsm /**< Finite state machine */
+        )
+{
+    return fsm->state == ec_fsm_coe_error;
+}
+
 /*****************************************************************************/
 
 /** Check if the received data are a CoE emergency request.
