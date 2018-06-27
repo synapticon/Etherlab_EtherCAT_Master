@@ -250,12 +250,24 @@ int ec_fsm_slave_action_process_sdo(
         ec_datagram_t *datagram /**< Datagram to use. */
         )
 {
+    static int retries = 0;
+
     ec_slave_t *slave = fsm->slave;
     ec_sdo_request_t *request;
 
     if (list_empty(&slave->sdo_requests)) {
         return 0;
     }
+
+    if (!(ec_fsm_coe_success(&slave->master->fsm.fsm_coe) || ec_fsm_coe_failure(&slave->master->fsm.fsm_coe))) {
+        if (retries == 0) {
+            EC_SLAVE_DBG(slave, 1, "Busy - processing CoE state machine!\n");
+        }
+        ++retries;
+        return 0;
+    }
+    EC_SLAVE_DBG(slave, 1, "No longer processing CoE state machine (retried %u times)!\n", retries);
+    retries = 0;
 
     // take the first request to be processed
     request = list_entry(slave->sdo_requests.next, ec_sdo_request_t, list);
