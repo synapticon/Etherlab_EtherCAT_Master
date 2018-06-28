@@ -828,9 +828,9 @@ int ecrt_slave_config_reg_pdo_entry(
     ec_pdo_entry_t *entry;
     int sync_offset;
 
-    // EC_CONFIG_DBG(sc, 1, "%s(sc = 0x%p, index = 0x%04X, "
-    //         "subindex = 0x%02X, domain = 0x%p, bit_position = 0x%p)\n",
-    //         __func__, sc, index, subindex, domain, bit_position);
+    EC_CONFIG_DBG(sc, 1, "%s(sc = 0x%p, index = 0x%04X, "
+            "subindex = 0x%02X, domain = 0x%p, bit_position = 0x%p)\n",
+            __func__, sc, index, subindex, domain, bit_position);
 
     for (sync_index = 0; sync_index < EC_MAX_SYNC_MANAGERS; sync_index++) {
         sync_config = &sc->sync_configs[sync_index];
@@ -1114,9 +1114,9 @@ ec_sdo_request_t *ecrt_slave_config_create_sdo_request_err(
     ec_sdo_request_t *req;
     int ret;
 
-    // EC_CONFIG_DBG(sc, 1, "%s(sc = 0x%p, "
-    //         "index = 0x%04X, subindex = 0x%02X, size = %zu)\n",
-    //         __func__, sc, index, subindex, size);
+    EC_CONFIG_DBG(sc, 1, "%s(sc = 0x%p, "
+            "index = 0x%04X, subindex = 0x%02X, size = %zu)\n",
+            __func__, sc, index, subindex, size);
 
     if (!(req = (ec_sdo_request_t *)
                 kmalloc(sizeof(ec_sdo_request_t), GFP_KERNEL))) {

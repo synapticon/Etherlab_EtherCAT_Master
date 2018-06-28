@@ -126,19 +126,6 @@ const ec_sdo_entry_t *ec_sdo_get_entry_const(
         return entry;
     }
 
-    printk(KERN_ERR "ec_sdo_get_entry_const: looking for %04X:%02X", sdo->index, subindex);
-    list_for_each_entry(entry, &sdo->entries, list) {
-        if (entry->list.prev == &sdo->entries) {
-            printk(KERN_ERR "start %02X", entry->subindex);
-        }
-	if (entry->list.next == &sdo->entries) {
-            printk(KERN_ERR "end %02X", entry->subindex);
-        }
-        if (entry->sdo != sdo) {
-            printk(KERN_ERR "sdo corrupted");
-        }
-        printk(KERN_ERR "found %02X %s", entry->subindex, entry->description);
-    }
     return NULL;
 }
 
