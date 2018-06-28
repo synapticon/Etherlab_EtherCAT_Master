@@ -266,7 +266,7 @@ int ec_fsm_coe_success(
     return fsm->state == ec_fsm_coe_end;
 }
 
-/** Returns, if the state machine is terminated.
+/** Returns, if the state machine has terminated.
  * \return non-zero if in end or error state.
  */
 int ec_fsm_coe_ready(

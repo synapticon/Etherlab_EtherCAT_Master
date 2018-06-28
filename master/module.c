@@ -59,7 +59,7 @@ static char *main_devices[MAX_MASTERS]; /**< Main devices parameter. */
 static unsigned int master_count; /**< Number of masters. */
 static char *backup_devices[MAX_MASTERS]; /**< Backup devices parameter. */
 static unsigned int backup_count; /**< Number of backup devices. */
-static unsigned int debug_level = 1;  /**< Debug level parameter. */
+static unsigned int debug_level;  /**< Debug level parameter. */
 
 static ec_master_t *masters; /**< Array of masters. */
 static struct semaphore master_sem; /**< Master semaphore. */
@@ -101,7 +101,7 @@ int __init ec_init_module(void)
     int i, ret = 0;
 
     EC_INFO("Master driver %s\n", EC_MASTER_VERSION);
-    EC_INFO("git log version %s\n", gitlog);
+    EC_INFO("git commit %s\n", gitlog);
 
     sema_init(&master_sem, 1);
 
@@ -150,7 +150,6 @@ int __init ec_init_module(void)
         }
     }
 
-    EC_ERR("Debug Level set to %u", debug_level);
     for (i = 0; i < master_count; i++) {
         ret = ec_master_init(&masters[i], i, macs[i][0], macs[i][1],
                     device_number, class, debug_level);
