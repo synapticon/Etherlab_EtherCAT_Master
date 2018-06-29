@@ -60,7 +60,7 @@
 
 /** Seconds to wait before fetching SDO dictionary
     after slave entered PREOP state. */
-#define EC_WAIT_SDO_DICT 3
+#define EC_WAIT_SDO_DICT 0
 
 /** Minimum size of a buffer used with ec_state_string(). */
 #define EC_STATE_STRING_SIZE 32

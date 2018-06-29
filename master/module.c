@@ -40,6 +40,7 @@
 #include "globals.h"
 #include "master.h"
 #include "device.h"
+#include "gitlog.h"
 
 /*****************************************************************************/
 
@@ -83,7 +84,7 @@ module_param_array(main_devices, charp, &master_count, S_IRUGO);
 MODULE_PARM_DESC(main_devices, "MAC addresses of main devices");
 module_param_array(backup_devices, charp, &backup_count, S_IRUGO);
 MODULE_PARM_DESC(backup_devices, "MAC addresses of backup devices");
-module_param_named(debug_level, debug_level, uint, S_IRUGO);
+module_param_named(debug_level, debug_level, uint, S_IRUGO+S_IWUSR);
 MODULE_PARM_DESC(debug_level, "Debug level");
 
 /** \endcond */
@@ -100,6 +101,7 @@ int __init ec_init_module(void)
     int i, ret = 0;
 
     EC_INFO("Master driver %s\n", EC_MASTER_VERSION);
+    EC_INFO("git commit %s\n", gitlog);
 
     sema_init(&master_sem, 1);
 

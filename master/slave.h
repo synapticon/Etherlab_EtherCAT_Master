@@ -255,6 +255,9 @@ struct ec_slave
     struct list_head eoe_requests; /**< EoE set IP parameter requests. */
 
     ec_fsm_slave_t fsm; /**< Slave state machine. */
+#ifdef DEBUG_SDO
+    uint32_t retries;
+#endif
 };
 
 /*****************************************************************************/
