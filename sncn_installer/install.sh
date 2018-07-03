@@ -3,6 +3,14 @@
 set -o errexit
 set -o verbose
 
+# Install required libraries
+sudo apt-get install -y \
+build-essential \
+cmake \
+autoconf \
+automake \
+libtool 
+
 # Setup parameters
 ETHERCAT_USER_GROUP="$(whoami)"
 UDEV_RULES_FILE="/etc/udev/rules.d/99-EtherCAT.rules"
