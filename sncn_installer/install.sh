@@ -23,6 +23,11 @@ CONFIGURE_FLAGS="--enable-sii-assign --disable-8139too --enable-hrtimer --enable
 
 do_configure() {
   cd ${WORK_DIR}
+
+  echo -n "char* gitlog = \"" > master/gitlog.h && \
+    git log | head -1 | awk '{printf "%s", substr($2,1,8)}' >> master/gitlog.h && \
+    echo "\";" >> master/gitlog.h
+
   ./bootstrap
   ./configure ${CONFIGURE_FLAGS} --prefix=${ETHERCAT_INSTALL_PREFIX}
 
