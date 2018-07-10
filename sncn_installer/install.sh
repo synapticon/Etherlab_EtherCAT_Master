@@ -90,6 +90,6 @@ do_configure
 do_compile
 do_install
 do_setup_interfaces $1
-do_start
+#do_start
 
 echo "Done"
