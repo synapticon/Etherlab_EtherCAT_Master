@@ -164,10 +164,8 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
 
       if (sminfo->dir == EC_DIR_OUTPUT) {
         slave->outpdocount += pdoinfo->n_entries;
-        slave->output_values = calloc(slave->outpdocount, sizeof(pdo_t));
       } else if (sminfo->dir == EC_DIR_INPUT) {
         slave->inpdocount += pdoinfo->n_entries;
-        slave->input_values = calloc(slave->inpdocount, sizeof(pdo_t));
       } else {
         /* FIXME error handling? */
         syslog(LOG_ERR, "WARNING undefined direction");
@@ -180,6 +178,10 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
       }
     }
   }
+
+  // Allocate the required memory for all PDO values
+  slave->output_values = calloc(slave->outpdocount, sizeof(pdo_t));
+  slave->input_values = calloc(slave->inpdocount, sizeof(pdo_t));
 
   /* Add the last pivot element to the list of sync managers, this is
    * necessary within the etherlab master when the PDOs are configured. */
