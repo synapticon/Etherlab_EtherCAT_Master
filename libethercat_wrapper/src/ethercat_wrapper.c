@@ -275,8 +275,8 @@ void ecw_print_topology(Ethercat_Master_t *master)
   ec_slave_info_t *slaveinfo;
 
   for (int i = 0; i < master->slave_count; i++) {
-    (master->slave + i)->info = malloc(sizeof(ec_slave_info_t));
-    slaveinfo = (master->slave + i)->info;
+    (master->slaves + i)->info = malloc(sizeof(ec_slave_info_t));
+    slaveinfo = (master->slaves + i)->info;
 
     if (ecrt_master_get_slave(master->master, i, slaveinfo) != 0) {
       syslog(LOG_DEBUG,
@@ -289,7 +289,7 @@ void ecw_print_topology(Ethercat_Master_t *master)
     printf("        Vendor ID: 0x%08x\n", slaveinfo->vendor_id);
     printf("        Number of SDOs: %d\n", slaveinfo->sdo_count);
 
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     printf("\nDEBUG Output\n-------------\n");
     printf("Slave index: %d\n", slave->info->position);
@@ -357,7 +357,7 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
   Sdo_t *sdo = NULL;
 
   for (int k = 0; k < master->slave_count; k++) {
-    slave = master->slave + k;
+    slave = master->slaves + k;
     printf("[DEBUG] Slave %d, number of SDOs: %lu\n", slave->info->position,
            ecw_slave_get_sdo_count(slave));
 
@@ -544,7 +544,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   }
 
   master->slave_count = info->slave_count;
-  master->slave = malloc(master->slave_count * sizeof(Ethercat_Slave_t));
+  master->slaves = malloc(master->slave_count * sizeof(Ethercat_Slave_t));
 
   size_t all_pdo_count = 0;
 
@@ -560,7 +560,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
   for (int i = 0; i < info->slave_count; i++) {
     /* get the PDOs from the buffered syncmanagers */
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     slave->master = master->master;
     slave->info = malloc(sizeof(ec_slave_info_t));
     if (ecrt_master_get_slave(master->master, i, slave->info) != 0) {
@@ -582,8 +582,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
       return NULL;
     }
 
-    all_pdo_count += ((master->slave + i)->outpdocount
-        + (master->slave + i)->inpdocount);
+    all_pdo_count += ((master->slaves + i)->outpdocount
+        + (master->slaves + i)->inpdocount);
 
     relative_position++;
   }
@@ -597,7 +597,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   ec_pdo_entry_reg_t *domain_reg_cur = master->domain_reg;
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     slave->cyclic_mode = 0;  // mark slaves as not in cyclic mode
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
@@ -646,7 +646,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   }
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
       if (0 == sm->n_pdos) { /* if no PDOs for this sync manager proceed to the next one */
@@ -706,7 +706,7 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   /* for each slave */
   free(master->domain);
-  free(master->slave); /* FIXME have to recursively clean up this slave! */
+  free(master->slaves); /* FIXME have to recursively clean up this slave! */
   ecrt_release_master(master->master);
   free(master);
 }
@@ -723,7 +723,7 @@ int ecw_master_start(Ethercat_Master_t *master)
 
   /* Slave configuration for the master */
   for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
-    Ethercat_Slave_t *slave = master->slave + slaveid;
+    Ethercat_Slave_t *slave = master->slaves + slaveid;
     slave->cyclic_mode = 1;  // mark slaves as in cyclic mode
 
     slave->config = ecrt_master_slave_config(master->master, slave->reference_alias,
@@ -802,7 +802,7 @@ int ecw_master_stop(Ethercat_Master_t *master)
 
   /* mark slaves as not in cyclic mode */
   for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
-    Ethercat_Slave_t *slave = master->slave + slaveid;
+    Ethercat_Slave_t *slave = master->slaves + slaveid;
     slave->cyclic_mode = 0;
   }
 
@@ -892,7 +892,7 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
   ecrt_domain_process(master->domain);
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     for (int k = 0; k < slave->inpdocount; k++) {
       pdo_t *pdo = ecw_slave_get_inpdo(slave, k);
@@ -944,7 +944,7 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
   LOG_USER);
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     for (int k = 0; k < slave->outpdocount; k++) {
       pdo_t *value = ecw_slave_get_outpdo(slave, k);
@@ -1012,7 +1012,7 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid)
     return NULL;
   }
 
-  return (master->slave + slaveid);
+  return (master->slaves + slaveid);
 }
 
 int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
@@ -1076,7 +1076,7 @@ static void update_master_state(Ethercat_Master_t *master)
 static void update_all_slave_state(Ethercat_Master_t *master)
 {
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     ecrt_slave_config_state(slave->config, &(slave->state));
   }
 }

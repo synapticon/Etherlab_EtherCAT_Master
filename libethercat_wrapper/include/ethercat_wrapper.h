@@ -34,7 +34,7 @@ struct _ecw_master_t {
   uint8_t *processdata; /* FIXME are they needed here? */
 
   /* slaves */
-  Ethercat_Slave_t *slave;  ///<< list of slaves
+  Ethercat_Slave_t *slaves;  ///<< list of slaves
   size_t slave_count;
 
   /* diagnostic data structures */
