@@ -11,6 +11,9 @@
 #include <ecrt.h>
 
 struct _ecw_slave_t {
+  uint16_t reference_alias; /* keeps the last active alias, since it is different than in ec_slave_info_t */
+  uint16_t relative_position; /* position relative to the last defined alias in the ring */
+
   enum eSlaveType type; /* type is determined by the vendor/product numbers */
   int cyclic_mode; /* to mark when in cyclic mode */
 

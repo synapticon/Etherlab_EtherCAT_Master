@@ -112,20 +112,11 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
  *
  * FIXME Move to slave.c:ecw_slave_scan()
  */
-static int slave_config(Ethercat_Master_t *master, int slaveindex)
+static int slave_config(Ethercat_Master_t *master, Ethercat_Slave_t *slave)
 {
-  Ethercat_Slave_t *slave = master->slave + slaveindex;
-  slave->master = master->master;
-  slave->info = malloc(sizeof(ec_slave_info_t));
-  if (ecrt_master_get_slave(master->master, slaveindex, slave->info) != 0) {
-    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
-           slaveindex);
-    return -1;
-  }
-
   slave->sdo_count = slave->info->sdo_count;
   if (slave->sdo_count == 0) {
-    syslog(LOG_WARNING, "Slave %d has no SDOs", slaveindex);
+    syslog(LOG_WARNING, "Slave %d has no SDOs", slave->info->position);
   }
 
   slave->type = type_map_get_type(slave->info->vendor_id,
@@ -164,10 +155,8 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
 
       if (sminfo->dir == EC_DIR_OUTPUT) {
         slave->outpdocount += pdoinfo->n_entries;
-        slave->output_values = calloc(slave->outpdocount, sizeof(pdo_t));
       } else if (sminfo->dir == EC_DIR_INPUT) {
         slave->inpdocount += pdoinfo->n_entries;
-        slave->input_values = calloc(slave->inpdocount, sizeof(pdo_t));
       } else {
         /* FIXME error handling? */
         syslog(LOG_ERR, "WARNING undefined direction");
@@ -181,15 +170,20 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
     }
   }
 
+  // Allocate the required memory for all PDO values
+  slave->output_values = calloc(slave->outpdocount, sizeof(pdo_t));
+  slave->input_values = calloc(slave->inpdocount, sizeof(pdo_t));
+
   /* Add the last pivot element to the list of sync managers, this is
    * necessary within the etherlab master when the PDOs are configured. */
   ec_sync_info_t *sminfo = slave->sminfo + slave->info->sync_count;
   *sminfo = (ec_sync_info_t ) { 0xff };
 
-  slave->config = ecrt_master_slave_config(master->master, slave->info->alias,
-                                           slave->info->position,
+  slave->config = ecrt_master_slave_config(master->master, slave->reference_alias,
+                                           slave->relative_position,
                                            slave->info->vendor_id,
                                            slave->info->product_code);
+
   if (slave->config == NULL) {
     syslog(LOG_ERR, "Error acquiring slave configuration");
     return -1;
@@ -220,7 +214,7 @@ static int slave_config(Ethercat_Master_t *master, int slaveindex)
   }
 
   if (slave->sdo_count && slave->sdo_count == object_count) {
-    syslog(LOG_WARNING, "All Slave %d SDOs have no index", slaveindex);
+    syslog(LOG_WARNING, "All Slave %d SDOs have no index", slave->info->position);
   }
 
   slave->dictionary = malloc(/*slave->sdo_count */object_count * sizeof(Sdo_t));
@@ -281,8 +275,8 @@ void ecw_print_topology(Ethercat_Master_t *master)
   ec_slave_info_t *slaveinfo;
 
   for (int i = 0; i < master->slave_count; i++) {
-    (master->slave + i)->info = malloc(sizeof(ec_slave_info_t));
-    slaveinfo = (master->slave + i)->info;
+    (master->slaves + i)->info = malloc(sizeof(ec_slave_info_t));
+    slaveinfo = (master->slaves + i)->info;
 
     if (ecrt_master_get_slave(master->master, i, slaveinfo) != 0) {
       syslog(LOG_DEBUG,
@@ -295,7 +289,7 @@ void ecw_print_topology(Ethercat_Master_t *master)
     printf("        Vendor ID: 0x%08x\n", slaveinfo->vendor_id);
     printf("        Number of SDOs: %d\n", slaveinfo->sdo_count);
 
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     printf("\nDEBUG Output\n-------------\n");
     printf("Slave index: %d\n", slave->info->position);
@@ -363,7 +357,7 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
   Sdo_t *sdo = NULL;
 
   for (int k = 0; k < master->slave_count; k++) {
-    slave = master->slave + k;
+    slave = master->slaves + k;
     printf("[DEBUG] Slave %d, number of SDOs: %lu\n", slave->info->position,
            ecw_slave_get_sdo_count(slave));
 
@@ -550,19 +544,52 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   }
 
   master->slave_count = info->slave_count;
-  master->slave = malloc(master->slave_count * sizeof(Ethercat_Slave_t));
+  master->slaves = malloc(master->slave_count * sizeof(Ethercat_Slave_t));
 
   size_t all_pdo_count = 0;
 
+  /**
+   * IMPORTANT NOTE
+   *
+   * Save the reference alias of each slave (not available in slave->info since
+   * it keeps track only of slaves that have had their alias set and not of the
+   * last set alias their position is relative to), as well as its position
+   * relative to that alias. There are several EtherCAT master library functions
+   * that require these two parameters:
+   *   1) ecrt_master_slave_config
+   *   2) ecrt_domain_reg_pdo_entry_list - through domain_reg parameter
+   */
+  uint16_t reference_alias = 0;
+  uint16_t relative_position = 0;
+
   for (int i = 0; i < info->slave_count; i++) {
-    /* get the PDOs from the buffered syncmanagers */
-    if (slave_config(master, i) != 0) {
+    Ethercat_Slave_t *slave = master->slaves + i;
+    slave->master = master->master;
+    slave->info = malloc(sizeof(ec_slave_info_t));
+    if (ecrt_master_get_slave(master->master, i, slave->info) != 0) {
+      syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
+             i);
+      return NULL;
+    }
+
+    if (slave->info->alias) {
+      reference_alias = slave->info->alias;
+      relative_position = 0;
+    }
+
+    slave->reference_alias = reference_alias;
+    slave->relative_position = relative_position;
+
+    /* get the PDOs from the buffered sync managers */
+    if (slave_config(master, slave) != 0) {
       syslog(LOG_ERR, "ERROR, configuration slave %d", i);
       return NULL;
     }
 
-    all_pdo_count += ((master->slave + i)->outpdocount
-        + (master->slave + i)->inpdocount);
+    all_pdo_count += ((master->slaves + i)->outpdocount
+        + (master->slaves + i)->inpdocount);
+
+    relative_position++;
   }
 
   free(info);
@@ -574,11 +601,11 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   ec_pdo_entry_reg_t *domain_reg_cur = master->domain_reg;
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     slave->cyclic_mode = 0;  // mark slaves as not in cyclic mode
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
-      if (0 == sm->n_pdos) { /* if no pdos for this syncmanager proceed to the next one */
+      if (0 == sm->n_pdos) { /* if no PDOs for this sync manager proceed to the next one */
         continue;
       }
 
@@ -602,11 +629,14 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           pdo_t *pdoe = (values + valcount);
           valcount++;
 
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
+          pdoe->type = get_type_from_bitlength(entry->bit_length);
 
-          domain_reg_cur->alias = slave->info->alias;
-          domain_reg_cur->position = slave->info->position;
+          // IMPORTANT: The reference alias must be used, as well as the
+          // position relative to that alias
+          domain_reg_cur->alias = slave->reference_alias;
+          domain_reg_cur->position = slave->relative_position;
+
           domain_reg_cur->vendor_id = slave->info->vendor_id;
           domain_reg_cur->product_code = slave->info->product_code;
           domain_reg_cur->index = entry->index;
@@ -620,7 +650,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   }
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
       if (0 == sm->n_pdos) { /* if no PDOs for this sync manager proceed to the next one */
@@ -647,11 +677,14 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           pdo_t *pdoe = (values + valcount);
           valcount++;
 
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
+          pdoe->type = get_type_from_bitlength(entry->bit_length);
 
-          domain_reg_cur->alias = slave->info->alias;
-          domain_reg_cur->position = slave->info->position;
+          // IMPORTANT: The reference alias must be used, as well as the
+          // position relative to that alias
+          domain_reg_cur->alias = slave->reference_alias;
+          domain_reg_cur->position = slave->relative_position;
+
           domain_reg_cur->vendor_id = slave->info->vendor_id;
           domain_reg_cur->product_code = slave->info->product_code;
           domain_reg_cur->index = entry->index;
@@ -677,7 +710,7 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   /* for each slave */
   free(master->domain);
-  free(master->slave); /* FIXME have to recursively clean up this slave! */
+  free(master->slaves); /* FIXME have to recursively clean up this slave! */
   ecrt_release_master(master->master);
   free(master);
 }
@@ -694,12 +727,14 @@ int ecw_master_start(Ethercat_Master_t *master)
 
   /* Slave configuration for the master */
   for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
-    Ethercat_Slave_t *slave = master->slave + slaveid;
+    Ethercat_Slave_t *slave = master->slaves + slaveid;
     slave->cyclic_mode = 1;  // mark slaves as in cyclic mode
-    slave->config = ecrt_master_slave_config(master->master, slave->info->alias,
-                                             slave->info->position,
+
+    slave->config = ecrt_master_slave_config(master->master, slave->reference_alias,
+                                             slave->relative_position,
                                              slave->info->vendor_id,
                                              slave->info->product_code);
+
     if (slave->config == NULL) {
       syslog(LOG_ERR, "Error slave (id: %lu) configuration failed.", slaveid);
       return -1;
@@ -771,7 +806,7 @@ int ecw_master_stop(Ethercat_Master_t *master)
 
   /* mark slaves as not in cyclic mode */
   for (size_t slaveid = 0; slaveid < master->slave_count; slaveid++) {
-    Ethercat_Slave_t *slave = master->slave + slaveid;
+    Ethercat_Slave_t *slave = master->slaves + slaveid;
     slave->cyclic_mode = 0;
   }
 
@@ -861,7 +896,7 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
   ecrt_domain_process(master->domain);
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     for (int k = 0; k < slave->inpdocount; k++) {
       pdo_t *pdo = ecw_slave_get_inpdo(slave, k);
@@ -913,12 +948,12 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
   LOG_USER);
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
 
     for (int k = 0; k < slave->outpdocount; k++) {
       pdo_t *value = ecw_slave_get_outpdo(slave, k);
 
-      //EC_WRITE_XX(master->processdata + (slave->txpdo_offset + k), value);
+      // EC_WRITE_XX(master->processdata + (slave->txpdo_offset + k), value);
       switch (value->type) {
         case VALUE_TYPE_UNSIGNED1:
           EC_WRITE_BIT(master->processdata + value->offset, value->bit_offset,
@@ -981,7 +1016,7 @@ Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid)
     return NULL;
   }
 
-  return (master->slave + slaveid);
+  return (master->slaves + slaveid);
 }
 
 int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
@@ -1011,7 +1046,7 @@ int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
 }
 
 /*
- * State updatei functions
+ * State update functions
  */
 
 static void update_domain_state(Ethercat_Master_t *master)
@@ -1045,7 +1080,7 @@ static void update_master_state(Ethercat_Master_t *master)
 static void update_all_slave_state(Ethercat_Master_t *master)
 {
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slave + i;
+    Ethercat_Slave_t *slave = master->slaves + i;
     ecrt_slave_config_state(slave->config, &(slave->state));
   }
 }
