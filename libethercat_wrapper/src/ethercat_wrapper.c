@@ -548,18 +548,21 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
   size_t all_pdo_count = 0;
 
-  // IMPORTANT: Save the reference alias of each slave (not available in
-  // slave->info since it keeps track only of slaves that have had their alias
-  // set and not of the last set alias their position is relative to), as well
-  // as its position relative to that alias. There are several EtherCAT master
-  // library functions that require these two parameters:
-  //     1) ecrt_master_slave_config
-  //     2) ecrt_domain_reg_pdo_entry_list - through domain_reg parameter
+  /**
+   * IMPORTANT NOTE
+   *
+   * Save the reference alias of each slave (not available in slave->info since
+   * it keeps track only of slaves that have had their alias set and not of the
+   * last set alias their position is relative to), as well as its position
+   * relative to that alias. There are several EtherCAT master library functions
+   * that require these two parameters:
+   *   1) ecrt_master_slave_config
+   *   2) ecrt_domain_reg_pdo_entry_list - through domain_reg parameter
+   */
   uint16_t reference_alias = 0;
   uint16_t relative_position = 0;
 
   for (int i = 0; i < info->slave_count; i++) {
-    /* get the PDOs from the buffered syncmanagers */
     Ethercat_Slave_t *slave = master->slaves + i;
     slave->master = master->master;
     slave->info = malloc(sizeof(ec_slave_info_t));
@@ -577,6 +580,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     slave->reference_alias = reference_alias;
     slave->relative_position = relative_position;
 
+    /* get the PDOs from the buffered sync managers */
     if (slave_config(master, slave) != 0) {
       syslog(LOG_ERR, "ERROR, configuration slave %d", i);
       return NULL;
@@ -601,7 +605,7 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     slave->cyclic_mode = 0;  // mark slaves as not in cyclic mode
     for (int j = 0; j < slave->info->sync_count; j++) {
       ec_sync_info_t *sm = slave->sminfo + j;
-      if (0 == sm->n_pdos) { /* if no pdos for this syncmanager proceed to the next one */
+      if (0 == sm->n_pdos) { /* if no PDOs for this sync manager proceed to the next one */
         continue;
       }
 
@@ -625,8 +629,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           pdo_t *pdoe = (values + valcount);
           valcount++;
 
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
+          pdoe->type = get_type_from_bitlength(entry->bit_length);
 
           // IMPORTANT: The reference alias must be used, as well as the
           // position relative to that alias
@@ -673,8 +677,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           pdo_t *pdoe = (values + valcount);
           valcount++;
 
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
+          pdoe->type = get_type_from_bitlength(entry->bit_length);
 
           // IMPORTANT: The reference alias must be used, as well as the
           // position relative to that alias
@@ -949,7 +953,7 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
     for (int k = 0; k < slave->outpdocount; k++) {
       pdo_t *value = ecw_slave_get_outpdo(slave, k);
 
-      //EC_WRITE_XX(master->processdata + (slave->txpdo_offset + k), value);
+      // EC_WRITE_XX(master->processdata + (slave->txpdo_offset + k), value);
       switch (value->type) {
         case VALUE_TYPE_UNSIGNED1:
           EC_WRITE_BIT(master->processdata + value->offset, value->bit_offset,
@@ -1042,7 +1046,7 @@ int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
 }
 
 /*
- * State updatei functions
+ * State update functions
  */
 
 static void update_domain_state(Ethercat_Master_t *master)
