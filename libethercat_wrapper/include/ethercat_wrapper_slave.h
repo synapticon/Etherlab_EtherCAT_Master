@@ -234,8 +234,9 @@ int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
  * \brief Get object with index and subindex from object dictionary
  *
  * Create a copy of the object dictionary object at position `sdoindex` and
- * return this to the user. The calling application must take care to clean
- * up this object.
+ * return this to the user.
+ *
+ * IMPORTANT: The calling application must take care to clean up this object.
  *
  * \param slave    Slave to request
  * \param index    Index of the requested object
@@ -248,8 +249,9 @@ Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex);
  * \brief Get object of the object dictionary position sdoindex
  *
  * Create a copy of the object dictionary object ad position `sdoindex` and
- * return this to the user. The calling application must take care to clean
- * up this object.
+ * return this to the user.
+ *
+ * IMPORTANT: The calling application must take care to clean up this object.
  *
  * \param slave     Slave to request
  * \param sdoindex  index of the SDO in the object dictionary
