@@ -37,6 +37,8 @@ static void update_domain_state(Ethercat_Master_t *master);
 static void update_master_state(Ethercat_Master_t *master);
 static void update_all_slave_state(Ethercat_Master_t *master);
 
+static void free_all_slaves(Ethercat_Master_t *master);
+
 const char *ecw_master_get_version(void)
 {
   return g_version;
@@ -710,7 +712,11 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   /* for each slave */
   free(master->domain);
-  free(master->slaves); /* FIXME have to recursively clean up this slave! */
+
+  free_all_slaves(master); /* FIXME have to recursively clean up the slaves! */
+
+  free(master->domain_reg);
+
   ecrt_release_master(master->master);
   free(master);
 }
@@ -1083,6 +1089,20 @@ static void update_all_slave_state(Ethercat_Master_t *master)
     Ethercat_Slave_t *slave = master->slaves + i;
     ecrt_slave_config_state(slave->config, &(slave->state));
   }
+}
+
+static void free_all_slaves(Ethercat_Master_t *master)
+{
+  for (int i = 0; i < master->slave_count; i++) {
+    Ethercat_Slave_t *slave = master->slaves + i;
+    free(slave->dictionary);
+    free(slave->output_values);
+    free(slave->input_values);
+    free(slave->sminfo->pdos);
+    free(slave->sminfo);
+    free(slave->info);
+  }
+  free(master->slaves);
 }
 
 void ecw_print_master_state(Ethercat_Master_t *master)
