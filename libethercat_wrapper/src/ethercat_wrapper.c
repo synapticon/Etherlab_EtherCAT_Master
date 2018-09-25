@@ -710,14 +710,10 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
 void ecw_master_release(Ethercat_Master_t *master)
 {
-  /* for each slave */
-  free(master->domain);
-
   free_all_slaves(master); /* FIXME have to recursively clean up the slaves! */
-
-  free(master->domain_reg);
-
   ecrt_release_master(master->master);
+  free(master->domain);
+  free(master->domain_reg);
   free(master);
 }
 
@@ -1095,12 +1091,14 @@ static void free_all_slaves(Ethercat_Master_t *master)
 {
   for (int i = 0; i < master->slave_count; i++) {
     Ethercat_Slave_t *slave = master->slaves + i;
+    free(slave->sminfo->pdos);
+    free(slave->sminfo);
     free(slave->dictionary);
     free(slave->output_values);
     free(slave->input_values);
-    free(slave->sminfo->pdos);
-    free(slave->sminfo);
     free(slave->info);
+    // The configurations (slave->config) and domains are being freed by the
+    // ecrt_release_master() function
   }
   free(master->slaves);
 }
