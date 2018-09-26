@@ -66,6 +66,22 @@ enum eObjectType {
   OBJECT_TYPE_RECORD = 9/**< Complex type record */
 };
 
+enum eEntryType {
+  ENTRY_TYPE_NONE = 0,
+  ENTRY_TYPE_BOOLEAN,           // 1: BOOL/BIT - Boolean - 1 bit
+  ENTRY_TYPE_INTEGER8,          // 2: SINT - Short integer - 8 bits
+  ENTRY_TYPE_INTEGER16,         // 3: INT - Integer - 16 bits
+  ENTRY_TYPE_INTEGER32,         // 4: DINT - Double integer - 32 bits
+  ENTRY_TYPE_UNSIGNED8,         // 5: USINT - Unsigned short integer - 8 bits
+  ENTRY_TYPE_UNSIGNED16,        // 6: UINT - Unsigned integer - 16 bits
+  ENTRY_TYPE_UNSIGNED32,        // 7: UDINT - Unsigned double integer - 32 bits
+  ENTRY_TYPE_REAL32,            // 8: REAL32 - Floating point - 32 bits
+  ENTRY_TYPE_VISIBLE_STRING,    // 9: STRING(n) - Visible string - 8^n bits
+  ENTRY_TYPE_OCTET_STRING,      // 10: ARRAY[0..n] OF BYTE - Sequence of octets - 8^(n+1) bits
+  ENTRY_TYPE_UNICODE_STRING,    // 11: ARRAY[0..n] OF UINT - Sequence of UINT - 16^(n+1) bits
+  ENTRY_TYPE_TIME_OF_DAY        // 12: Time of day - 48 bits
+};
+
 /**
  * \brief Application layer states
  *
@@ -107,7 +123,7 @@ typedef struct _sdo_t {
   int value;
   int bit_length;
   enum eObjectType object_type;
-  int entry_type;
+  enum eEntryType entry_type;
   char name[EC_MAX_STRING_LENGTH];
   char object_name[EC_MAX_STRING_LENGTH];
   uint8_t read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
