@@ -11,6 +11,7 @@
 #include "ethercat_wrapper.h"
 
 #include <string.h>
+#include <errno.h>
 
 /* list of supported ETherCAT slaves */
 static const Device_type_map_t type_map[] = { { 0x22d2, 0x201, 0x0a000002,
@@ -145,18 +146,46 @@ static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 
 static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-  int value = 0;
-  size_t valuesize = sizeof(value);
-
   size_t result_size = 0;
   uint32_t abort_code = 0;
 
-  ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                         sdo->subindex, (uint8_t *) &value, valuesize,
-                         &result_size, &abort_code);
+  switch (sdo->entry_type) {
+    case ENTRY_TYPE_BOOLEAN:
+    case ENTRY_TYPE_INTEGER8:
+    case ENTRY_TYPE_INTEGER16:
+    case ENTRY_TYPE_INTEGER32:
+    case ENTRY_TYPE_UNSIGNED8:
+    case ENTRY_TYPE_UNSIGNED16:
+    case ENTRY_TYPE_UNSIGNED32:
+    case ENTRY_TYPE_REAL32: {
+      int value = 0;
+      size_t valuesize = sizeof(value);
 
-  if (abort_code == 0)
-    sdo->value = value;
+      ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
+                             sdo->subindex, (uint8_t *) &value, valuesize,
+                             &result_size, &abort_code);
+
+      if (abort_code == 0) {
+        sdo->value = value;
+      }
+      break;
+    }
+    case ENTRY_TYPE_VISIBLE_STRING:
+      // TODO - strings
+      break;
+    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_UNICODE_STRING:
+      // NOT IMPLEMENTED
+      break;
+    case ENTRY_TYPE_TIME_OF_DAY:
+      // DO NOTHING - write only
+      break;
+    case ENTRY_TYPE_NONE:
+    default:
+      // ERROR - UNKONWN ENTRY TYPE
+      return -EINVAL;
+      break;
+  }
 
   return abort_code;
 }
