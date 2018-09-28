@@ -18,7 +18,9 @@ extern "C" {
 /**
  * Get the string length from the ecrt library
  */
-#define ECW_MAX_STRING_LENGTH   EC_MAX_STRING_LENGTH
+#define ECW_MAX_STRING_LENGTH           EC_MAX_STRING_LENGTH
+
+#define ECW_MAX_VISIBLE_STRING_LENGTH   400
 
 /**
  * Get the size of SDO access rights field from the ecrt library
@@ -121,6 +123,7 @@ typedef struct _sdo_t {
   uint16_t index;
   uint8_t subindex;
   int value;
+  char value_string[ECW_MAX_VISIBLE_STRING_LENGTH];
   int bit_length;
   enum eObjectType object_type;
   enum eEntryType entry_type;
@@ -223,7 +226,7 @@ int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
  */
 
 /**
- * \brief Set the value of the given object
+ * \brief Set the (number) value of the given object
  *
  * \param slave    Slave to request
  * \param index    Index of the object
@@ -231,11 +234,23 @@ int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
  * \param value    Value to write to the object
  * \return 0 on success
  */
-int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
-                            int value);
+int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
+                                int value);
 
 /**
- * \brief Request the current value of one object
+ * \brief Set the string value of the given object
+ *
+ * \param slave    Slave to request
+ * \param index    Index of the object
+ * \param subindex Subindex of the object
+ * \param value    Value to write to the object
+ * \return 0 on success
+ */
+int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
+                                   const char *value);
+
+/**
+ * \brief Request the current value of one (number) object
  *
  * \param slave    Slave to request
  * \param index    Index of the object
@@ -243,8 +258,20 @@ int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
  * \param *value   Pointer to variable to store requested value
  * \return 0 on success
  */
-int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
-                            int *value);
+int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
+                                int *value);
+
+/**
+ * \brief Request the current value of one (string) object
+ *
+ * \param slave    Slave to request
+ * \param index    Index of the object
+ * \param subindex Subindex of the object
+ * \param *value   Pointer to variable to store requested value
+ * \return 0 on success
+ */
+int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
+                                   char *value);
 
 /**
  * \brief Get object with index and subindex from object dictionary

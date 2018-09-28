@@ -24,19 +24,39 @@ static const Device_type_map_t type_map[] = { { 0x22d2, 0x201, 0x0a000002,
 
 int sdo_read_value(Sdo_t *sdo)
 {
-  switch (sdo->bit_length) {
-    case 1:
-    case 8:
-      sdo->value = (int) EC_READ_U8(ecrt_sdo_request_data(sdo->request));
+  switch (sdo->entry_type) {
+    case ENTRY_TYPE_BOOLEAN:
+    case ENTRY_TYPE_INTEGER8:
+      sdo->value = EC_READ_S8(ecrt_sdo_request_data(sdo->request));
       break;
-    case 16:
+    case ENTRY_TYPE_INTEGER16:
+      sdo->value = EC_READ_S16(ecrt_sdo_request_data(sdo->request));
+      break;
+    case ENTRY_TYPE_INTEGER32:
+      sdo->value = EC_READ_S32(ecrt_sdo_request_data(sdo->request));
+      break;
+    case ENTRY_TYPE_UNSIGNED8:
+      sdo->value = EC_READ_U8(ecrt_sdo_request_data(sdo->request));
+      break;
+    case ENTRY_TYPE_UNSIGNED16:
       sdo->value = EC_READ_U16(ecrt_sdo_request_data(sdo->request));
       break;
-    case 32:
+    case ENTRY_TYPE_UNSIGNED32:
       sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
       break;
+    case ENTRY_TYPE_REAL32:
+      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
+      break;
+    case ENTRY_TYPE_VISIBLE_STRING:
+      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->request),
+              ecrt_sdo_request_data_size(sdo->request));
+      break;
+    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_UNICODE_STRING:
+    case ENTRY_TYPE_TIME_OF_DAY:
+    case ENTRY_TYPE_NONE:
     default:
-      return ECW_ERROR_SDO_UNSUPORTED_BITLENGTH;
+      return ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE;
       break;
   }
   return 0;
@@ -44,22 +64,49 @@ int sdo_read_value(Sdo_t *sdo)
 
 static int sdo_write_value(Sdo_t *sdo)
 {
-  switch (sdo->bit_length) {
-    case 1:
-    case 8:
+  switch (sdo->entry_type) {
+    case ENTRY_TYPE_BOOLEAN:
+    case ENTRY_TYPE_INTEGER8:
+      EC_WRITE_S8(ecrt_sdo_request_data(sdo->request),
+                  (uint8_t )(sdo->value & 0xff));
+      break;
+    case ENTRY_TYPE_INTEGER16:
+      EC_WRITE_S16(ecrt_sdo_request_data(sdo->request),
+                   (uint16_t )(sdo->value & 0xffff));
+      break;
+    case ENTRY_TYPE_INTEGER32:
+      EC_WRITE_S32(ecrt_sdo_request_data(sdo->request),
+                   (uint32_t )(sdo->value & 0xffffffff));
+      break;
+    case ENTRY_TYPE_UNSIGNED8:
       EC_WRITE_U8(ecrt_sdo_request_data(sdo->request),
                   (uint8_t )(sdo->value & 0xff));
       break;
-    case 16:
+    case ENTRY_TYPE_UNSIGNED16:
       EC_WRITE_U16(ecrt_sdo_request_data(sdo->request),
                    (uint16_t )(sdo->value & 0xffff));
       break;
-    case 32:
+    case ENTRY_TYPE_UNSIGNED32:
       EC_WRITE_U32(ecrt_sdo_request_data(sdo->request),
                    (uint32_t )(sdo->value & 0xffffffff));
       break;
+    case ENTRY_TYPE_REAL32:
+      EC_WRITE_U32(ecrt_sdo_request_data(sdo->request),
+                   (uint32_t )(sdo->value & 0xffffffff));
+      break;
+    case ENTRY_TYPE_VISIBLE_STRING:
+      memmove(ecrt_sdo_request_data(sdo->request), sdo->value_string,
+              ecrt_sdo_request_data_size(sdo->request));
+      break;
+    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_UNICODE_STRING:
+    case ENTRY_TYPE_TIME_OF_DAY:
+      EC_WRITE_U64(ecrt_sdo_request_data(sdo->request),
+                   (uint32_t )(sdo->value & 0xffffffffffff));
+      break;
+    case ENTRY_TYPE_NONE:
     default:
-      return ECW_ERROR_SDO_UNSUPORTED_BITLENGTH;
+      return ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE;
       break;
   }
   return 0;
@@ -170,9 +217,19 @@ static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
       }
       break;
     }
-    case ENTRY_TYPE_VISIBLE_STRING:
-      // TODO - strings
+    case ENTRY_TYPE_VISIBLE_STRING: {
+      char value_string[ECW_MAX_VISIBLE_STRING_LENGTH];
+      size_t valuesize = ECW_MAX_VISIBLE_STRING_LENGTH;
+
+      ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
+                             sdo->subindex, value_string, valuesize,
+                             &result_size, &abort_code);
+
+      if (abort_code == 0) {
+        memmove(sdo->value_string, value_string, valuesize);
+      }
       break;
+    }
     case ENTRY_TYPE_OCTET_STRING:
     case ENTRY_TYPE_UNICODE_STRING:
       // NOT IMPLEMENTED
@@ -192,14 +249,44 @@ static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
 
 static int slave_sdo_download_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
-  int value = sdo->value;
-  size_t valuesize = sizeof(value);
-
   uint32_t abort_code = 0;
 
-  ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
-                           sdo->subindex, (const uint8_t *) &value, valuesize,
-                           &abort_code);
+  switch (sdo->entry_type) {
+    case ENTRY_TYPE_BOOLEAN:
+    case ENTRY_TYPE_INTEGER8:
+    case ENTRY_TYPE_INTEGER16:
+    case ENTRY_TYPE_INTEGER32:
+    case ENTRY_TYPE_UNSIGNED8:
+    case ENTRY_TYPE_UNSIGNED16:
+    case ENTRY_TYPE_UNSIGNED32:
+    case ENTRY_TYPE_REAL32: {
+      int value = sdo->value;
+      size_t valuesize = sizeof(value);
+
+      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
+                               sdo->subindex, (const uint8_t *) &value,
+                               valuesize, &abort_code);
+      break;
+    }
+    case ENTRY_TYPE_VISIBLE_STRING: {
+      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
+                                     sdo->subindex, sdo->value_string,
+                                     ECW_MAX_VISIBLE_STRING_LENGTH, &abort_code);
+      break;
+    }
+    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_UNICODE_STRING:
+      // NOT IMPLEMENTED
+      break;
+    case ENTRY_TYPE_TIME_OF_DAY:
+      // DO NOTHING - write only
+      break;
+    case ENTRY_TYPE_NONE:
+    default:
+      // ERROR - UNKONWN ENTRY TYPE
+      return -EINVAL;
+      break;
+  }
 
   return abort_code;
 }
@@ -373,8 +460,8 @@ Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
   return sdo;
 }
 
-int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
-                            int value)
+int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
+                                int value)
 {
   Sdo_t *current = NULL;
 
@@ -390,7 +477,24 @@ int ecw_slave_set_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
   return ECW_ERROR_SDO_NOT_FOUND; /* not found */
 }
 
-int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
+int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
+                                   const char *value)
+{
+  Sdo_t *current = NULL;
+
+  for (int i = 0; i < s->sdo_count; i++) {
+    current = s->dictionary + i;
+    if (current->index == index && current->subindex == subindex) {
+      memmove(current->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
+      int err = slave_sdo_download(s, current);
+      return err;
+    }
+  }
+
+  return ECW_ERROR_SDO_NOT_FOUND; /* not found */
+}
+
+int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
                             int *value)
 {
   Sdo_t *sdo = NULL;  //ecw_slave_get_sdo(s, index, subindex);
@@ -409,6 +513,30 @@ int ecw_slave_get_sdo_value(Ethercat_Slave_t *s, int index, int subindex,
   int err = slave_sdo_upload(s, sdo);
   if (err == 0) {
     *value = sdo->value;
+  }
+
+  return err;
+}
+
+int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
+                                   char *value)
+{
+  Sdo_t *sdo = NULL;
+  for (int i = 0; i < s->sdo_count; i++) {
+    Sdo_t *current = s->dictionary + i;
+    if (current->index == index && current->subindex == subindex) {
+      sdo = current;
+      break;
+    }
+  }
+
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
+  }
+
+  int err = slave_sdo_upload(s, sdo);
+  if (err == 0) {
+    memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
   }
 
   return err;
