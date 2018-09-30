@@ -122,7 +122,7 @@ typedef struct {
 typedef struct _sdo_t {
   uint16_t index;
   uint8_t subindex;
-  int value;
+  uint64_t value;
   char value_string[ECW_MAX_VISIBLE_STRING_LENGTH];
   int bit_length;
   enum eObjectType object_type;
@@ -235,7 +235,7 @@ int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
  * \return 0 on success
  */
 int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                                int value);
+                                uint64_t value);
 
 /**
  * \brief Set the string value of the given object

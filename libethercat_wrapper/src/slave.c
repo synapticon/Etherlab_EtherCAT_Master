@@ -102,7 +102,7 @@ static int sdo_write_value(Sdo_t *sdo)
     case ENTRY_TYPE_UNICODE_STRING:
     case ENTRY_TYPE_TIME_OF_DAY:
       EC_WRITE_U64(ecrt_sdo_request_data(sdo->request),
-                   (uint32_t )(sdo->value & 0xffffffffffff));
+                   sdo->value & 0xffffffffffff);
       break;
     case ENTRY_TYPE_NONE:
     default:
@@ -278,9 +278,15 @@ static int slave_sdo_download_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
     case ENTRY_TYPE_UNICODE_STRING:
       // NOT IMPLEMENTED
       break;
-    case ENTRY_TYPE_TIME_OF_DAY:
-      // DO NOTHING - write only
+    case ENTRY_TYPE_TIME_OF_DAY: {
+      uint64_t value = sdo->value;
+      size_t valuesize = sizeof(value);
+
+      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
+                               sdo->subindex, (const uint8_t *) &value,
+                               valuesize, &abort_code);
       break;
+    }
     case ENTRY_TYPE_NONE:
     default:
       // ERROR - UNKONWN ENTRY TYPE
@@ -461,7 +467,7 @@ Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
 }
 
 int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                                int value)
+                                uint64_t value)
 {
   Sdo_t *current = NULL;
 

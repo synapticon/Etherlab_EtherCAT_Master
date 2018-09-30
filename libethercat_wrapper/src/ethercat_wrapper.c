@@ -379,7 +379,7 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
 
       printf("    +-> Object Number: %d ", i);
       printf(", 0x%04x:%d", sdo->index, sdo->subindex);
-      printf(", %d, %d", sdo->value, sdo->bit_length);
+      printf(", %ld, %d", sdo->value, sdo->bit_length);
       printf(", %d", sdo->object_type);
       printf(", %d", sdo->entry_type);
       printf(", \"%s\"\n", sdo->name);
