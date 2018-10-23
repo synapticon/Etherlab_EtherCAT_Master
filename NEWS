@@ -6,6 +6,35 @@ vim: spelllang=en spell tw=78
 
 -------------------------------------------------------------------------------
 
+Changes since 1.5.2-sncn-5
+* Ethercat wrapper library (v0.6)
+    * Always refresh the number of responding slaves
+    * Fix the slave ID check
+    * Add version for libethercat_wrapper to distribution
+    * Change order of PDOs in domain reg - input, then output
+    * Fix sdo read/write while in OP state
+    * Use syslog for logging
+    * Fix getting/setting of the slave state - add BOOT state
+    * Fix: Return NULL if the SDO is not found
+    * Various test fixes
+    * Fix boolean sdo read/write
+    * Add the object name to the SDO structure
+    * Enable fetching some slave information before EtherCAT master init
+    * Enable the wrapper to update slave states (ecw_master_scan)
+    * General refactor
+    * Fix the usage of slave aliases
+    * Improve slave clean up
+    * Process SDOs according to their entry type on direct upload
+
+* Ethercat library
+    * Fix for vm_fault struct change in 4.10 kernel
+    * Disable 8139too by default
+    * Add custom install script
+    * Support 4.13 and 4.15 kernels
+    * Add gitlog tracking to startup kernel logging
+    * Fix for overlapping state machine operations
+    * Fix single retries variable when multiple slaves exist
+
 Changes since 1.5.2-sncn-4
 * Ethercat wrapper library (v0.5)
     * fix domain registration issues
