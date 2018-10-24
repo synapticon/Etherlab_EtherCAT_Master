@@ -259,12 +259,18 @@ int eccdev_mmap(
  * \return Zero on success, otherwise a negative error code.
  */
 static int eccdev_vma_fault(
-#if LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION
+#if (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION)
         struct vm_area_struct *vma, /**< Virtual memory area. */
 #endif
         struct vm_fault *vmf /**< Fault data. */
         )
+{
+#if (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION)
+    ec_cdev_priv_t *priv = (ec_cdev_priv_t *) vma->vm_private_data;
+#else
     ec_cdev_priv_t *priv = (ec_cdev_priv_t *) vmf->vma->vm_private_data;
+#endif
+    unsigned long offset = vmf->pgoff << PAGE_SHIFT;
     struct page *page;
 
     if (offset >= priv->ctx.process_data_size) {
@@ -280,7 +286,7 @@ static int eccdev_vma_fault(
     vmf->page = page;
 
     EC_MASTER_DBG(priv->cdev->master, 1, "Vma fault, virtual_address = %p,"
-#if LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION
+#if (LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION)
             " offset = %lu, page = %p\n", (void*)vmf->address, offset, page);
 #else
             " offset = %lu, page = %p\n", vmf->virtual_address, offset, page);
