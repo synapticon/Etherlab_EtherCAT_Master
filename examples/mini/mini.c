@@ -73,7 +73,23 @@ static ec_slave_config_t *sc_ana_in = NULL;
 static ec_slave_config_state_t sc_ana_in_state = {};
 
 // Timer
-static struct timer_list timer;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+    struct legacy_timer_emu {
+        struct timer_list t;
+        void (*function)(unsigned long);
+        unsigned long data;
+    } timer;
+#else
+    struct timer_list timer;
+#endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+static void legacy_timer_emu_func(struct timer_list *t)
+{
+    struct legacy_timer_emu *lt = from_timer(lt, t, t);
+    lt->function(lt->data);
+}
+#endif
 
 /*****************************************************************************/
 
@@ -352,8 +368,8 @@ void cyclic_task(unsigned long data)
     up(&master_sem);
 
     // restart timer
-    timer.expires += HZ / FREQUENCY;
-    add_timer(&timer);
+    timer.t.expires += HZ / FREQUENCY;
+    add_timer(&(timer.t));
 }
 
 /*****************************************************************************/
@@ -492,10 +508,14 @@ int __init init_mini_module(void)
 #endif
 
     printk(KERN_INFO PFX "Starting cyclic sample thread.\n");
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+    timer_setup(&(timer.t), legacy_timer_emu_func, 0);
+#else
     init_timer(&timer);
+#endif
     timer.function = cyclic_task;
-    timer.expires = jiffies + 10;
-    add_timer(&timer);
+    timer.t.expires = jiffies + 10;
+    add_timer(&(timer.t));
 
     printk(KERN_INFO PFX "Started.\n");
     return 0;
@@ -518,7 +538,7 @@ void __exit cleanup_mini_module(void)
 {
     printk(KERN_INFO PFX "Stopping...\n");
 
-    del_timer_sync(&timer);
+    del_timer_sync(&(timer.t));
 
 #if EXTERNAL_MEMORY
     kfree(domain1_pd);
