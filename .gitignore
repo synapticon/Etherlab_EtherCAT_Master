@@ -7,11 +7,13 @@ syntax: glob
 **.mod.c
 **.o
 **.o.cmd
+**.o.d
 **.swp
 **/.deps/*.Po
 **/.tmp_*.gcno
 **~
 .tmp_versions
+.tags
 ChangeLog
 Doxyfile
 Kbuild
@@ -133,6 +135,7 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
+master/gitlog.h
 modules.order
 script/Makefile
 script/Makefile.in

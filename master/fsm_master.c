@@ -1477,6 +1477,7 @@ void ec_fsm_master_state_sdo_dictionary(
     }
 
     if (!ec_fsm_coe_success(&fsm->fsm_coe)) {
+        EC_SLAVE_ERR(slave, "ec_fsm_coe_success returned failure.\n");
         ec_fsm_master_restart(fsm);
         return;
     }

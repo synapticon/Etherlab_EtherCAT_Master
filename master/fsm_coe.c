@@ -266,6 +266,16 @@ int ec_fsm_coe_success(
     return fsm->state == ec_fsm_coe_end;
 }
 
+/** Returns, if the state machine has terminated.
+ * \return non-zero if in end or error state.
+ */
+int ec_fsm_coe_ready(
+        const ec_fsm_coe_t *fsm /**< Finite state machine */
+        )
+{
+    return fsm->state == ec_fsm_coe_end || fsm->state == ec_fsm_coe_error;
+}
+
 /*****************************************************************************/
 
 /** Check if the received data are a CoE emergency request.
@@ -1166,6 +1176,11 @@ void ec_fsm_coe_dict_entry_response(
         }
 
         return;
+#ifdef DEBUG_SDO
+    } else {
+        EC_SLAVE_DBG(slave, 1, "Finished index 0x%04x, with subindex 0x%02x\n",
+            fsm->sdo->index, fsm->subindex);
+#endif
     }
 
     // another SDO description to fetch?
@@ -1179,6 +1194,11 @@ void ec_fsm_coe_dict_entry_response(
         }
 
         return;
+#ifdef DEBUG_SDO
+    } else {
+        EC_SLAVE_DBG(slave, 1, "Finished SDO dictionaries at index 0x%04x, and subindex 0x%02x\n",
+            fsm->sdo->index, fsm->subindex);
+#endif
     }
 
     fsm->state = ec_fsm_coe_end;

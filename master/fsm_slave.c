@@ -203,6 +203,7 @@ void ec_fsm_slave_state_ready(
 {
     ec_slave_t *slave = fsm->slave;
     ec_sdo_request_t *req;
+    ec_fsm_master_t *fsm_master = &slave->master->fsm;
 
     if (slave->config) {
         list_for_each_entry(req, &slave->config->sdo_requests, list) {
@@ -212,6 +213,22 @@ void ec_fsm_slave_state_ready(
             }
         }
     }
+
+    if (unlikely(!ec_fsm_coe_ready(&fsm_master->fsm_coe) && slave == fsm_master->slave)) {
+#ifdef DEBUG_SDO
+        if (slave->retries++ == 0) {
+            EC_SLAVE_DBG(slave, 1, "Busy - master processing CoE state machine on this slave!\n");
+        }
+#endif
+        return;
+    }
+#ifdef DEBUG_SDO
+    if (unlikely(slave->retries)) {
+        EC_SLAVE_DBG(slave, 1, "Master no longer processing CoE state machine "
+            "(retried %u times)!\n", slave->retries);
+        slave->retries = 0;
+    }
+#endif
 
     // Check for pending external SDO requests
     if (ec_fsm_slave_action_process_sdo(fsm, datagram)) {

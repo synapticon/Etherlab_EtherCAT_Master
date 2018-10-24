@@ -155,6 +155,9 @@ void ec_slave_init(
 
     slave->sdo_dictionary_fetched = 0;
     slave->jiffies_preop = 0;
+#ifdef DEBUG_SDO
+    slave->retries = 0;
+#endif
 
     INIT_LIST_HEAD(&slave->sdo_requests);
     INIT_LIST_HEAD(&slave->reg_requests);

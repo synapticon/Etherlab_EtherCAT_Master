@@ -20,3 +20,5 @@ testlib_SOURCES = src/testlib.c
 
 testlib_CFLAGS = --std=c99 -I../include -Iinclude -g  -D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE
 testlib_LDFLAGS = -static -L.libs -L../lib/.libs -lethercat_wrapper  -lethercat
+
+EXTRA_DIST = Version
