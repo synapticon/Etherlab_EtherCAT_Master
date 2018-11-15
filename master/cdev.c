@@ -63,15 +63,16 @@ static int eccdev_mmap(struct file *, struct vm_area_struct *);
 #define VM_FAULT_CHANGE_VERSION KERNEL_VERSION(4, 10, 0)
 
 #if LINUX_VERSION_CODE >= PAGE_FAULT_VERSION
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0))
-static int eccdev_vma_fault(struct vm_area_struct *, struct vm_fault *);
-#else
+#if LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION
 static int eccdev_vma_fault(struct vm_fault *);
-#endif
 #else
-static struct page *eccdev_vma_nopage(
+static int eccdev_vma_fault(struct vm_area_struct *, struct vm_fault *);
+#endif /* LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION */
+
+#else
+    static struct page *eccdev_vma_nopage(
         struct vm_area_struct *, unsigned long, int *);
-#endif
+#endif /* LINUX_VERSION_CODE >= PAGE_FAULT_VERSION */
 
 /*****************************************************************************/
 
@@ -92,7 +93,7 @@ struct vm_operations_struct eccdev_vm_ops = {
     .fault = eccdev_vma_fault
 #else
     .nopage = eccdev_vma_nopage
-#endif
+#endif /* LINUX_VERSION_CODE >= PAGE_FAULT_VERSION */
 };
 
 /*****************************************************************************/
@@ -258,18 +259,18 @@ int eccdev_mmap(
  * \return Zero on success, otherwise a negative error code.
  */
 static int eccdev_vma_fault(
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0))
+#if (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION)
         struct vm_area_struct *vma, /**< Virtual memory area. */
-#endif
+#endif /* (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION) */
         struct vm_fault *vmf /**< Fault data. */
         )
 {
-    unsigned long offset = vmf->pgoff << PAGE_SHIFT;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0))
+#if (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION)
     ec_cdev_priv_t *priv = (ec_cdev_priv_t *) vma->vm_private_data;
 #else
     ec_cdev_priv_t *priv = (ec_cdev_priv_t *) vmf->vma->vm_private_data;
-#endif
+#endif /* (LINUX_VERSION_CODE < VM_FAULT_CHANGE_VERSION) */
+    unsigned long offset = vmf->pgoff << PAGE_SHIFT;
     struct page *page;
 
     if (offset >= priv->ctx.process_data_size) {
@@ -284,17 +285,12 @@ static int eccdev_vma_fault(
     get_page(page);
     vmf->page = page;
 
-    EC_MASTER_DBG(
-        priv->cdev->master,
-        1,
-        "Vma fault, virtual_address = %p, offset = %lu, page = %p\n",
-#if LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION
-        (void*)vmf->address,
+    EC_MASTER_DBG(priv->cdev->master, 1, "Vma fault, virtual_address = %p,"
+#if (LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION)
+            " offset = %lu, page = %p\n", (void*)vmf->address, offset, page);
 #else
-        vmf->virtual_address,
-#endif
-        offset,
-        page);
+            " offset = %lu, page = %p\n", vmf->virtual_address, offset, page);
+#endif /* (LINUX_VERSION_CODE >= VM_FAULT_CHANGE_VERSION) */
 
     return 0;
 }
