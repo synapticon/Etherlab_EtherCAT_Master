@@ -47,10 +47,20 @@ int sdo_read_value(Sdo_t *sdo)
     case ENTRY_TYPE_REAL32:
       sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
       break;
-    case ENTRY_TYPE_VISIBLE_STRING:
+    case ENTRY_TYPE_VISIBLE_STRING: {
+      size_t data_size = ecrt_sdo_request_data_size(sdo->request);
+
+      if (data_size >= ECW_MAX_VISIBLE_STRING_LENGTH) {
+        data_size = ECW_MAX_VISIBLE_STRING_LENGTH - 1;
+      }
+
       memmove(sdo->value_string, ecrt_sdo_request_data(sdo->request),
-              ecrt_sdo_request_data_size(sdo->request));
+              data_size);
+
+      // Null-terminate the string
+      sdo->value_string[data_size] = '\0';
       break;
+    }
     case ENTRY_TYPE_OCTET_STRING:
     case ENTRY_TYPE_UNICODE_STRING:
     case ENTRY_TYPE_TIME_OF_DAY:
@@ -226,7 +236,13 @@ static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
-        memmove(sdo->value_string, value_string, valuesize);
+        if (result_size >= ECW_MAX_VISIBLE_STRING_LENGTH) {
+          result_size = ECW_MAX_VISIBLE_STRING_LENGTH - 1;
+        }
+        memmove(sdo->value_string, value_string, result_size);
+
+        // Null-terminate the string
+        sdo->value_string[result_size] = '\0';
       }
       break;
     }
