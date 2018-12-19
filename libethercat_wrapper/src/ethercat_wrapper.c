@@ -709,7 +709,9 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
       }
     }
   }
-  domain_reg_cur = (ec_pdo_entry_reg_t * ) { 0 };
+  // IMPORTANT: The last element in the domain registration must be a null
+  // struct, or at least an ec_pdo_entry_reg_t with its index set to zero
+  memset(domain_reg_cur, 0, sizeof(ec_pdo_entry_reg_t));
 
   update_master_state(master);
   update_all_slave_state(master);
