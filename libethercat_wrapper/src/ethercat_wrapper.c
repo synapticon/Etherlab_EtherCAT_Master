@@ -725,7 +725,6 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   free_all_slaves(master); /* FIXME have to recursively clean up the slaves! */
   ecrt_release_master(master->master);
-  free(master->domain);
   free(master->domain_reg);
   free(master);
 }
@@ -799,6 +798,8 @@ int ecw_master_start(Ethercat_Master_t *master)
 int ecw_master_stop(Ethercat_Master_t *master)
 {
   /* FIXME Check if master is running */
+
+  free(master->domain);
 
   /* These pointer will become invalid after call to ecrt_master_deactivate() */
   master->domain = NULL;
