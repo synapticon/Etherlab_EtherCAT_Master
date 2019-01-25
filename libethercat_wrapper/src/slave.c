@@ -124,6 +124,12 @@ static int sdo_write_value(Sdo_t *sdo)
 
 static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
+  // Check if the request is a valid pointer
+  if (!sdo->request) {
+    sdo->read_request = 0;
+    return ECW_ERROR_SDO_REQUEST_ERROR;
+  }
+
   int ret = ECW_ERROR_UNKNOWN;
 
   sdo->request_state = ecrt_sdo_request_state(sdo->request);
@@ -166,6 +172,11 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 
 static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
 {
+  // Check if the request is a valid pointer
+  if (!sdo->request) {
+    return ECW_ERROR_SDO_REQUEST_ERROR;
+  }
+
   int ret = ECW_ERROR_UNKNOWN;
 
   sdo->request_state = ecrt_sdo_request_state(sdo->request);
