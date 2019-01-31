@@ -121,6 +121,15 @@ int ecw_master_stop(Ethercat_Master_t *);
 
 int ecw_master_scan(Ethercat_Master_t *);
 
+/**
+ * \brief Trigger master rescan of the bus
+ *
+ * \param master  the master to use
+ *
+ * \return 0 if no error
+ */
+int ecw_master_rescan(Ethercat_Master_t *);
+
 #ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommended */
 int ecw_master_start_cyclic(Ethercat_Master_t *);
 int ecw_master_stop_cyclic(Ethercat_Master_t *master);

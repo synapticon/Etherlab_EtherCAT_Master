@@ -838,6 +838,11 @@ int ecw_master_scan(Ethercat_Master_t *master)
   return 0;
 }
 
+int ecw_master_rescan(Ethercat_Master_t *master)
+{
+  return ecrt_master_rescan(master->master);
+}
+
 int ecw_master_start_cyclic(Ethercat_Master_t *master)
 {
   openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY,
