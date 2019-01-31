@@ -1066,6 +1066,14 @@ int ecrt_master_activate(
  */
 void ecrt_master_deactivate_slaves(
         ec_master_t *master /**< EtherCAT master. */
+	);
+
+/** Triggers master rescan of the bus.
+ *
+ * \return 0 in case of success, else < 0
+ */
+int ecrt_master_rescan(
+        ec_master_t *master
         );
 
 /** Deactivates the master.
