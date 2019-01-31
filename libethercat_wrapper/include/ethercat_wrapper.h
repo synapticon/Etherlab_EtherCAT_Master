@@ -56,6 +56,15 @@ extern "C" {
 const char *ecw_master_get_version(void);
 
 /**
+ * \brief Rescan the bus without initializing or reserving the master first
+ *
+ * \param master_id   id of the master to use, for single master use 0
+ *
+ * \return 0 if no error
+ */
+int ecw_preemptive_master_rescan(int master_id);
+
+/**
  * \brief Return the number of slaves without initializing or reserving the
  * master first
  *
