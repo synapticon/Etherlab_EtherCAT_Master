@@ -387,6 +387,21 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
   }
 }
 
+int ecw_preemptive_master_rescan(int master_id)
+{
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  int result = ecrt_master_rescan(master);
+
+  ecrt_release_master(master);
+
+  return result;
+}
+
 ec_master_info_t* ecw_preemptive_master_info(int master_id)
 {
   ec_master_t *master = ecrt_open_master(master_id);
@@ -836,6 +851,11 @@ int ecw_master_scan(Ethercat_Master_t *master)
 {
   update_all_slave_state(master);
   return 0;
+}
+
+int ecw_master_rescan(Ethercat_Master_t *master)
+{
+  return ecrt_master_rescan(master->master);
 }
 
 int ecw_master_start_cyclic(Ethercat_Master_t *master)

@@ -574,6 +574,19 @@ int ecrt_master_activate(ec_master_t *master)
 
 /****************************************************************************/
 
+int ecrt_master_rescan(ec_master_t *master)
+{
+    int ret = ioctl(master->fd, EC_IOCTL_MASTER_RESCAN, NULL);
+    if (EC_IOCTL_IS_ERROR(ret)) {
+        fprintf(stderr, "Failed to rescan the bus: %s\n",
+                strerror(EC_IOCTL_ERRNO(ret)));
+        return -EC_IOCTL_ERRNO(ret);
+    }
+    return 0;
+}
+
+/****************************************************************************/
+
 void ecrt_master_deactivate(ec_master_t *master)
 {
     int ret;
