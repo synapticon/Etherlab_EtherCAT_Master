@@ -97,6 +97,28 @@ int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
 int ecw_preemptive_slave_state(int master_id, int slave_index);
 
 /**
+ * \brief Return the vendor ID of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return the vendor ID
+ */
+unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index);
+
+/**
+ * \brief Return the product code of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return the product code
+ */
+unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index);
+
+/**
  * \brief Create ethercat master object and initialize
  *
  * The init process scans the bus and configures all slaves.

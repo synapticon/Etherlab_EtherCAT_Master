@@ -521,6 +521,64 @@ int ecw_preemptive_slave_state(int master_id, int slave_index)
   return al_state;
 }
 
+unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int vendor_id = slave_info->vendor_id;
+
+  free(slave_info);
+
+  return vendor_id;
+}
+
+unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int product_code = slave_info->product_code;
+
+  free(slave_info);
+
+  return product_code;
+}
+
 Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 {
   openlog(LIBETHERCAT_WRAPPER_SYSLOG, LOG_CONS | LOG_PID | LOG_NDELAY,
