@@ -872,17 +872,17 @@ int ecw_master_stop(Ethercat_Master_t *master)
 {
   /* FIXME Check if master is running */
 
-  free(master->domain);
-
-  /* These pointer will become invalid after call to ecrt_master_deactivate() */
-  master->domain = NULL;
-  master->processdata = NULL;
-
   /* The documentation of this function in ecrt.h is kind of misleading. It
    * states that this function shouldn't be called in real-time context. On the
    * other hand, the official IgH documentation states this function as
    * counterpart to ecrt_master_activate(). */
   ecrt_master_deactivate(master->master);
+
+  free(master->domain);
+
+  /* These pointer will become invalid after call to ecrt_master_deactivate() */
+  master->domain = NULL;
+  master->processdata = NULL;
 
   /* This function frees the following data structures (internally):
    *
