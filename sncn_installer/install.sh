@@ -17,7 +17,7 @@ UDEV_RULES_FILE="/etc/udev/rules.d/99-EtherCAT.rules"
 SCRIPT_DIR="$(cd "$( dirname "$0" )" && pwd)"
 WORK_DIR="${SCRIPT_DIR}/.."
 ETHERCAT_SYSCONFIG="/etc/sysconfig/ethercat"
-ETHERCAT_INSTALL_PREFIX=""
+ETHERCAT_INSTALL_PREFIX="/opt/etherlab"
 ETHERCAT_START_PREFIX="/opt/etherlab"
 CONFIGURE_FLAGS="--enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles"
 
