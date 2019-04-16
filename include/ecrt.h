@@ -1186,6 +1186,42 @@ void ecrt_master_reset(
         ec_master_t *master /**< EtherCAT master. */
         );
 
+///**
+// * Read the SII from a slave
+// */
+//void ecrt_master_read_sii(
+//        ec_master_t *master,
+//        ec_ioctl_slave_sii_t *data
+//        );
+//
+///**
+// * Write an SII to a slave
+// */
+//void ecrt_master_write_sii(
+//        ec_master_t *master,
+//        ec_ioctl_slave_sii_t *data
+//        );
+
+/**
+ * Read a file from a slave
+ */
+int ecrt_master_read_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          uint8_t *content,
+          size_t *size);
+
+/**
+ * Write a file to a slave
+ */
+int ecrt_master_write_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          const uint8_t *content,
+          size_t size);
+
 /******************************************************************************
  * Slave configuration methods
  *****************************************************************************/
