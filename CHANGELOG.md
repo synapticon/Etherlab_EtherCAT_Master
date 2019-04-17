@@ -3,7 +3,7 @@ All notable changes to this project made by SYNAPTICON will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.5.2-sncn-7] - 2019-04-17
 #### Added
 - Add a function to trigger bus rescanning
 
@@ -70,7 +70,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Fix compilation on kernels > 4.2.0
 - Fix FoE timeout calculation bug
 
-[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-6...HEAD
+[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-7...HEAD
+[1.5.2-sncn-7]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-6...v1.5.2-sncn-7
 [1.5.2-sncn-6]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-5...v1.5.2-sncn-6
 [1.5.2-sncn-5]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-4...v1.5.2-sncn-5
 [1.5.2-sncn-4]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-3...v1.5.2-sncn-4
