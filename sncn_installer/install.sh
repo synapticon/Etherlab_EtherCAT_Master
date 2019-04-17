@@ -75,7 +75,7 @@ do_setup_interfaces () {
   sudo ln -s ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG} ${ETHERCAT_SYSCONFIG}
 
   # Add detected interfaces and delete old ones
-  sudo sed -i '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
 
   # Intel Up square 2
   # 2nd ethernet is used for this board
@@ -94,8 +94,8 @@ do_setup_interfaces () {
       MAC=$(cat /sys/class/net/${iface}/address)
     fi
   fi
-  sudo sed -i "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"${MAC}\"/g" ${ETHERCAT_SYSCONFIG}
-  sudo sed -i 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"${MAC}\"/g" ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' ${ETHERCAT_SYSCONFIG}
 }
 
 do_start() {
