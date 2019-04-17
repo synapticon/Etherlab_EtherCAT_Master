@@ -3,7 +3,7 @@ All notable changes to this project made by SYNAPTICON will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-##[Unreleased]
+## [Unreleased]
 #### Added
 - Add a function to trigger bus rescanning
 
