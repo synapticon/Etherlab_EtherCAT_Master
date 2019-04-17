@@ -67,8 +67,8 @@ do_setup_interfaces () {
   echo "KERNEL==\"EtherCAT[0-9]*\", MODE=\"0664\", GROUP=\"${ETHERCAT_USER_GROUP}\"" | sudo tee --append ${UDEV_RULES_FILE}
 
   # Link the sysconfig EtherCAT file
-  if [[ -f "${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG}" ]]; then
-    sudo rm ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG}
+  if [[ -f "${ETHERCAT_SYSCONFIG}" ]]; then
+    sudo rm ${ETHERCAT_SYSCONFIG}
   else
     sudo mkdir -p ${SYSCONFIG_DIR}
   fi
