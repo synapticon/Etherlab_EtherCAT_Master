@@ -66,9 +66,13 @@ do_setup_interfaces () {
   sudo rm -rf ${UDEV_RULES_FILE}
   echo "KERNEL==\"EtherCAT[0-9]*\", MODE=\"0664\", GROUP=\"${ETHERCAT_USER_GROUP}\"" | sudo tee --append ${UDEV_RULES_FILE}
 
-  # Copy the sysconfig EtherCAT file
-  sudo mkdir -p ${SYSCONFIG_DIR}
-  sudo cp ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG} ${ETHERCAT_SYSCONFIG}
+  # Link the sysconfig EtherCAT file
+  if [[ -f "${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG}" ]]; then
+    sudo rm ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG}
+  else
+    sudo mkdir -p ${SYSCONFIG_DIR}
+  fi
+  sudo ln -s ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG} ${ETHERCAT_SYSCONFIG}
 
   # Add detected interfaces and delete old ones
   sudo sed -i '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
