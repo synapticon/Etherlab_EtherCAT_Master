@@ -15,7 +15,7 @@ Synapticon provides its own simplified installation script that enables the
 users to completely build and install the IgH EtherCAT master and all its
 dependencies using only one command on Debian based systems (incl. Ubuntu):
 
-$ sncn_installer/install.sh eth0
+$ sudo sncn_installer/install.sh eth0
 
 ... where the "eth0" is the network adapter that will be used for EtherCAT.
 

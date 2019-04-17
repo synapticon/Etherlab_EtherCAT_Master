@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ##[Unreleased]
 ### Added
+- Add version to the build process
 - Enable reading/writing of string SDO values
 - Enable handling 64-bit integer values and setting the time of day
 - Check if the SDO request pointers are valid on upload/download
