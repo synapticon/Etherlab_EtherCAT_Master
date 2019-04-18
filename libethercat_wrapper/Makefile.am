@@ -6,7 +6,7 @@ libethercat_wrapper_la_SOURCES = \
 	src/ethercat_wrapper.c
 
 include_HEADERS = \
-    include/commons.h \
+	include/commons.h \
 	include/slave.h \
 	include/ethercat_wrapper.h \
 	include/ethercat_wrapper_slave.h
