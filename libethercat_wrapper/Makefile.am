@@ -2,12 +2,12 @@
 lib_LTLIBRARIES = libethercat_wrapper.la
 
 libethercat_wrapper_la_SOURCES = \
-	src/commons.h \
 	src/slave.c \
-	src/slave.h \
 	src/ethercat_wrapper.c
 
 include_HEADERS = \
+    include/commons.h \
+	include/slave.h \
 	include/ethercat_wrapper.h \
 	include/ethercat_wrapper_slave.h
 
