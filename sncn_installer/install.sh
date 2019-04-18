@@ -16,9 +16,9 @@ ETHERCAT_USER_GROUP="$(whoami)"
 UDEV_RULES_FILE="/etc/udev/rules.d/99-EtherCAT.rules"
 SCRIPT_DIR="$(cd "$( dirname "$0" )" && pwd)"
 WORK_DIR="${SCRIPT_DIR}/.."
+SYSCONFIG_DIR="/etc/sysconfig/"
 ETHERCAT_SYSCONFIG="/etc/sysconfig/ethercat"
-ETHERCAT_INSTALL_PREFIX=""
-ETHERCAT_START_PREFIX="/opt/etherlab"
+ETHERCAT_INSTALL_PREFIX="/opt/etherlab"
 CONFIGURE_FLAGS="--enable-sii-assign --disable-8139too --enable-hrtimer --enable-cycles"
 
 do_configure() {
@@ -31,10 +31,10 @@ do_configure() {
   ./bootstrap
   ./configure ${CONFIGURE_FLAGS} --prefix=${ETHERCAT_INSTALL_PREFIX}
 
-  if [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
+  if [[ -f "/etc/init.d/ethercat" ]]; then
+    sudo /etc/init.d/ethercat stop
+  elif [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
     sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat stop
-  elif [[ -f "${ETHERCAT_START_PREFIX}/etc/init.d/ethercat" ]]; then
-    sudo ${ETHERCAT_START_PREFIX}/etc/init.d/ethercat stop
   fi
 }
 
@@ -47,6 +47,18 @@ do_install () {
   sudo make modules_install install
   sudo ldconfig
   sudo depmod
+
+  # Link the service
+  if [[ -f "/etc/init.d/ethercat" ]]; then
+    sudo rm /etc/init.d/ethercat
+  fi
+  sudo ln -s ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat /etc/init.d/ethercat
+
+  # Link the binary
+  if [[ -f "/usr/bin/ethercat" ]]; then
+    sudo rm /usr/bin/ethercat
+  fi
+  sudo ln -s ${ETHERCAT_INSTALL_PREFIX}/bin/ethercat /usr/bin/ethercat
 }
 
 do_setup_interfaces () {
@@ -54,8 +66,16 @@ do_setup_interfaces () {
   sudo rm -rf ${UDEV_RULES_FILE}
   echo "KERNEL==\"EtherCAT[0-9]*\", MODE=\"0664\", GROUP=\"${ETHERCAT_USER_GROUP}\"" | sudo tee --append ${UDEV_RULES_FILE}
 
+  # Link the sysconfig EtherCAT file
+  if [[ -f "${ETHERCAT_SYSCONFIG}" ]]; then
+    sudo rm ${ETHERCAT_SYSCONFIG}
+  else
+    sudo mkdir -p ${SYSCONFIG_DIR}
+  fi
+  sudo ln -s ${ETHERCAT_INSTALL_PREFIX}${ETHERCAT_SYSCONFIG} ${ETHERCAT_SYSCONFIG}
+
   # Add detected interfaces and delete old ones
-  sudo sed -i '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks '/MASTER[^0].*_DEVICE/d' ${ETHERCAT_SYSCONFIG}
 
   # Intel Up square 2
   # 2nd ethernet is used for this board
@@ -74,15 +94,15 @@ do_setup_interfaces () {
       MAC=$(cat /sys/class/net/${iface}/address)
     fi
   fi
-  sudo sed -i "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"${MAC}\"/g" ${ETHERCAT_SYSCONFIG}
-  sudo sed -i 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks "s/MASTER0_DEVICE=\"\"/MASTER0_DEVICE=\"${MAC}\"/g" ${ETHERCAT_SYSCONFIG}
+  sudo sed -i --follow-symlinks 's/DEVICE_MODULES=\"\"/DEVICE_MODULES=\"generic\"/g' ${ETHERCAT_SYSCONFIG}
 }
 
 do_start() {
-  if [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
+  if [[ -f "/etc/init.d/ethercat" ]]; then
+    sudo /etc/init.d/ethercat start
+  elif [[ -f "${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat" ]]; then
     sudo ${ETHERCAT_INSTALL_PREFIX}/etc/init.d/ethercat start
-  elif [[ -f "${ETHERCAT_START_PREFIX}/etc/init.d/ethercat" ]]; then
-    sudo ${ETHERCAT_START_PREFIX}/etc/init.d/ethercat start
   fi
 }
 

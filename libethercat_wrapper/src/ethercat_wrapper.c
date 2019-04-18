@@ -249,8 +249,19 @@ static int slave_config(Ethercat_Master_t *master, Ethercat_Slave_t *slave)
       sdo->subindex = j;
       sdo->entry_type = entry.data_type;
       sdo->object_type = sdoi.object_code;
-      sdo->bit_length = entry.bit_length;
+
+      // FIXME: For some reason the bit length of the VISIBLE_STRING gets set to
+      // 144 which is not correct. This causes the SDO requests to have the
+      // wrong size and fail for strings. The root cause why this is happening
+      // must be found and then this workaround should be removed.
+      if (entry.data_type == ENTRY_TYPE_VISIBLE_STRING) {
+        sdo->bit_length = ECW_MAX_VISIBLE_STRING_LENGTH;
+      } else {
+        sdo->bit_length = entry.bit_length;
+      }
+
       sdo->value = 0;
+      sdo->value_string[0] = '\0';
 
       memmove(sdo->name, entry.description, EC_MAX_STRING_LENGTH);
       memmove(sdo->object_name, sdoi.name, EC_MAX_STRING_LENGTH);
@@ -368,12 +379,27 @@ void ecw_print_allslave_od(Ethercat_Master_t *master)
 
       printf("    +-> Object Number: %d ", i);
       printf(", 0x%04x:%d", sdo->index, sdo->subindex);
-      printf(", %d, %d", sdo->value, sdo->bit_length);
+      printf(", %ld, %d", sdo->value, sdo->bit_length);
       printf(", %d", sdo->object_type);
       printf(", %d", sdo->entry_type);
       printf(", \"%s\"\n", sdo->name);
     }
   }
+}
+
+int ecw_preemptive_master_rescan(int master_id)
+{
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  int result = ecrt_master_rescan(master);
+
+  ecrt_release_master(master);
+
+  return result;
 }
 
 ec_master_info_t* ecw_preemptive_master_info(int master_id)
@@ -493,6 +519,64 @@ int ecw_preemptive_slave_state(int master_id, int slave_index)
   free(slave_info);
 
   return al_state;
+}
+
+unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int vendor_id = slave_info->vendor_id;
+
+  free(slave_info);
+
+  return vendor_id;
+}
+
+unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index)
+{
+  if (!ecw_preemptive_slave_index_check(master_id, slave_index)) {
+    return -1;
+  }
+
+  // Get the slave info
+  ec_master_t *master = ecrt_open_master(master_id);
+
+  if (master == NULL) {
+    return -1;
+  }
+
+  ec_slave_info_t *slave_info = malloc(sizeof(ec_slave_info_t));
+  if (ecrt_master_get_slave(master, slave_index, slave_info) != 0) {
+    syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
+           slave_index);
+    return -1;
+  }
+
+  ecrt_release_master(master);
+
+  int product_code = slave_info->product_code;
+
+  free(slave_info);
+
+  return product_code;
 }
 
 Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
@@ -698,7 +782,9 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
       }
     }
   }
-  domain_reg_cur = (ec_pdo_entry_reg_t * ) { 0 };
+  // IMPORTANT: The last element in the domain registration must be a null
+  // struct, or at least an ec_pdo_entry_reg_t with its index set to zero
+  memset(domain_reg_cur, 0, sizeof(ec_pdo_entry_reg_t));
 
   update_master_state(master);
   update_all_slave_state(master);
@@ -712,7 +798,6 @@ void ecw_master_release(Ethercat_Master_t *master)
 {
   free_all_slaves(master); /* FIXME have to recursively clean up the slaves! */
   ecrt_release_master(master->master);
-  free(master->domain);
   free(master->domain_reg);
   free(master);
 }
@@ -787,15 +872,17 @@ int ecw_master_stop(Ethercat_Master_t *master)
 {
   /* FIXME Check if master is running */
 
-  /* These pointer will become invalid after call to ecrt_master_deactivate() */
-  master->domain = NULL;
-  master->processdata = NULL;
-
   /* The documentation of this function in ecrt.h is kind of misleading. It
    * states that this function shouldn't be called in real-time context. On the
    * other hand, the official IgH documentation states this function as
    * counterpart to ecrt_master_activate(). */
   ecrt_master_deactivate(master->master);
+
+  free(master->domain);
+
+  /* These pointer will become invalid after call to ecrt_master_deactivate() */
+  master->domain = NULL;
+  master->processdata = NULL;
 
   /* This function frees the following data structures (internally):
    *
@@ -822,6 +909,11 @@ int ecw_master_scan(Ethercat_Master_t *master)
 {
   update_all_slave_state(master);
   return 0;
+}
+
+int ecw_master_rescan(Ethercat_Master_t *master)
+{
+  return ecrt_master_rescan(master->master);
 }
 
 int ecw_master_start_cyclic(Ethercat_Master_t *master)

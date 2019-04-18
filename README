@@ -15,6 +15,7 @@ Contents:
 4) Realtime & Tuning
 5) License
 6) Coding Style
+7) Synapticon-specific changes
 
 ------------------------------------------------------------------------------
 
@@ -103,5 +104,19 @@ property and similar rights of Beckhoff Automation GmbH.
 ===============
 
 Developers shall use the coding style rules in the CodingStyle.txt file.
+
+------------------------------------------------------------------------------
+
+7) Synapticon-specific changes
+==============================
+
+This version of the IgH EtherCAT master contains changes made by Synapticon in
+order to support its products.
+
+All of the changes made from the original IgH EtherCAT master will be listed in
+the CHANGELOG.md file.
+
+Apart from the changes made to the base of this product, Synapticon has also
+added some additional instructions, as well as installation and helper scripts.
 
 ------------------------------------------------------------------------------

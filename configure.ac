@@ -39,7 +39,7 @@ AC_PREREQ(2.59)
 # - Update version number below
 # - make dist-bzip2
 #
-AC_INIT([ethercat],[1.5.2-sncn-6],[fp@igh-essen.com])
+AC_INIT([ethercat],[1.5.2-sncn-7],[fp@igh-essen.com])
 AC_CONFIG_AUX_DIR([autoconf])
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 subdir-objects])
 AC_PREFIX_DEFAULT([/opt/etherlab])

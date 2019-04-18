@@ -21,6 +21,7 @@
 #define ECW_ERROR_SDO_REQUEST_ERROR         -1
 #define ECW_ERROR_SDO_NOT_FOUND             -3
 #define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
+#define ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE -4
 
 /* -> Ethercat_Master_t */
 struct _ecw_master_t {
@@ -55,6 +56,15 @@ extern "C" {
 const char *ecw_master_get_version(void);
 
 /**
+ * \brief Rescan the bus without initializing or reserving the master first
+ *
+ * \param master_id   id of the master to use, for single master use 0
+ *
+ * \return 0 if no error
+ */
+int ecw_preemptive_master_rescan(int master_id);
+
+/**
  * \brief Return the number of slaves without initializing or reserving the
  * master first
  *
@@ -85,6 +95,28 @@ int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
  * \return the state of the slave, or -1 on error
  */
 int ecw_preemptive_slave_state(int master_id, int slave_index);
+
+/**
+ * \brief Return the vendor ID of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return the vendor ID
+ */
+unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index);
+
+/**
+ * \brief Return the product code of a slave without initializing or reserving
+ * the master first
+ *
+ * \param master_id     id of the master to use, for single master use 0
+ * \param slave_index   index of the slave
+ *
+ * \return the product code
+ */
+unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index);
 
 /**
  * \brief Create ethercat master object and initialize
@@ -119,6 +151,15 @@ int ecw_master_start(Ethercat_Master_t *);
 int ecw_master_stop(Ethercat_Master_t *);
 
 int ecw_master_scan(Ethercat_Master_t *);
+
+/**
+ * \brief Trigger master rescan of the bus
+ *
+ * \param master  the master to use
+ *
+ * \return 0 if no error
+ */
+int ecw_master_rescan(Ethercat_Master_t *);
 
 #ifdef LIBINTERNAL_CYCLIC_HANDLING /* not recommended */
 int ecw_master_start_cyclic(Ethercat_Master_t *);

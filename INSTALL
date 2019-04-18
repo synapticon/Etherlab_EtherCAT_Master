@@ -8,8 +8,21 @@ vim: set spelllang=en spell tw=78
 
 -------------------------------------------------------------------------------
 
-Building and installing
-=======================
+Synapticon IgH EtherCAT master installation instructions
+========================================================
+
+Synapticon provides its own simplified installation script that enables the
+users to completely build and install the IgH EtherCAT master and all its
+dependencies using only one command on Debian based systems (incl. Ubuntu):
+
+$ sudo sncn_installer/install.sh eth0
+
+... where the "eth0" is the network adapter that will be used for EtherCAT.
+
+-------------------------------------------------------------------------------
+
+Original IgH EtherCAT master building and installing instructions
+=================================================================
 
 The complete build and installation procedure is described in the respective
 section of the documentation available from http://etherlab.org/en/ethercat.
