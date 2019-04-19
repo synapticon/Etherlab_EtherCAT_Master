@@ -671,3 +671,9 @@ int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
                                content, size);
 }
 
+int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+                        size_t size)
+{
+  return ecrt_master_write_sii(s->master, s->relative_position, content, size);
+}
+

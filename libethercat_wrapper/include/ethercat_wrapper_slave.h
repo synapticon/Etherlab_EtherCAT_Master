@@ -209,6 +209,12 @@ int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
                          const uint8_t *content, size_t size);
 
 /*
+ * SII
+ */
+int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+                        size_t size);
+
+/*
  * PDO access functions
  */
 
