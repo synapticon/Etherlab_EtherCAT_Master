@@ -821,12 +821,6 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
 
   data.nwords = size / 2;
 
-  /**
-   * TODO: Verify the SII data
-   *
-   * https://github.com/synapticon/Etherlab_EtherCAT_Master/blob/develop/tool/CommandSiiWrite.cpp#L175
-   */
-
   // allocate buffer and read file into buffer
   data.words = malloc(size * sizeof(uint8_t));
   memcpy((uint8_t*) data.words, content, size);
