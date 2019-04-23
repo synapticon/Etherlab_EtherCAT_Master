@@ -1186,6 +1186,41 @@ void ecrt_master_reset(
         ec_master_t *master /**< EtherCAT master. */
         );
 
+/**
+ * Write SII data to a slave
+ *
+ * IMPORTANT: Make sure to verify the SII data first:
+ * https://github.com/synapticon/Etherlab_EtherCAT_Master/blob/develop/tool/CommandSiiWrite.cpp#L175
+ */
+int ecrt_master_write_sii(
+        ec_master_t *master,
+        uint16_t position,
+        const uint8_t *content,
+        size_t size
+        );
+
+/**
+ * Read a file from a slave
+ */
+int ecrt_master_read_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          uint8_t *content,
+          size_t *size
+          );
+
+/**
+ * Write a file to a slave
+ */
+int ecrt_master_write_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          const uint8_t *content,
+          size_t size
+          );
+
 /******************************************************************************
  * Slave configuration methods
  *****************************************************************************/

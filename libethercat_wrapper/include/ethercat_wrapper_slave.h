@@ -199,6 +199,22 @@ enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s);
 enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s);
 
 /*
+ * FoE
+ */
+
+int ecw_slave_read_file(Ethercat_Slave_t *s, const char* file_name,
+                        uint8_t *content, size_t *size);
+
+int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
+                         const uint8_t *content, size_t size);
+
+/*
+ * SII
+ */
+int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+                        size_t size);
+
+/*
  * PDO access functions
  */
 

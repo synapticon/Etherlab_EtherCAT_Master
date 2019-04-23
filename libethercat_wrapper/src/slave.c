@@ -651,3 +651,29 @@ enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
 
   return state;
 }
+
+int ecw_slave_read_file(Ethercat_Slave_t *s, const char* file_name,
+                        uint8_t *content, size_t *size)
+{
+  /**
+   * IMPORTANT: The master code doesn't seem to allow reading larger files and
+   * the offset is never used, so there is absolutely no possibility of reading
+   * larger files even with sequential reading.
+   */
+  return ecrt_master_read_foe(s->master, s->relative_position, file_name,
+                              content, size);
+}
+
+int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
+                         const uint8_t *content, size_t size)
+{
+  return ecrt_master_write_foe(s->master, s->relative_position, file_name,
+                               content, size);
+}
+
+int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+                        size_t size)
+{
+  return ecrt_master_write_sii(s->master, s->relative_position, content, size);
+}
+
