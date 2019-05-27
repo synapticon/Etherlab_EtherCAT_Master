@@ -212,7 +212,7 @@ static int slave_sdo_download_request(Sdo_t *sdo)
   return ret;
 }
 
-static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
+static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
 {
   size_t result_size = 0;
   uint32_t abort_code = 0;
@@ -274,7 +274,7 @@ static int slave_sdo_upload_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
   return abort_code;
 }
 
-static int slave_sdo_download_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
+static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
 {
   uint32_t abort_code = 0;
 
@@ -332,7 +332,7 @@ static int slave_sdo_download_direct(Ethercat_Slave_t *s, Sdo_t *sdo)
  * module. So in cyclic operation the schedule SDO request must be
  * used to be safe.
  */
-int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
+int slave_sdo_upload(const Ethercat_Slave_t *s, Sdo_t *sdo)
 {
   ec_master_state_t link_state;
   ecrt_master_state(s->master, &link_state);
@@ -347,7 +347,7 @@ int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
   return slave_sdo_upload_direct(s, sdo);
 }
 
-int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo)
+int slave_sdo_download(const Ethercat_Slave_t *s, Sdo_t *sdo)
 {
   ec_master_state_t link_state;
   ecrt_master_state(s->master, &link_state);
@@ -379,7 +379,7 @@ void ecw_slave_release(Ethercat_Slave_t *s)
   free(s);
 }
 
-int ecw_slave_scan(Ethercat_Slave_t *s)
+int ecw_slave_scan(const Ethercat_Slave_t *s)
 {
   /* rescan baby */
   return -1;
@@ -397,12 +397,12 @@ pdo_t *ecw_slave_get_pdo(Ethercat_Slave_t *s, size_t pdoindex)
 }
 #endif
 
-int ecw_slave_get_slaveid(Ethercat_Slave_t *s)
+int ecw_slave_get_slaveid(const Ethercat_Slave_t *s)
 {
   return s->info->position;
 }
 
-enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s)
+enum eSlaveType ecw_slave_get_type(const Ethercat_Slave_t *s)
 {
   return s->type;
 }
@@ -411,7 +411,8 @@ enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s)
  * PDO handler
  */
 
-int ecw_slave_set_out_value(Ethercat_Slave_t *s, size_t pdoindex, int value)
+int ecw_slave_set_out_value(const Ethercat_Slave_t *s, size_t pdoindex,
+                            int value)
 {
   pdo_t *pdo = ecw_slave_get_outpdo(s, pdoindex);
   pdo->value = value;
@@ -419,13 +420,13 @@ int ecw_slave_set_out_value(Ethercat_Slave_t *s, size_t pdoindex, int value)
   return 0;
 }
 
-int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex)
+int ecw_slave_get_in_value(const Ethercat_Slave_t *s, size_t pdoindex)
 {
   pdo_t *pdo = ecw_slave_get_inpdo(s, pdoindex);
   return pdo->value;
 }
 
-int ecw_slave_set_inpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+int ecw_slave_set_inpdo(const Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
 {
   if (pdo->value != (s->input_values + pdoindex)->value
       || pdo->type != (s->input_values + pdoindex)->type
@@ -436,12 +437,12 @@ int ecw_slave_set_inpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
   return 0;
 }
 
-pdo_t *ecw_slave_get_inpdo(Ethercat_Slave_t *s, size_t pdoindex)
+pdo_t *ecw_slave_get_inpdo(const Ethercat_Slave_t *s, size_t pdoindex)
 {
   return (s->input_values + pdoindex);
 }
 
-int ecw_slave_set_outpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+int ecw_slave_set_outpdo(const Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
 {
   if (pdo->value != (s->output_values + pdoindex)->value
       || pdo->type != (s->output_values + pdoindex)->type
@@ -452,7 +453,7 @@ int ecw_slave_set_outpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
   return 0;
 }
 
-pdo_t *ecw_slave_get_outpdo(Ethercat_Slave_t *s, size_t pdoindex)
+pdo_t *ecw_slave_get_outpdo(const Ethercat_Slave_t *s, size_t pdoindex)
 {
   return (s->output_values + pdoindex);
 }
@@ -461,12 +462,12 @@ pdo_t *ecw_slave_get_outpdo(Ethercat_Slave_t *s, size_t pdoindex)
  * SDO handling
  */
 
-size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s)
+size_t ecw_slave_get_sdo_count(const Ethercat_Slave_t *s)
 {
   return (size_t) s->sdo_count;
 }
 
-Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex)
+Sdo_t *ecw_slave_get_sdo(const Ethercat_Slave_t *s, int index, int subindex)
 {
   for (int i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
@@ -480,7 +481,7 @@ Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex)
   return NULL;
 }
 
-Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
+Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdoindex)
 {
   if (sdoindex >= s->sdo_count) {
     return NULL;
@@ -493,8 +494,8 @@ Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex)
   return sdo;
 }
 
-int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                                uint64_t value)
+int ecw_slave_set_sdo_int_value(const Ethercat_Slave_t *s, int index,
+                                int subindex, uint64_t value)
 {
   Sdo_t *current = NULL;
 
@@ -510,8 +511,8 @@ int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
   return ECW_ERROR_SDO_NOT_FOUND; /* not found */
 }
 
-int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
-                                   const char *value)
+int ecw_slave_set_sdo_string_value(const Ethercat_Slave_t *s, int index,
+                                   int subindex, const char *value)
 {
   Sdo_t *current = NULL;
 
@@ -527,8 +528,8 @@ int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
   return ECW_ERROR_SDO_NOT_FOUND; /* not found */
 }
 
-int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                            int *value)
+int ecw_slave_get_sdo_int_value(const Ethercat_Slave_t *s, int index,
+                                int subindex, int *value)
 {
   Sdo_t *sdo = NULL;  //ecw_slave_get_sdo(s, index, subindex);
   for (int i = 0; i < s->sdo_count; i++) {
@@ -551,8 +552,8 @@ int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
   return err;
 }
 
-int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
-                                   char *value)
+int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
+                                   int subindex, char *value)
 {
   Sdo_t *sdo = NULL;
   for (int i = 0; i < s->sdo_count; i++) {
@@ -575,7 +576,7 @@ int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
   return err;
 }
 
-int ecw_slave_get_info(Ethercat_Slave_t *s, Ethercat_Slave_Info_t *info)
+int ecw_slave_get_info(const Ethercat_Slave_t *s, Ethercat_Slave_Info_t *info)
 {
   if (info == NULL || s == NULL) {
     return -1;
@@ -626,7 +627,7 @@ enum eSlaveType type_map_get_type(uint32_t vendor, uint32_t product)
   return SLAVE_TYPE_UNKNOWN;
 }
 
-enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
+enum eALState ecw_slave_get_current_state(const Ethercat_Slave_t *s)
 {
   unsigned int raw = s->state.al_state;
   enum eALState state = ALSTATE_INIT;
@@ -652,7 +653,7 @@ enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s)
   return state;
 }
 
-int ecw_slave_read_file(Ethercat_Slave_t *s, const char* file_name,
+int ecw_slave_read_file(const Ethercat_Slave_t *s, const char* file_name,
                         uint8_t *content, size_t *size)
 {
   /**
@@ -664,14 +665,14 @@ int ecw_slave_read_file(Ethercat_Slave_t *s, const char* file_name,
                               content, size);
 }
 
-int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
+int ecw_slave_write_file(const Ethercat_Slave_t *s, const char* file_name,
                          const uint8_t *content, size_t size)
 {
   return ecrt_master_write_foe(s->master, s->relative_position, file_name,
                                content, size);
 }
 
-int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+int ecw_slave_write_sii(const Ethercat_Slave_t *s, const uint8_t *content,
                         size_t size)
 {
   return ecrt_master_write_sii(s->master, s->relative_position, content, size);

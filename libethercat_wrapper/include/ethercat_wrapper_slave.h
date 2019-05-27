@@ -177,7 +177,7 @@ void ecw_slave_release(Ethercat_Slave_t *);
  * \param slave   Slave object to request
  * \return the id of the slave
  */
-int ecw_slave_get_slaveid(Ethercat_Slave_t *s);
+int ecw_slave_get_slaveid(const Ethercat_Slave_t *s);
 
 /**
  * \brief Request the type of the slave
@@ -185,7 +185,7 @@ int ecw_slave_get_slaveid(Ethercat_Slave_t *s);
  * \param slave   Slave object to request
  * \return the type of the slave \see eSlaveType
  */
-enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s);
+enum eSlaveType ecw_slave_get_type(const Ethercat_Slave_t *s);
 
 /**
  * \brief Request the current application layer state of the slave
@@ -196,22 +196,22 @@ enum eSlaveType ecw_slave_get_type(Ethercat_Slave_t *s);
  * \param s   slave object to request
  * \return Current state of the slave \see eALState
  */
-enum eALState ecw_slave_get_current_state(Ethercat_Slave_t *s);
+enum eALState ecw_slave_get_current_state(const Ethercat_Slave_t *s);
 
 /*
  * FoE
  */
 
-int ecw_slave_read_file(Ethercat_Slave_t *s, const char* file_name,
+int ecw_slave_read_file(const Ethercat_Slave_t *s, const char* file_name,
                         uint8_t *content, size_t *size);
 
-int ecw_slave_write_file(Ethercat_Slave_t *s, const char* file_name,
+int ecw_slave_write_file(const Ethercat_Slave_t *s, const char* file_name,
                          const uint8_t *content, size_t size);
 
 /*
  * SII
  */
-int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
+int ecw_slave_write_sii(const Ethercat_Slave_t *s, const uint8_t *content,
                         size_t size);
 
 /*
@@ -226,7 +226,8 @@ int ecw_slave_write_sii(Ethercat_Slave_t *s, const uint8_t *content,
  * \param value     value to set
  * \return 0 on success
  */
-int ecw_slave_set_out_value(Ethercat_Slave_t *s, size_t pdoindex, int value);
+int ecw_slave_set_out_value(const Ethercat_Slave_t *s, size_t pdoindex,
+                            int value);
 
 /**
  * \brief Get the value of a specific PDO
@@ -235,7 +236,7 @@ int ecw_slave_set_out_value(Ethercat_Slave_t *s, size_t pdoindex, int value);
  * \param pdoindex  index of the PDO in the buffer
  * \return the value of the requested PDO
  */
-int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
+int ecw_slave_get_in_value(const Ethercat_Slave_t *s, size_t pdoindex);
 
 /*
  * SDO Access Functions
@@ -250,8 +251,8 @@ int ecw_slave_get_in_value(Ethercat_Slave_t *s, size_t pdoindex);
  * \param value    Value to write to the object
  * \return 0 on success
  */
-int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                                uint64_t value);
+int ecw_slave_set_sdo_int_value(const Ethercat_Slave_t *s, int index,
+                                int subindex, uint64_t value);
 
 /**
  * \brief Set the string value of the given object
@@ -262,8 +263,8 @@ int ecw_slave_set_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
  * \param value    Value to write to the object
  * \return 0 on success
  */
-int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
-                                   const char *value);
+int ecw_slave_set_sdo_string_value(const Ethercat_Slave_t *s, int index,
+                                   int subindex, const char *value);
 
 /**
  * \brief Request the current value of one (number) object
@@ -274,8 +275,8 @@ int ecw_slave_set_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
  * \param *value   Pointer to variable to store requested value
  * \return 0 on success
  */
-int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
-                                int *value);
+int ecw_slave_get_sdo_int_value(const Ethercat_Slave_t *s, int index,
+                                int subindex, int *value);
 
 /**
  * \brief Request the current value of one (string) object
@@ -286,8 +287,8 @@ int ecw_slave_get_sdo_int_value(Ethercat_Slave_t *s, int index, int subindex,
  * \param *value   Pointer to variable to store requested value
  * \return 0 on success
  */
-int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
-                                   char *value);
+int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
+                                   int subindex, char *value);
 
 /**
  * \brief Get object with index and subindex from object dictionary
@@ -302,7 +303,7 @@ int ecw_slave_get_sdo_string_value(Ethercat_Slave_t *s, int index, int subindex,
  * \param subindex Subindex of the requested object
  * \return NULL if not available or copy of object \see Sdo_t
  */
-Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex);
+Sdo_t *ecw_slave_get_sdo(const Ethercat_Slave_t *s, int index, int subindex);
 
 /**
  * \brief Get object of the object dictionary position sdoindex
@@ -316,7 +317,7 @@ Sdo_t *ecw_slave_get_sdo(Ethercat_Slave_t *s, int index, int subindex);
  * \param sdoindex  index of the SDO in the object dictionary
  * \return NULL if not available or copy of object \see Sdo_t
  */
-Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex);
+Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdoindex);
 
 /**
  * \brief low level access to write SDO value to slave
@@ -328,7 +329,7 @@ Sdo_t *ecw_slave_get_sdo_index(Ethercat_Slave_t *s, size_t sdoindex);
  * \param sdo    SDO object with new value to write to device
  * \return 0 on success
  */
-int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo);
+int slave_sdo_download(const Ethercat_Slave_t *s, Sdo_t *sdo);
 
 /**
  * \brief low level access to read SDO value to slave
@@ -340,7 +341,7 @@ int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo);
  * \param sdo    SDO object to update the value
  * \return 0 on success
  */
-int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo);
+int slave_sdo_upload(const Ethercat_Slave_t *s, Sdo_t *sdo);
 
 /* deprecated or not used */
 int ecw_slave_get_sdo_list(Ethercat_Slave_t *s, int *index_list);
@@ -351,7 +352,7 @@ int ecw_slave_get_sdo_list(Ethercat_Slave_t *s, int *index_list);
  * \param slave   Slave to request
  * \return number of all objects in the object dictionary
  */
-size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s);
+size_t ecw_slave_get_sdo_count(const Ethercat_Slave_t *s);
 
 /**
  * \brief Get slave information
@@ -360,7 +361,8 @@ size_t ecw_slave_get_sdo_count(Ethercat_Slave_t *s);
  * \param info   reference to slave information \see Ethercat_Slave_Info_t
  * \return 0, != 0 on error
  */
-int ecw_slave_get_info(Ethercat_Slave_t *slave, Ethercat_Slave_Info_t *info);
+int ecw_slave_get_info(const Ethercat_Slave_t *slave,
+                       Ethercat_Slave_Info_t *info);
 
 /*
  * \brief Get slave type string

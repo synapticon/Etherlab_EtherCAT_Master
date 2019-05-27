@@ -43,7 +43,7 @@ struct _ecw_slave_t {
   size_t sdo_count; /* number of all objects and sub-objects in the dictionary */
 };
 
-int ecw_slave_scan(Ethercat_Slave_t *);
+int ecw_slave_scan(const Ethercat_Slave_t *);
 
 /*
  * set and get PDO values
@@ -51,11 +51,13 @@ int ecw_slave_scan(Ethercat_Slave_t *);
 
 pdo_t *pdo_value_new(int value, int offset, enum eValueType type);
 
-int ecw_slave_set_outpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *value);
-pdo_t *ecw_slave_get_outpdo(Ethercat_Slave_t *s, size_t pdoindex);
+int ecw_slave_set_outpdo(const Ethercat_Slave_t *s, size_t pdoindex,
+                         pdo_t *value);
+pdo_t *ecw_slave_get_outpdo(const Ethercat_Slave_t *s, size_t pdoindex);
 
-int ecw_slave_set_inpdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *value);
-pdo_t *ecw_slave_get_inpdo(Ethercat_Slave_t *s, size_t pdoindex);
+int ecw_slave_set_inpdo(const Ethercat_Slave_t *s, size_t pdoindex,
+                        pdo_t *value);
+pdo_t *ecw_slave_get_inpdo(const Ethercat_Slave_t *s, size_t pdoindex);
 
 /*
  * Necessary special function to allow the cyclic function to get the result of the

@@ -1042,7 +1042,7 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
   LOG_USER);
 
   for (int i = 0; i < master->slave_count; i++) {
-    Ethercat_Slave_t *slave = master->slaves + i;
+    const Ethercat_Slave_t *slave = master->slaves + i;
 
     for (int k = 0; k < slave->outpdocount; k++) {
       pdo_t *value = ecw_slave_get_outpdo(slave, k);
