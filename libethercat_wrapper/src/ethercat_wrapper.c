@@ -587,12 +587,12 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
   Ethercat_Master_t *master = malloc(sizeof(Ethercat_Master_t));
   if (master == NULL) {
     /* Cannot allocate master */
-    free(master);
     return NULL;
   }
 
   master->master = ecrt_request_master(master_id);
   if (master->master == NULL) {
+    free(master);
     return NULL;
   }
 
@@ -604,8 +604,11 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     ecrt_master_state(master->master, &state);
     usleep(1000);
   }
+
   if (timeout <= 0) {
     syslog(LOG_ERR, "ERROR, link_state timed out");
+    ecrt_release_master(master->master);
+    free(master);
     return NULL;
   }
 
@@ -621,11 +624,17 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
 
   if (timeout <= 0) {
     syslog(LOG_ERR, "ERROR, scan_busy timed out");
+    free(info);
+    ecrt_release_master(master->master);
+    free(master);
     return NULL;
   }
 
   if (info->slave_count != state.slaves_responding) {
     syslog(LOG_ERR, "ERROR, slave_count - slaves_responding mismatch");
+    free(info);
+    ecrt_release_master(master->master);
+    free(master);
     return NULL;
   }
 
@@ -655,6 +664,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     if (ecrt_master_get_slave(master->master, i, slave->info) != 0) {
       syslog(LOG_ERR, "Error, could not read slave configuration for slave %d",
              i);
+      free(info);
+      ecw_master_release(master);
       return NULL;
     }
 
@@ -669,6 +680,8 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
     /* get the PDOs from the buffered sync managers */
     if (slave_config(master, slave) != 0) {
       syslog(LOG_ERR, "ERROR, configuration slave %d", i);
+      free(info);
+      ecw_master_release(master);
       return NULL;
     }
 
