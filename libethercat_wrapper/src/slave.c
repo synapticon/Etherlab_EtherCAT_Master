@@ -127,7 +127,7 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
   // Check if the request is a valid pointer
   if (!sdo->request) {
     sdo->read_request = 0;
-    return ECW_ERROR_SDO_REQUEST_ERROR;
+    return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
   int ret = ECW_ERROR_UNKNOWN;

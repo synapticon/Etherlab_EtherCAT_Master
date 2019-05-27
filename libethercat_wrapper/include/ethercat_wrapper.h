@@ -22,6 +22,7 @@
 #define ECW_ERROR_SDO_NOT_FOUND             -3
 #define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
 #define ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE -4
+#define ECW_ERROR_SDO_REQUEST_INVALID       -5
 
 /* -> Ethercat_Master_t */
 struct _ecw_master_t {
