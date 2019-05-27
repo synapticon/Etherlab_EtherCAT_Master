@@ -122,7 +122,7 @@ static int sdo_write_value(Sdo_t *sdo)
   return 0;
 }
 
-static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
+static int slave_sdo_upload_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
   if (!sdo->request) {
@@ -170,7 +170,7 @@ static int slave_sdo_upload_request(Ethercat_Slave_t *s, Sdo_t *sdo)
   return ret;
 }
 
-static int slave_sdo_download_request(Ethercat_Slave_t *s, Sdo_t *sdo)
+static int slave_sdo_download_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
   if (!sdo->request) {
@@ -341,7 +341,7 @@ int slave_sdo_upload(Ethercat_Slave_t *s, Sdo_t *sdo)
   }
 
   if (s->cyclic_mode || (link_state.al_states & 0x8)) {
-    return slave_sdo_upload_request(s, sdo);
+    return slave_sdo_upload_request(sdo);
   }
 
   return slave_sdo_upload_direct(s, sdo);
@@ -356,7 +356,7 @@ int slave_sdo_download(Ethercat_Slave_t *s, Sdo_t *sdo)
   }
 
   if (s->cyclic_mode || (link_state.al_states & 0x8)) {
-    int ret = slave_sdo_download_request(s, sdo);
+    int ret = slave_sdo_download_request(sdo);
     return ret;
   }
 
