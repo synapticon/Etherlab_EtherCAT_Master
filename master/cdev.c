@@ -62,17 +62,22 @@ static int eccdev_mmap(struct file *, struct vm_area_struct *);
 #define PAGE_FAULT_VERSION KERNEL_VERSION(2, 6, 23)
 
 #if LINUX_VERSION_CODE >= PAGE_FAULT_VERSION
+static
 #if LINUX_VERSION_CODE > KERNEL_VERSION(5, 0, 0)
-static vm_fault_t eccdev_vma_fault(struct vm_fault *);
-#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
-static int eccdev_vma_fault(struct vm_area_struct *, struct vm_fault *);
+vm_fault_t
 #else
-static int eccdev_vma_fault(struct vm_fault *);
+int
 #endif
+eccdev_vma_fault(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+        struct vm_area_struct *,
+#endif
+        struct vm_fault *);
 #else
 static struct page *eccdev_vma_nopage(
         struct vm_area_struct *, unsigned long, int *);
 #endif
+
 
 /*****************************************************************************/
 
@@ -258,14 +263,18 @@ int eccdev_mmap(
  *
  * \return Zero on success, otherwise a negative error code.
  */
+static
 #if LINUX_VERSION_CODE > KERNEL_VERSION(5, 0, 0)
-static vm_fault_t eccdev_vma_fault(struct vm_fault *vmf /**< Fault data. */)
-#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
-static int eccdev_vma_fault(struct vm_area_struct *vma, /**< Virtual memory area. */
-                            struct vm_fault *vmf /**< Fault data. */)
+vm_fault_t
 #else
-static int eccdev_vma_fault(struct vm_fault *vmf /**< Fault data. */)
+int
 #endif
+eccdev_vma_fault(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+        struct vm_area_struct *vma, /**< Virtual memory area. */
+#endif
+        struct vm_fault *vmf /**< Fault data. */
+        )
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
     struct vm_area_struct *vma = vmf->vma;
