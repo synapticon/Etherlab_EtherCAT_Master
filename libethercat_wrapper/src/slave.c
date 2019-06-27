@@ -130,6 +130,14 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
+  // If the previous request failed, schedule a new one
+  if (sdo->request_state == EC_REQUEST_ERROR) {
+    ecrt_sdo_request_read(sdo->request);
+    sdo->read_request = 1;
+    sdo->request_state = ECW_ERROR_SDO_REQUEST_BUSY;
+    return ECW_ERROR_SDO_REQUEST_BUSY;
+  }
+
   int ret = ECW_ERROR_UNKNOWN;
 
   sdo->request_state = ecrt_sdo_request_state(sdo->request);
