@@ -13,7 +13,7 @@
 #include <string.h>
 #include <syslog.h>
 
-#define SDO_REQUEST_TIMEOUT     500  /* ms taken from etherlab example */
+#define SDO_REQUEST_TIMEOUT     50  // ms
 
 #ifndef VERSIONING
 #error no version information
