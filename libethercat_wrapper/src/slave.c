@@ -502,6 +502,19 @@ Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdoindex)
   return sdo;
 }
 
+Sdo_t *ecw_slave_get_sdo_pointer(const Ethercat_Slave_t *s, size_t sdoindex)
+{
+  if (sdoindex >= s->sdo_count) {
+    return NULL;
+  }
+
+  return s->dictionary + sdoindex;
+}
+
+/*
+ * SDO value handling - using index/subindex
+ */
+
 int ecw_slave_set_sdo_int_value(const Ethercat_Slave_t *s, int index,
                                 int subindex, uint64_t value)
 {
@@ -574,6 +587,62 @@ int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
 
   if (sdo == NULL) {
     return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
+  }
+
+  int err = slave_sdo_upload(s, sdo);
+  if (err == 0) {
+    memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
+  }
+
+  return err;
+}
+
+/*
+ * SDO value handling - using SDO pointer
+ */
+
+int ecw_slave_set_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                                uint64_t value)
+{
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND;
+  }
+
+  sdo->value = value;
+  return slave_sdo_download(s, sdo);
+}
+
+int ecw_slave_set_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                                   const char *value)
+{
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND;
+  }
+
+  memmove(sdo->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
+  return slave_sdo_download(s, sdo);
+}
+
+int ecw_slave_get_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                                int *value)
+{
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND;
+  }
+
+  int err = slave_sdo_upload(s, sdo);
+  if (err == 0) {
+    *value = sdo->value;
+  }
+
+  return err;
+}
+
+int ecw_slave_get_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                                   char *value)
+{
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND;
   }
 
   int err = slave_sdo_upload(s, sdo);
