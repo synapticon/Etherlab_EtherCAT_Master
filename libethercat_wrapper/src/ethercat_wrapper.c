@@ -821,7 +821,7 @@ int ecw_master_start(Ethercat_Master_t *master)
   LOG_USER);
 
   if (master->master == NULL) {
-    syslog(LOG_ERR, "Error, master not configured!");
+    syslog(LOG_ERR, "Error: Master not configured");
     return -1;
   }
 
@@ -836,12 +836,12 @@ int ecw_master_start(Ethercat_Master_t *master)
                                              slave->info->product_code);
 
     if (slave->config == NULL) {
-      syslog(LOG_ERR, "Error slave (id: %lu) configuration failed.", slaveid);
+      syslog(LOG_ERR, "Error: Slave (id: %lu) configuration failed", slaveid);
       return -1;
     }
 
     if (setup_sdo_request(slave)) {
-      syslog(LOG_ERR, "Error could not setup SDO requests for slave id %lu",
+      syslog(LOG_ERR, "Error: Could not setup SDO requests for slave ID %lu",
              slaveid);
       return -1;
     }
@@ -850,18 +850,19 @@ int ecw_master_start(Ethercat_Master_t *master)
   /* create the domain registry */
   master->domain = ecrt_master_create_domain(master->master);
   if (master->domain == NULL) {
+    syslog(LOG_ERR, "Error: Cannot create domain");
     return -1;
   }
 
   if (ecrt_domain_reg_pdo_entry_list(master->domain, master->domain_reg) != 0) {
-    syslog(LOG_ERR, "Error cannot register PDO domain");
+    syslog(LOG_ERR, "Error: Cannot register PDO domain");
     return -1;
   }
 
   /* FIXME how can I get information about the error leading to no activation
    * of the master */
   if (ecrt_master_activate(master->master) < 0) {
-    syslog(LOG_ERR, "Error could not activate master.");
+    syslog(LOG_ERR, "Error: Could not activate master");
     return -1;
   }
 
@@ -869,7 +870,7 @@ int ecw_master_start(Ethercat_Master_t *master)
   if (master->processdata == NULL) {
     syslog(
         LOG_ERR,
-        "Error unable to get the process data pointer. Disable master again.");
+        "Error: Unable to get the process data pointer. Disable master again.");
     ecrt_master_deactivate(master->master);
     return -1;
   }
