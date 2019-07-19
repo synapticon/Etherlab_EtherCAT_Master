@@ -291,6 +291,50 @@ int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
                                    int subindex, char *value);
 
 /**
+ * \brief Set the (number) value of the given object
+ *
+ * \param slave    Slave to request
+ * \param sdo      SDO to use
+ * \param value    Value to write to the object
+ * \return 0 on success
+ */
+int ecw_slave_set_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                            uint64_t value);
+
+/**
+ * \brief Set the string value of the given object
+ *
+ * \param slave    Slave to request
+ * \param sdo      SDO to use
+ * \param value    Value to write to the object
+ * \return 0 on success
+ */
+int ecw_slave_set_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                               const char *value);
+
+/**
+ * \brief Request the current value of one (number) object
+ *
+ * \param slave    Slave to request
+ * \param sdo      SDO to use
+ * \param *value   Pointer to variable to store requested value
+ * \return 0 on success
+ */
+int ecw_slave_get_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                            int *value);
+
+/**
+ * \brief Request the current value of one (string) object
+ *
+ * \param slave    Slave to request
+ * \param sdo      SDO to use
+ * \param *value   Pointer to variable to store requested value
+ * \return 0 on success
+ */
+int ecw_slave_get_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                               char *value);
+
+/**
  * \brief Get object with index and subindex from object dictionary
  *
  * Create a copy of the object dictionary object at position `sdoindex` and
@@ -318,6 +362,15 @@ Sdo_t *ecw_slave_get_sdo(const Ethercat_Slave_t *s, int index, int subindex);
  * \return NULL if not available or copy of object \see Sdo_t
  */
 Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdoindex);
+
+/**
+ * \brief Get a pointer to the original object of the object dictionary position sdoindex
+ *
+ * \param slave     Slave to request
+ * \param sdoindex  index of the SDO in the object dictionary
+ * \return NULL if not available or a pointer to an object \see Sdo_t
+ */
+Sdo_t *ecw_slave_get_sdo_pointer(const Ethercat_Slave_t *s, size_t sdoindex);
 
 /**
  * \brief low level access to write SDO value to slave
