@@ -1151,6 +1151,7 @@ AC_CONFIG_FILES([
         examples/tty/Kbuild
         examples/tty/Makefile
         examples/user/Makefile
+        examples/simple_somanet_pdo_sdo/Makefile
         examples/xenomai/Makefile
         examples/xenomai_posix/Makefile
         include/Makefile

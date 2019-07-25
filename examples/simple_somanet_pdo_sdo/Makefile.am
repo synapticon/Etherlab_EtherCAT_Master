@@ -2,7 +2,7 @@
 #
 #  $Id$
 #
-#  Copyright (C) 2006-2012  Florian Pose, Ingenieurgemeinschaft IgH
+#  Copyright (C) 2006-2008  Florian Pose, Ingenieurgemeinschaft IgH
 #
 #  This file is part of the IgH EtherCAT Master.
 #
@@ -15,9 +15,9 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along
-#  with the IgH EtherCAT Master; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#  You should have received a copy of the GNU General Public License along with
+#  the IgH EtherCAT Master; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #  ---
 #
@@ -27,51 +27,10 @@
 #
 #------------------------------------------------------------------------------
 
-SUBDIRS =
+noinst_PROGRAMS = simple_somanet_pdo_sdo
 
-if ENABLE_USERLIB
-SUBDIRS += \
-	dc_user \
-	user \
-	simple_somanet_pdo_sdo
-endif
-
-if ENABLE_TTY
-SUBDIRS += \
-	tty
-endif
-
-if ENABLE_RTDM
-if ENABLE_XENOMAI
-SUBDIRS += \
-	xenomai \
-	xenomai_posix
-endif
-
-if ENABLE_RTAI
-SUBDIRS += \
-	rtai_rtdm \
-	rtai_rtdm_dc
-endif
-endif
-
-DIST_SUBDIRS = \
-	dc_rtai \
-	dc_user \
-	mini \
-	rtai \
-	rtai_rtdm \
-	rtai_rtdm_dc \
-	tty \
-	user \
-	simple_somanet_pdo_sdo \
-	xenomai \
-	xenomai_posix
-
-EXTRA_DIST = \
-	Kbuild.in
-
-BUILT_SOURCES = \
-	Kbuild
+simple_somanet_pdo_sdo_SOURCES = main.c
+simple_somanet_pdo_sdo_CFLAGS = -I$(top_srcdir)/include -Wall
+simple_somanet_pdo_sdo_LDFLAGS = -L$(top_builddir)/lib/.libs -lethercat
 
 #------------------------------------------------------------------------------
