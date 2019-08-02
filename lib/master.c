@@ -658,6 +658,22 @@ int ecrt_master_activate(ec_master_t *master)
 
 /****************************************************************************/
 
+int ecrt_master_slave_dictionary_upload(ec_master_t *master, uint16_t slave_position)
+{
+  ec_ioctl_slave_dict_upload_t data;
+  data.slave_position = slave_position;
+
+  int ret = ioctl(master->fd, EC_IOCTL_SLAVE_DICT_UPLOAD, &data);
+  if (EC_IOCTL_IS_ERROR(ret)) {
+          fprintf(stderr, "Failed to upload a slave dictionary: %s\n",
+                  strerror(EC_IOCTL_ERRNO(ret)));
+          return -EC_IOCTL_ERRNO(ret);
+      }
+      return 0;
+}
+
+/****************************************************************************/
+
 void ecrt_master_deactivate_slaves(ec_master_t *master)
 {
     int ret;

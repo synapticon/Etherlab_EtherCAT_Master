@@ -1055,6 +1055,15 @@ int ecrt_master_activate(
         ec_master_t *master /**< EtherCAT master. */
         );
 
+/** Upload the dictionary from a slave
+ *
+ * \return 0 in case of success, else < 0
+ */
+int ecrt_master_slave_dictionary_upload(
+        ec_master_t *master,
+        uint16_t slave_position
+        );
+
 /** Deactivates the slaves distributed clocks and sends the slaves into PREOP.
  *
  * This can be called prior to ecrt_master_deactivate to avoid the slaves
