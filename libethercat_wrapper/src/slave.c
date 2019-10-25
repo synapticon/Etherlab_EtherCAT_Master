@@ -182,7 +182,7 @@ static int slave_sdo_download_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
   if (!sdo->request) {
-    return ECW_ERROR_SDO_REQUEST_ERROR;
+    return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
   int ret = ECW_ERROR_UNKNOWN;
