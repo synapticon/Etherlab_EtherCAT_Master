@@ -134,7 +134,7 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
   if (sdo->request_state == EC_REQUEST_ERROR) {
     ecrt_sdo_request_read(sdo->request);
     sdo->read_request = 1;
-    sdo->request_state = ECW_ERROR_SDO_REQUEST_BUSY;
+    sdo->request_state = EC_REQUEST_BUSY;
     return ECW_ERROR_SDO_REQUEST_BUSY;
   }
 
