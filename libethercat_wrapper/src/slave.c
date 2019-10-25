@@ -185,6 +185,17 @@ static int slave_sdo_download_request(Sdo_t *sdo)
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
+  // If the previous request failed, schedule a new one
+  if (sdo->request_state == EC_REQUEST_ERROR) {
+    int ret = sdo_write_value(sdo);
+    if (ret != 0) {
+      return ret;
+    }
+    ecrt_sdo_request_write(sdo->request);
+    sdo->request_state = EC_REQUEST_BUSY;
+    return ECW_ERROR_SDO_REQUEST_BUSY;
+  }
+
   int ret = ECW_ERROR_UNKNOWN;
 
   sdo->request_state = ecrt_sdo_request_state(sdo->request);
