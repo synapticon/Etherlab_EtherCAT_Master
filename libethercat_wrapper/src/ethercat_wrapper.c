@@ -44,42 +44,6 @@ const char *ecw_master_get_version(void)
   return g_version;
 }
 
-/*
- * get the pdo type according to the bit length
- *
- * FIXME support single bit PDO length
- */
-enum eValueType get_type_from_bitlength(int bit_length)
-{
-  enum eValueType type = VALUE_TYPE_NONE;
-
-  if (bit_length != 1 && bit_length % 2 != 0) {
-    syslog(LOG_WARNING, "Warning mapping is either padding or wrong!");
-    return type;
-  }
-
-  switch (bit_length) {
-    case 1:
-      type = VALUE_TYPE_UNSIGNED1;
-      break;
-    case 8:
-      type = VALUE_TYPE_UNSIGNED8;
-      break;
-    case 16:
-      type = VALUE_TYPE_UNSIGNED16;
-      break;
-    case 32:
-      type = VALUE_TYPE_UNSIGNED32;
-      break;
-    default:
-      type = VALUE_TYPE_NONE;
-      syslog(LOG_ERR, "Warning, bit size: %d not supported", bit_length);
-      break;
-  }
-
-  return type;
-}
-
 static int setup_sdo_request(Ethercat_Slave_t *slave)
 {
   for (size_t sdoindex = 0; sdoindex < slave->sdo_count; sdoindex++) {
@@ -729,7 +693,20 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           valcount++;
 
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
+          pdoe->type = ENTRY_TYPE_NONE;
+
+          for (int i = 0; i < slave->sdo_count; i++) {
+            Sdo_t *sdo = slave->dictionary + i;
+            if (sdo->index == entry->index && sdo->subindex == entry->subindex) {
+              pdoe->type = sdo->entry_type;
+              break;
+            }
+          }
+
+          if (pdoe->type == ENTRY_TYPE_NONE) {
+            syslog(LOG_ERR, "Error, invalid PDO mapped: SDO (%#04x, %d) not "
+                            "found", entry->index, entry->subindex);
+          }
 
           // IMPORTANT: The reference alias must be used, as well as the
           // position relative to that alias
@@ -777,7 +754,20 @@ Ethercat_Master_t *ecw_master_init(int master_id, FILE *logfile)
           valcount++;
 
           /* FIXME Add proper error handling if VALUE_TYPE_NONE is returned */
-          pdoe->type = get_type_from_bitlength(entry->bit_length);
+          pdoe->type = ENTRY_TYPE_NONE;
+
+          for (int i = 0; i < slave->sdo_count; i++) {
+            Sdo_t *sdo = slave->dictionary + i;
+            if (sdo->index == entry->index && sdo->subindex == entry->subindex) {
+              pdoe->type = sdo->entry_type;
+              break;
+            }
+          }
+
+          if (pdoe->type == ENTRY_TYPE_NONE) {
+            syslog(LOG_ERR, "Error, invalid PDO mapped: SDO (%#04x, %d) not "
+                            "found", entry->index, entry->subindex);
+          }
 
           // IMPORTANT: The reference alias must be used, as well as the
           // position relative to that alias
@@ -1010,31 +1000,29 @@ int ecw_master_receive_pdo(Ethercat_Master_t *master)
       pdo_t *pdo = ecw_slave_get_inpdo(slave, k);
 
       switch (pdo->type) {
-        case VALUE_TYPE_UNSIGNED1:
+        case ENTRY_TYPE_BOOLEAN:
           pdo->value = EC_READ_BIT(master->processdata + pdo->offset,
                                    pdo->bit_offset);
           break;
-        case VALUE_TYPE_UNSIGNED8:
+        case ENTRY_TYPE_UNSIGNED8:
           pdo->value = EC_READ_U8(master->processdata + pdo->offset);
           break;
-        case VALUE_TYPE_UNSIGNED16:
+        case ENTRY_TYPE_UNSIGNED16:
           pdo->value = EC_READ_U16(master->processdata + pdo->offset);
           break;
-        case VALUE_TYPE_UNSIGNED32:
+        case ENTRY_TYPE_REAL32:
+        case ENTRY_TYPE_UNSIGNED32:
           pdo->value = EC_READ_U32(master->processdata + pdo->offset);
           break;
-        case VALUE_TYPE_SIGNED8:
+        case ENTRY_TYPE_INTEGER8:
           pdo->value = EC_READ_S8(master->processdata + pdo->offset);
           break;
-        case VALUE_TYPE_SIGNED16:
+        case ENTRY_TYPE_INTEGER16:
           pdo->value = EC_READ_S16(master->processdata + pdo->offset);
           break;
-        case VALUE_TYPE_SIGNED32:
+        case ENTRY_TYPE_INTEGER32:
           pdo->value = EC_READ_S32(master->processdata + pdo->offset);
           break;
-
-        case VALUE_TYPE_PADDING:
-        case VALUE_TYPE_NONE:
         default:
           //syslog(LOG_ERR, "Warning, unknown value type(%d). No RxPDO update", pdo->type);
           pdo->value = 0;
@@ -1063,31 +1051,29 @@ int ecw_master_send_pdo(Ethercat_Master_t *master)
 
       // EC_WRITE_XX(master->processdata + (slave->txpdo_offset + k), value);
       switch (value->type) {
-        case VALUE_TYPE_UNSIGNED1:
+        case ENTRY_TYPE_BOOLEAN:
           EC_WRITE_BIT(master->processdata + value->offset, value->bit_offset,
                        value->value);
           break;
-        case VALUE_TYPE_UNSIGNED8:
+        case ENTRY_TYPE_UNSIGNED8:
           EC_WRITE_U8(master->processdata + value->offset, value->value);
           break;
-        case VALUE_TYPE_UNSIGNED16:
+        case ENTRY_TYPE_UNSIGNED16:
           EC_WRITE_U16(master->processdata + value->offset, value->value);
           break;
-        case VALUE_TYPE_UNSIGNED32:
+        case ENTRY_TYPE_REAL32:
+        case ENTRY_TYPE_UNSIGNED32:
           EC_WRITE_U32(master->processdata + value->offset, value->value);
           break;
-        case VALUE_TYPE_SIGNED8:
+        case ENTRY_TYPE_INTEGER8:
           EC_WRITE_S8(master->processdata + value->offset, value->value);
           break;
-        case VALUE_TYPE_SIGNED16:
+        case ENTRY_TYPE_INTEGER16:
           EC_WRITE_S16(master->processdata + value->offset, value->value);
           break;
-        case VALUE_TYPE_SIGNED32:
+        case ENTRY_TYPE_INTEGER32:
           EC_WRITE_S32(master->processdata + value->offset, value->value);
           break;
-
-        case VALUE_TYPE_PADDING:
-        case VALUE_TYPE_NONE:
         default:
           //syslog(LOG_ERR, "Warning, unknown value type(%d). No TxPDO update", value->type);
           break;

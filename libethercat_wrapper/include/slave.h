@@ -49,8 +49,6 @@ int ecw_slave_scan(const Ethercat_Slave_t *);
  * set and get PDO values
  */
 
-pdo_t *pdo_value_new(int value, int offset, enum eValueType type);
-
 int ecw_slave_set_outpdo(const Ethercat_Slave_t *s, size_t pdoindex,
                          pdo_t *value);
 pdo_t *ecw_slave_get_outpdo(const Ethercat_Slave_t *s, size_t pdoindex);

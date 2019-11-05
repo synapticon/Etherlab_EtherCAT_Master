@@ -41,21 +41,6 @@ enum eSlaveType {
 };
 
 /**
- * \brief EtherCAT value types
- */
-enum eValueType {
-  VALUE_TYPE_NONE = 0,
-  VALUE_TYPE_UNSIGNED1,
-  VALUE_TYPE_UNSIGNED8,
-  VALUE_TYPE_UNSIGNED16,
-  VALUE_TYPE_UNSIGNED32,
-  VALUE_TYPE_SIGNED8,
-  VALUE_TYPE_SIGNED16,
-  VALUE_TYPE_SIGNED32,
-  VALUE_TYPE_PADDING /* special type for gaps in PDO mapping for byte alignment */
-};
-
-/**
  * \brief Object types for object dictionary entries
  */
 enum eObjectType {
@@ -111,7 +96,7 @@ typedef struct {
   int value;
   unsigned int offset;
   unsigned int bit_offset;
-  enum eValueType type;
+  enum eEntryType type;
 } pdo_t;
 
 /**
