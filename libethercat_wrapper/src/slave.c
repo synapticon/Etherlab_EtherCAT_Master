@@ -126,14 +126,13 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
   if (!sdo->request) {
-    sdo->read_request = 0;
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
-  // If the previous request failed, schedule a new one
-  if (sdo->request_state == EC_REQUEST_ERROR) {
+  // If the previous request succeeded or failed, schedule a new one
+  if (sdo->request_state == EC_REQUEST_SUCCESS
+      || sdo->request_state == EC_REQUEST_ERROR) {
     ecrt_sdo_request_read(sdo->request);
-    sdo->read_request = 1;
     sdo->request_state = EC_REQUEST_BUSY;
     return ECW_ERROR_SDO_REQUEST_BUSY;
   }
@@ -145,7 +144,6 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
     case EC_REQUEST_UNUSED:
       // here I can schedule
       ecrt_sdo_request_read(sdo->request);
-      sdo->read_request = 1;
       ret = ECW_ERROR_SDO_REQUEST_BUSY;
       break;
     case EC_REQUEST_BUSY:
@@ -153,24 +151,15 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
       ret = ECW_ERROR_SDO_REQUEST_BUSY;
       break;
     case EC_REQUEST_SUCCESS:
-      if (sdo->read_request == 1) {
-        // the request is finished and the data can be read
-        ret = sdo_read_value(sdo);
-        if (ret != 0) {
-          return ret;
-        }
-        sdo->read_request = 0;
-        ret = ECW_SUCCESS;
-      } else {
-        // this is a new request
-        ecrt_sdo_request_read(sdo->request);
-        sdo->read_request = 1;
-        ret = ECW_ERROR_SDO_REQUEST_BUSY;
+      // the request is finished and the data can be read
+      ret = sdo_read_value(sdo);
+      if (ret != 0) {
+        return ret;
       }
+      ret = ECW_SUCCESS;
       break;
     case EC_REQUEST_ERROR:
       // request failed, what a pity
-      sdo->read_request = 0;
       ret = ECW_ERROR_SDO_REQUEST_ERROR;
       break;
   }
@@ -185,8 +174,9 @@ static int slave_sdo_download_request(Sdo_t *sdo)
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
-  // If the previous request failed, schedule a new one
-  if (sdo->request_state == EC_REQUEST_ERROR) {
+  // If the previous request succeeded or failed, schedule a new one first
+  if (sdo->request_state == EC_REQUEST_SUCCESS
+      || sdo->request_state == EC_REQUEST_ERROR) {
     int ret = sdo_write_value(sdo);
     if (ret != 0) {
       return ret;
@@ -214,16 +204,9 @@ static int slave_sdo_download_request(Sdo_t *sdo)
       ret = ECW_ERROR_SDO_REQUEST_BUSY;
       break;
     case EC_REQUEST_SUCCESS:
-      // we also schedule here for the next request
-      ret = sdo_write_value(sdo);
-      if (ret != 0) {
-        return ret;
-      }
-      ecrt_sdo_request_write(sdo->request);
       ret = ECW_SUCCESS;
       break;
     case EC_REQUEST_ERROR:
-      //error, abort
       ret = ECW_ERROR_SDO_REQUEST_ERROR;
       break;
   }

@@ -119,7 +119,6 @@ typedef struct _sdo_t {
 
   ec_sdo_request_t *request;
   ec_request_state_t request_state;
-  int read_request;
 } Sdo_t;
 
 /**

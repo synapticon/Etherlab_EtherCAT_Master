@@ -65,7 +65,6 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
     } else {
       ecrt_sdo_request_timeout(sdo->request, SDO_REQUEST_TIMEOUT);
       sdo->request_state = ecrt_sdo_request_state(sdo->request);
-      sdo->read_request = 0;
     }
   }
 
