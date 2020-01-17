@@ -220,3 +220,46 @@ void ecrt_sdo_request_write_with_size(ec_sdo_request_t *req, size_t size)
 }
 
 /*****************************************************************************/
+
+int ecrt_sdo_info_get(ec_master_t *master, uint16_t slave_pos, uint16_t sdo_position, ec_sdo_info_t *sdo)
+{
+    ec_ioctl_slave_sdo_t s;
+    s.slave_position = slave_pos;
+    s.sdo_position   = sdo_position;
+
+    if (ioctl(master->fd, EC_IOCTL_SLAVE_SDO, &s)) {
+        return -1;
+    }
+
+    sdo->index = s.sdo_index;
+    sdo->maxindex = s.max_subindex;
+    sdo->object_code = s.object_code;
+    memmove(sdo->name, s.name, EC_IOCTL_STRING_SIZE);
+
+    return 0;
+}
+
+/*****************************************************************************/
+
+int ecrt_sdo_get_info_entry(ec_master_t *master, uint16_t slave_pos, uint16_t index, uint8_t subindex, ec_sdo_info_entry_t *entry)
+{
+    ec_ioctl_slave_sdo_entry_t e;
+    e.slave_position = slave_pos;
+    e.sdo_spec = index; /* the name spec is a little bit misguiding, actually
+                           if >0 it is the index of the object, <0 is the index position. */
+    e.sdo_entry_subindex = subindex;
+
+    if (ioctl(master->fd,  EC_IOCTL_SLAVE_SDO_ENTRY, &e)) {
+        return -1;
+    }
+
+    entry->data_type = e.data_type;
+    entry->bit_length = e.bit_length;
+    memmove(entry->read_access, e.read_access, EC_SDO_ENTRY_ACCESS_COUNT);
+    memmove(entry->write_access, e.write_access, EC_SDO_ENTRY_ACCESS_COUNT);
+    memmove(entry->description, e.description, EC_IOCTL_STRING_SIZE);
+
+    return 0;
+}
+
+/*****************************************************************************/
