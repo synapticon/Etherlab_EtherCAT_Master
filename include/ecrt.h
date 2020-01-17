@@ -576,6 +576,31 @@ typedef enum {
     EC_AL_STATE_OP = 8, /**< Operational. */
 } ec_al_state_t;
 
+/*****************************************************************************/
+
+/** Application layer SDO info  structure
+ */
+typedef struct {
+    uint16_t index;
+    uint8_t  maxindex;
+    uint8_t  object_code;
+    char     name[EC_MAX_STRING_LENGTH];
+} ec_sdo_info_t;
+
+/*****************************************************************************/
+
+/** Application layer SDO info entry structure
+ */
+typedef struct {
+    uint16_t data_type;
+    uint16_t bit_length;
+    uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+    uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
+    char     description[EC_MAX_STRING_LENGTH];
+} ec_sdo_info_entry_t;
+
+/*****************************************************************************/
+
 /******************************************************************************
  * Global functions
  *****************************************************************************/
