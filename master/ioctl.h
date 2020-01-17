@@ -407,6 +407,7 @@ typedef struct {
     // outputs
     uint16_t sdo_index;
     uint8_t max_subindex;
+    uint8_t object_code;
     int8_t name[EC_IOCTL_STRING_SIZE];
 } ec_ioctl_slave_sdo_t;
 
