@@ -1,0 +1,203 @@
+From 9cce91e0fe6a54dccdf221eed36fc0f7e4590486 Mon Sep 17 00:00:00 2001
+From: Frank Jeschke <fjeschke@synapticon.com>
+Date: Thu, 16 Jan 2020 14:19:57 +0100
+Subject: [PATCH] Fix wrong user name field
+
+---
+ stable/0025-set_enable_sii_assign_by_default.patch                      | 2 +-
+ stable/0026-fixed_typo.patch                                            | 2 +-
+ stable/0027-todo.patch                                                  | 2 +-
+ stable/0028-added_8139too_for_kernel_4_4.patch                          | 2 +-
+ stable/0029-added_native_igb_driver_for_kernel_4_4.patch                | 2 +-
+ ...checked_usage_of_last_rx_timestamp_for_stats_fixed_indentation.patch | 2 +-
+ stable/0031-added_e100_driver_for_kernel_4_4.patch                      | 2 +-
+ stable/0032-added_r8169_driver_for_kernel_4_4.patch                     | 2 +-
+ stable/0033-minor_fix.patch                                             | 2 +-
+ stable/0034-added_e1000_driver_for_kernel_4_4.patch                     | 2 +-
+ stable/0038-bumped_library_version.patch                                | 2 +-
+ .../0039-use_ecrt_master_sync_reference_clock_to_in_dc_examples.patch   | 2 +-
+ ...dded_floating_point_access_functions_and_macros_for_user_space.patch | 2 +-
+ ...dded_missing_const_specifier_to_ecrt_read_real_ecrt_read_lreal.patch | 2 +-
+ stable/0044-added_extern_c_for_floating_point_functions.patch           | 2 +-
+ ...45-fixed_memory_leak_concerning_library_ecrt_master_deactivate.patch | 2 +-
+ 16 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/stable/0025-set_enable_sii_assign_by_default.patch b/stable/0025-set_enable_sii_assign_by_default.patch
+index c1ea35f..2af552c 100644
+--- a/stable/0025-set_enable_sii_assign_by_default.patch
++++ b/stable/0025-set_enable_sii_assign_by_default.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1538727851 -7200
+ #      Fri Oct 05 10:24:11 2018 +0200
+ Set --enable-sii-assign by default.
+diff --git a/stable/0026-fixed_typo.patch b/stable/0026-fixed_typo.patch
+index 14b0875..de99210 100644
+--- a/stable/0026-fixed_typo.patch
++++ b/stable/0026-fixed_typo.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1539862517 -7200
+ #      Thu Oct 18 13:35:17 2018 +0200
+ Fixed typo.
+diff --git a/stable/0027-todo.patch b/stable/0027-todo.patch
+index 63ce175..d56ff29 100644
+--- a/stable/0027-todo.patch
++++ b/stable/0027-todo.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1539862523 -7200
+ #      Thu Oct 18 13:35:23 2018 +0200
+ TODO.
+diff --git a/stable/0028-added_8139too_for_kernel_4_4.patch b/stable/0028-added_8139too_for_kernel_4_4.patch
+index e06024b..a2a6263 100644
+--- a/stable/0028-added_8139too_for_kernel_4_4.patch
++++ b/stable/0028-added_8139too_for_kernel_4_4.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540286603 -7200
+ #      Tue Oct 23 11:23:23 2018 +0200
+ Added 8139too for kernel 4.4.
+diff --git a/stable/0029-added_native_igb_driver_for_kernel_4_4.patch b/stable/0029-added_native_igb_driver_for_kernel_4_4.patch
+index 5aa0201..6b5f119 100644
+--- a/stable/0029-added_native_igb_driver_for_kernel_4_4.patch
++++ b/stable/0029-added_native_igb_driver_for_kernel_4_4.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540288400 -7200
+ #      Tue Oct 23 11:53:20 2018 +0200
+ Added native igb driver for kernel 4.4.
+diff --git a/stable/0030-checked_usage_of_last_rx_timestamp_for_stats_fixed_indentation.patch b/stable/0030-checked_usage_of_last_rx_timestamp_for_stats_fixed_indentation.patch
+index 0ca1393..095a844 100644
+--- a/stable/0030-checked_usage_of_last_rx_timestamp_for_stats_fixed_indentation.patch
++++ b/stable/0030-checked_usage_of_last_rx_timestamp_for_stats_fixed_indentation.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540292585 -7200
+ #      Tue Oct 23 13:03:05 2018 +0200
+ Checked usage of last_rx timestamp for stats; fixed indentation.
+diff --git a/stable/0031-added_e100_driver_for_kernel_4_4.patch b/stable/0031-added_e100_driver_for_kernel_4_4.patch
+index 30461a4..5225aaf 100644
+--- a/stable/0031-added_e100_driver_for_kernel_4_4.patch
++++ b/stable/0031-added_e100_driver_for_kernel_4_4.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540299353 -7200
+ #      Tue Oct 23 14:55:53 2018 +0200
+ Added e100 driver for kernel 4.4.
+diff --git a/stable/0032-added_r8169_driver_for_kernel_4_4.patch b/stable/0032-added_r8169_driver_for_kernel_4_4.patch
+index 2c65d7f..a4f64c3 100644
+--- a/stable/0032-added_r8169_driver_for_kernel_4_4.patch
++++ b/stable/0032-added_r8169_driver_for_kernel_4_4.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540300014 -7200
+ #      Tue Oct 23 15:06:54 2018 +0200
+ Added r8169 driver for kernel 4.4.
+diff --git a/stable/0033-minor_fix.patch b/stable/0033-minor_fix.patch
+index a37b6e6..91f59bb 100644
+--- a/stable/0033-minor_fix.patch
++++ b/stable/0033-minor_fix.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540300607 -7200
+ #      Tue Oct 23 15:16:47 2018 +0200
+ Minor fix.
+diff --git a/stable/0034-added_e1000_driver_for_kernel_4_4.patch b/stable/0034-added_e1000_driver_for_kernel_4_4.patch
+index 41bd375..5d0e5e0 100644
+--- a/stable/0034-added_e1000_driver_for_kernel_4_4.patch
++++ b/stable/0034-added_e1000_driver_for_kernel_4_4.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1540302476 -7200
+ #      Tue Oct 23 15:47:56 2018 +0200
+ Added e1000 driver for kernel 4.4.
+diff --git a/stable/0038-bumped_library_version.patch b/stable/0038-bumped_library_version.patch
+index 3a02457..6d32ae7 100644
+--- a/stable/0038-bumped_library_version.patch
++++ b/stable/0038-bumped_library_version.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1543419697 -3600
+ #      Wed Nov 28 16:41:37 2018 +0100
+ Bumped library version.
+diff --git a/stable/0039-use_ecrt_master_sync_reference_clock_to_in_dc_examples.patch b/stable/0039-use_ecrt_master_sync_reference_clock_to_in_dc_examples.patch
+index f0b791e..a20ae5d 100644
+--- a/stable/0039-use_ecrt_master_sync_reference_clock_to_in_dc_examples.patch
++++ b/stable/0039-use_ecrt_master_sync_reference_clock_to_in_dc_examples.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1543425845 -3600
+ #      Wed Nov 28 18:24:05 2018 +0100
+ Use ecrt_master_sync_reference_clock_to() in DC examples.
+diff --git a/stable/0042-added_floating_point_access_functions_and_macros_for_user_space.patch b/stable/0042-added_floating_point_access_functions_and_macros_for_user_space.patch
+index 0786309..a6500d4 100644
+--- a/stable/0042-added_floating_point_access_functions_and_macros_for_user_space.patch
++++ b/stable/0042-added_floating_point_access_functions_and_macros_for_user_space.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1547645773 -3600
+ #      Wed Jan 16 14:36:13 2019 +0100
+ Added floating-point access functions and macros for user-space.
+diff --git a/stable/0043-added_missing_const_specifier_to_ecrt_read_real_ecrt_read_lreal.patch b/stable/0043-added_missing_const_specifier_to_ecrt_read_real_ecrt_read_lreal.patch
+index 4a801e6..5579670 100644
+--- a/stable/0043-added_missing_const_specifier_to_ecrt_read_real_ecrt_read_lreal.patch
++++ b/stable/0043-added_missing_const_specifier_to_ecrt_read_real_ecrt_read_lreal.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1548161320 -3600
+ #      Tue Jan 22 13:48:40 2019 +0100
+ Added missing const specifier to ecrt_read_real() / ecrt_read_lreal().
+diff --git a/stable/0044-added_extern_c_for_floating_point_functions.patch b/stable/0044-added_extern_c_for_floating_point_functions.patch
+index 7655ac8..3ebf8e9 100644
+--- a/stable/0044-added_extern_c_for_floating_point_functions.patch
++++ b/stable/0044-added_extern_c_for_floating_point_functions.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1548164095 -3600
+ #      Tue Jan 22 14:34:55 2019 +0100
+ Added extern "C" for floating-point functions.
+diff --git a/stable/0045-fixed_memory_leak_concerning_library_ecrt_master_deactivate.patch b/stable/0045-fixed_memory_leak_concerning_library_ecrt_master_deactivate.patch
+index b6b216c..a915b1d 100644
+--- a/stable/0045-fixed_memory_leak_concerning_library_ecrt_master_deactivate.patch
++++ b/stable/0045-fixed_memory_leak_concerning_library_ecrt_master_deactivate.patch
+@@ -1,5 +1,5 @@
+ # HG changeset patch
+-# User Florian Pose
++# User Florian Pose <fp@igh.de>
+ # Date 1560508972 -7200
+ #      Fri Jun 14 12:42:52 2019 +0200
+ Fixed memory leak concerning library ecrt_master_deactivate().
+-- 
+2.7.4
+
