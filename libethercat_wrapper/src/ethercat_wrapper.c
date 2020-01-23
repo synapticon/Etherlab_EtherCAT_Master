@@ -218,7 +218,7 @@ static int slave_config(Ethercat_Master_t *master, Ethercat_Slave_t *slave)
       // wrong size and fail for strings. The root cause why this is happening
       // must be found and then this workaround should be removed.
       if (entry.data_type == ENTRY_TYPE_VISIBLE_STRING) {
-        sdo->bit_length = ECW_MAX_VISIBLE_STRING_LENGTH;
+        sdo->bit_length = ECW_MAX_VISIBLE_STRING_LENGTH * 8;
       } else {
         sdo->bit_length = entry.bit_length;
       }
