@@ -21,6 +21,7 @@ extern "C" {
 #define ECW_MAX_STRING_LENGTH           EC_MAX_STRING_LENGTH
 
 #define ECW_MAX_VISIBLE_STRING_LENGTH   50
+#define ECW_MAX_OCTET_STRING_LENGTH     25
 
 /**
  * Get the size of SDO access rights field from the ecrt library

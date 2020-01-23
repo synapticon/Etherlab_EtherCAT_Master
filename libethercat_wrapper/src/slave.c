@@ -61,7 +61,16 @@ int sdo_read_value(Sdo_t *sdo)
       sdo->value_string[data_size] = '\0';
       break;
     }
-    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_OCTET_STRING: {
+      size_t data_size = ecrt_sdo_request_data_size(sdo->request);
+
+      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->request),
+              data_size);
+
+      // Null-terminate the string
+      sdo->value_string[data_size] = '\0';
+      break;
+    }
     case ENTRY_TYPE_UNICODE_STRING:
     case ENTRY_TYPE_TIME_OF_DAY:
     case ENTRY_TYPE_NONE:
@@ -109,6 +118,9 @@ static int sdo_write_value(Sdo_t *sdo)
               ecrt_sdo_request_data_size(sdo->request));
       break;
     case ENTRY_TYPE_OCTET_STRING:
+      memmove(ecrt_sdo_request_data(sdo->request), sdo->value_string,
+                    ecrt_sdo_request_data_size(sdo->request));
+      break;
     case ENTRY_TYPE_UNICODE_STRING:
     case ENTRY_TYPE_TIME_OF_DAY:
       EC_WRITE_U64(ecrt_sdo_request_data(sdo->request),
@@ -259,7 +271,22 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
       }
       break;
     }
-    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_OCTET_STRING: {
+      char value_string[ECW_MAX_OCTET_STRING_LENGTH];
+      size_t valuesize = ECW_MAX_OCTET_STRING_LENGTH;
+
+      ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
+                             sdo->subindex, value_string, valuesize,
+                             &result_size, &abort_code);
+
+      if (abort_code == 0) {
+        memmove(sdo->value_string, value_string, result_size);
+
+        // Null-terminate the string
+        sdo->value_string[result_size] = '\0';
+      }
+      break;
+    }
     case ENTRY_TYPE_UNICODE_STRING:
       // NOT IMPLEMENTED
       break;
@@ -303,7 +330,12 @@ static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
                                      ECW_MAX_VISIBLE_STRING_LENGTH, &abort_code);
       break;
     }
-    case ENTRY_TYPE_OCTET_STRING:
+    case ENTRY_TYPE_OCTET_STRING: {
+      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
+                                     sdo->subindex, sdo->value_string,
+                                     ECW_MAX_OCTET_STRING_LENGTH, &abort_code);
+      break;
+    }
     case ENTRY_TYPE_UNICODE_STRING:
       // NOT IMPLEMENTED
       break;
@@ -512,35 +544,50 @@ Sdo_t *ecw_slave_get_sdo_pointer(const Ethercat_Slave_t *s, size_t sdoindex)
 int ecw_slave_set_sdo_int_value(const Ethercat_Slave_t *s, int index,
                                 int subindex, uint64_t value)
 {
-  Sdo_t *current = NULL;
-
+  Sdo_t *sdo = NULL;
   for (int i = 0; i < s->sdo_count; i++) {
-    current = s->dictionary + i;
+    Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
-      current->value = value;
-      int err = slave_sdo_download(s, current);
-      return err;
+      sdo = current;
+      break;
     }
   }
 
-  return ECW_ERROR_SDO_NOT_FOUND; /* not found */
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
+  }
+
+  sdo->value = value;
+  int err = slave_sdo_download(s, sdo);
+
+  return err;
 }
 
 int ecw_slave_set_sdo_string_value(const Ethercat_Slave_t *s, int index,
                                    int subindex, const char *value)
 {
-  Sdo_t *current = NULL;
-
+  Sdo_t *sdo = NULL;
   for (int i = 0; i < s->sdo_count; i++) {
-    current = s->dictionary + i;
+    Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
-      memmove(current->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
-      int err = slave_sdo_download(s, current);
-      return err;
+      sdo = current;
+      break;
     }
   }
 
-  return ECW_ERROR_SDO_NOT_FOUND; /* not found */
+  if (sdo == NULL) {
+    return ECW_ERROR_SDO_NOT_FOUND; /* Not found */
+  }
+
+  if (sdo->entry_type == ENTRY_TYPE_VISIBLE_STRING) {
+    memmove(sdo->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
+  } else if (sdo->entry_type == ENTRY_TYPE_OCTET_STRING) {
+    memmove(sdo->value_string, value, ECW_MAX_OCTET_STRING_LENGTH);
+  }
+
+  int err = slave_sdo_download(s, sdo);
+
+  return err;
 }
 
 int ecw_slave_get_sdo_int_value(const Ethercat_Slave_t *s, int index,
@@ -585,7 +632,11 @@ int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
 
   int err = slave_sdo_upload(s, sdo);
   if (err == 0) {
-    memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
+    if (sdo->entry_type == ENTRY_TYPE_VISIBLE_STRING) {
+      memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
+    } else if (sdo->entry_type == ENTRY_TYPE_OCTET_STRING) {
+      memmove(value, sdo->value_string, ECW_MAX_OCTET_STRING_LENGTH);
+    }
   }
 
   return err;
@@ -613,7 +664,12 @@ int ecw_slave_set_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
     return ECW_ERROR_SDO_NOT_FOUND;
   }
 
-  memmove(sdo->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
+  if (sdo->entry_type == ENTRY_TYPE_VISIBLE_STRING) {
+    memmove(sdo->value_string, value, ECW_MAX_VISIBLE_STRING_LENGTH);
+  } else if (sdo->entry_type == ENTRY_TYPE_OCTET_STRING) {
+    memmove(sdo->value_string, value, ECW_MAX_OCTET_STRING_LENGTH);
+  }
+
   return slave_sdo_download(s, sdo);
 }
 
@@ -641,7 +697,11 @@ int ecw_slave_get_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
 
   int err = slave_sdo_upload(s, sdo);
   if (err == 0) {
-    memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
+    if (sdo->entry_type == ENTRY_TYPE_VISIBLE_STRING) {
+      memmove(value, sdo->value_string, ECW_MAX_VISIBLE_STRING_LENGTH);
+    } else if (sdo->entry_type == ENTRY_TYPE_OCTET_STRING) {
+      memmove(value, sdo->value_string, ECW_MAX_OCTET_STRING_LENGTH);
+    }
   }
 
   return err;
