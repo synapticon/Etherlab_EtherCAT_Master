@@ -237,10 +237,10 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     case ENTRY_TYPE_UNSIGNED32:
     case ENTRY_TYPE_REAL32: {
       int value = 0;
-      size_t valuesize = sizeof(value);
+      size_t value_size = sizeof(value);
 
       ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                             sdo->subindex, (uint8_t *) &value, valuesize,
+                             sdo->subindex, (uint8_t *) &value, value_size,
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
@@ -250,10 +250,10 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     }
     case ENTRY_TYPE_VISIBLE_STRING: {
       char value_string[ECW_MAX_STRING_LENGTH];
-      size_t valuesize = sdo->bit_length / 8;
+      size_t value_size = sdo->bit_length / 8;
 
       ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                             sdo->subindex, value_string, valuesize,
+                             sdo->subindex, value_string, value_size,
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
@@ -266,10 +266,10 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     }
     case ENTRY_TYPE_OCTET_STRING: {
       char value_string[ECW_MAX_STRING_LENGTH];
-      size_t valuesize = sdo->bit_length / 8;
+      size_t value_size = sdo->bit_length / 8;
 
       ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                             sdo->subindex, value_string, valuesize,
+                             sdo->subindex, value_string, value_size,
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
@@ -310,11 +310,11 @@ static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     case ENTRY_TYPE_UNSIGNED32:
     case ENTRY_TYPE_REAL32: {
       int value = sdo->value;
-      size_t valuesize = sizeof(value);
+      size_t value_size = sizeof(value);
 
       ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
                                sdo->subindex, (const uint8_t *) &value,
-                               valuesize, &abort_code);
+                               value_size, &abort_code);
       break;
     }
     case ENTRY_TYPE_VISIBLE_STRING: {
@@ -336,11 +336,11 @@ static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
       break;
     case ENTRY_TYPE_TIME_OF_DAY: {
       uint64_t value = sdo->value;
-      size_t valuesize = sizeof(value);
+      size_t value_size = sizeof(value);
 
       ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
                                sdo->subindex, (const uint8_t *) &value,
-                               valuesize, &abort_code);
+                               value_size, &abort_code);
       break;
     }
     case ENTRY_TYPE_NONE:
