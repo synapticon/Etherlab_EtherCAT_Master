@@ -212,17 +212,7 @@ static int slave_config(Ethercat_Master_t *master, Ethercat_Slave_t *slave)
       sdo->subindex = j;
       sdo->entry_type = entry.data_type;
       sdo->object_type = sdoi.object_code;
-
-      // FIXME: For some reason the bit length of the VISIBLE_STRING gets set to
-      // 144 which is not correct. This causes the SDO requests to have the
-      // wrong size and fail for strings. The root cause why this is happening
-      // must be found and then this workaround should be removed.
-      if (entry.data_type == ENTRY_TYPE_VISIBLE_STRING) {
-        sdo->bit_length = ECW_MAX_VISIBLE_STRING_LENGTH * 8;
-      } else {
-        sdo->bit_length = entry.bit_length;
-      }
-
+      sdo->bit_length = entry.bit_length;
       sdo->value = 0;
       sdo->value_string[0] = '\0';
 

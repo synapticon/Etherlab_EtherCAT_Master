@@ -20,13 +20,10 @@ extern "C" {
  */
 #define ECW_MAX_STRING_LENGTH           EC_MAX_STRING_LENGTH
 
-#define ECW_MAX_VISIBLE_STRING_LENGTH   50
-#define ECW_MAX_OCTET_STRING_LENGTH     25
-
 /**
  * Get the size of SDO access rights field from the ecrt library
  */
-#define ECW_SDO_ENTRY_ACCESS_COUNTER   EC_SDO_ENTRY_ACCESS_COUNTER
+#define ECW_SDO_ENTRY_ACCESS_COUNTER    EC_SDO_ENTRY_ACCESS_COUNTER
 
 /**
  * \brief Supported slave types enumerator
@@ -109,7 +106,7 @@ typedef struct _sdo_t {
   uint16_t index;
   uint8_t subindex;
   uint64_t value;
-  char value_string[ECW_MAX_VISIBLE_STRING_LENGTH];
+  char value_string[ECW_MAX_STRING_LENGTH];
   int bit_length;
   enum eObjectType object_type;
   enum eEntryType entry_type;
