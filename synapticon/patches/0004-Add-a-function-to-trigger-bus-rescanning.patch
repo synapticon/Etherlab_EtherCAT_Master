@@ -1,0 +1,56 @@
+From 140753fe2e4de756d00d161fa8f5d15028dae03e Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Thu, 31 Jan 2019 14:18:34 +0100
+Subject: [PATCH 4/4] Add a function to trigger bus rescanning
+
+---
+ include/ecrt.h |  8 ++++++++
+ lib/master.c   | 13 +++++++++++++
+ 2 files changed, 21 insertions(+)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index d4e998d..8b46314 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -978,6 +978,14 @@ int ecrt_master_activate(
+         ec_master_t *master /**< EtherCAT master. */
+         );
+ 
++/** Triggers master rescan of the bus.
++ *
++ * \return 0 in case of success, else < 0
++ */
++int ecrt_master_rescan(
++        ec_master_t *master
++        );
++
+ /** Deactivates the master.
+  *
+  * Removes the bus configuration. All objects created by
+diff --git a/lib/master.c b/lib/master.c
+index 34c67da..eb83f00 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -574,6 +574,19 @@ int ecrt_master_activate(ec_master_t *master)
+ 
+ /****************************************************************************/
+ 
++int ecrt_master_rescan(ec_master_t *master)
++{
++    int ret = ioctl(master->fd, EC_IOCTL_MASTER_RESCAN, NULL);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        fprintf(stderr, "Failed to rescan the bus: %s\n",
++                strerror(EC_IOCTL_ERRNO(ret)));
++        return -EC_IOCTL_ERRNO(ret);
++    }
++    return 0;
++}
++
++/****************************************************************************/
++
+ void ecrt_master_deactivate(ec_master_t *master)
+ {
+     int ret;
+-- 
+2.7.4
+

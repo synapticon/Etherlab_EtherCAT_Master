@@ -1,0 +1,62 @@
+From 1afe01c37473cf6d1ea17dd77dd229e93a128854 Mon Sep 17 00:00:00 2001
+From: Frank Jeschke <fjeschke@synapticon.com>
+Date: Fri, 17 Jan 2020 15:55:29 +0100
+Subject: [PATCH 1/4] Add individual request of slave operational state
+
+---
+ include/ecrt.h | 12 ++++++++++++
+ lib/master.c   | 15 +++++++++++++++
+ 2 files changed, 27 insertions(+)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index c306278..38639ed 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -1012,6 +1012,18 @@ int ecrt_master_link_state(
+                                        */
+         );
+ 
++/** Set individual slave to state
++ *
++ * Request slave state during operation.
++ *
++ * \return Zero on success, otherwise negative error code
++ */
++int ecrt_master_slave_link_state_request(
++        const ec_master_t *master, /**< EtherCAT master */
++         uint16_t slave_position,  /**< slave position of slave to request */
++         uint8_t state             /**< State to request slave to go into */
++        );
++
+ /** Sets the application time.
+  *
+  * The master has to know the application's time when operating slaves with
+diff --git a/lib/master.c b/lib/master.c
+index 7c21842..34c67da 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -668,6 +668,21 @@ int ecrt_master_link_state(const ec_master_t *master, unsigned int dev_idx,
+     return 0;
+ }
+ 
++int ecrt_master_slave_link_state_request(const ec_master_t *master, uint16_t slave_position, uint8_t state)
++{
++    ec_ioctl_slave_state_t data;
++    data.slave_position = slave_position;
++    data.al_state = state;
++
++    int ret = ioctl(master->fd, EC_IOCTL_SLAVE_STATE, &data);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        fprintf(stderr, "Failed to request slave state: %d", state);
++        return -EC_IOCTL_ERRNO(ret);
++    }
++
++    return 0;
++}
++
+ /****************************************************************************/
+ 
+ void ecrt_master_application_time(ec_master_t *master, uint64_t app_time)
+-- 
+2.7.4
+

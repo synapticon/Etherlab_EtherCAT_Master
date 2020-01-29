@@ -1,0 +1,63 @@
+From 0c595deeca7519846c89ef8425916fb8d6601555 Mon Sep 17 00:00:00 2001
+From: Frank Jeschke <fjeschke@synapticon.com>
+Date: Fri, 17 Jan 2020 16:01:38 +0100
+Subject: [PATCH 3/4] Add sdo info access to user api for ethercat library
+
+---
+ include/ecrt.h | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index 9b83d22..d4e998d 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -225,6 +225,10 @@
+  */
+ #define EC_COE_EMERGENCY_MSG_SIZE 8
+ 
++/** Size of SDO access rights field
++ */
++#define EC_SDO_ENTRY_ACCESS_COUNTER   3
++
+ /******************************************************************************
+  * Data types
+  *****************************************************************************/
+@@ -884,6 +888,35 @@ int ecrt_master_sdo_upload(
+         uint32_t *abort_code /**< Abort code of the SDO upload. */
+         );
+ 
++/** Executes a SDO Info request
++ *
++ * With this request the entries of the slaves object dicionty can be read.
++ *
++ * \retval  0 Success
++ * \retval <0 On Error
++ */
++int ecrt_sdo_info_get(
++        ec_master_t *master,     /**< EtherCAT master */
++        uint16_t slave_position, /**< Slave position */
++        uint16_t sdo_position,   /**< SDO position within the dictionary */
++        ec_sdo_info_t *sdo       /**< Pointer to output structure */
++        );
++
++/** Executes a SDO Info Entry request
++ *
++ * With this request a entry of the slaves object dicionty is requested.
++ *
++ * \retval  0 Success
++ * \retval <0 On Error
++ */
++int ecrt_sdo_get_info_entry(
++        ec_master_t *master,        /**< EtherCAT master */
++        uint16_t slave_position,    /**< Slave position */
++        uint16_t index,             /**< Index of the element to request */
++        uint8_t subindex,           /**< Subindex of the element to request */
++        ec_sdo_info_entry_t *entry  /**< Pointer to output structure */
++        );
++
+ /** Executes an SoE write request.
+  *
+  * Starts writing an IDN and blocks until the request was processed, or an
+-- 
+2.7.4
+

@@ -1,0 +1,6 @@
+# Synapticon patches
+0001-Add-individual-request-of-slave-operational-state.patch
+0002-Add-object_code-to-sdo-information-object.patch
+0003-Add-sdo-info-access-to-user-api-for-ethercat-library.patch
+0004-Add-a-function-to-trigger-bus-rescanning.patch
+0005-increased-datagram-timeout-which-is-necessary-for-so.patch

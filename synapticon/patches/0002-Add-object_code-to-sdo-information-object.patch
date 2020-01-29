@@ -1,0 +1,129 @@
+From ed545ffd7f14c22cbbfdb18a887a6e11e95adda4 Mon Sep 17 00:00:00 2001
+From: Frank Jeschke <fjeschke@synapticon.com>
+Date: Fri, 17 Jan 2020 15:59:36 +0100
+Subject: [PATCH 2/4] Add object_code to sdo information object
+
+The value is available in the kernel module but is not provided to the outside,
+this is now fixed and the object_code field is also available through the user
+space library.
+---
+ include/ecrt.h    | 25 +++++++++++++++++++++++++
+ lib/sdo_request.c | 43 +++++++++++++++++++++++++++++++++++++++++++
+ master/ioctl.c    |  1 +
+ master/ioctl.h    |  1 +
+ 4 files changed, 70 insertions(+)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index 38639ed..9b83d22 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -532,6 +532,31 @@ typedef enum {
+     EC_AL_STATE_OP = 8, /**< Operational. */
+ } ec_al_state_t;
+ 
++/*****************************************************************************/
++
++/** Application layer SDO info  structure
++ */
++typedef struct {
++    uint16_t index;
++    uint8_t  maxindex;
++    uint8_t  object_code;
++    char     name[EC_MAX_STRING_LENGTH];
++} ec_sdo_info_t;
++
++/*****************************************************************************/
++
++/** Application layer SDO info entry structure
++ */
++typedef struct {
++    uint16_t data_type;
++    uint16_t bit_length;
++    uint8_t  read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
++    uint8_t  write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
++    char     description[EC_MAX_STRING_LENGTH];
++} ec_sdo_info_entry_t;
++
++/*****************************************************************************/
++
+ /******************************************************************************
+  * Global functions
+  *****************************************************************************/
+diff --git a/lib/sdo_request.c b/lib/sdo_request.c
+index 8afb228..6cb0151 100644
+--- a/lib/sdo_request.c
++++ b/lib/sdo_request.c
+@@ -181,3 +181,46 @@ void ecrt_sdo_request_write(ec_sdo_request_t *req)
+ }
+ 
+ /*****************************************************************************/
++
++int ecrt_sdo_info_get(ec_master_t *master, uint16_t slave_pos, uint16_t sdo_position, ec_sdo_info_t *sdo)
++{
++    ec_ioctl_slave_sdo_t s;
++    s.slave_position = slave_pos;
++    s.sdo_position   = sdo_position;
++
++    if (ioctl(master->fd, EC_IOCTL_SLAVE_SDO, &s)) {
++        return -1;
++    }
++
++    sdo->index = s.sdo_index;
++    sdo->maxindex = s.max_subindex;
++    sdo->object_code = s.object_code;
++    memmove(sdo->name, s.name, EC_IOCTL_STRING_SIZE);
++
++    return 0;
++}
++
++/*****************************************************************************/
++
++int ecrt_sdo_get_info_entry(ec_master_t *master, uint16_t slave_pos, uint16_t index, uint8_t subindex, ec_sdo_info_entry_t *entry)
++{
++    ec_ioctl_slave_sdo_entry_t e;
++    e.slave_position = slave_pos;
++    e.sdo_spec = index; /* the name spec is a little bit misguiding, actually
++                           if >0 it is the index of the object, <0 is the index position. */
++    e.sdo_entry_subindex = subindex;
++
++    if (ioctl(master->fd,  EC_IOCTL_SLAVE_SDO_ENTRY, &e)) {
++        return -1;
++    }
++
++    entry->data_type = e.data_type;
++    entry->bit_length = e.bit_length;
++    memmove(entry->read_access, e.read_access, EC_SDO_ENTRY_ACCESS_COUNT);
++    memmove(entry->write_access, e.write_access, EC_SDO_ENTRY_ACCESS_COUNT);
++    memmove(entry->description, e.description, EC_IOCTL_STRING_SIZE);
++
++    return 0;
++}
++
++/*****************************************************************************/
+diff --git a/master/ioctl.c b/master/ioctl.c
+index ce6756227..35a281a 100755
+--- a/master/ioctl.c
++++ b/master/ioctl.c
+@@ -703,6 +703,7 @@ static ATTRIBUTES int ec_ioctl_slave_sdo(
+ 
+     data.sdo_index = sdo->index;
+     data.max_subindex = sdo->max_subindex;
++    data.object_code = sdo->object_code;
+     ec_ioctl_strcpy(data.name, sdo->name);
+ 
+     up(&master->master_sem);
+diff --git a/master/ioctl.h b/master/ioctl.h
+index de3378f..9f92b09 100644
+--- a/master/ioctl.h
++++ b/master/ioctl.h
+@@ -357,6 +357,7 @@ typedef struct {
+     // outputs
+     uint16_t sdo_index;
+     uint8_t max_subindex;
++    uint8_t object_code;
+     int8_t name[EC_IOCTL_STRING_SIZE];
+ } ec_ioctl_slave_sdo_t;
+ 
+-- 
+2.7.4
+
