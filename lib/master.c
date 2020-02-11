@@ -1078,3 +1078,39 @@ void ecrt_master_reset(ec_master_t *master)
 }
 
 /****************************************************************************/
+
+int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
+                          const uint8_t *content, size_t size)
+{
+  ec_ioctl_slave_sii_t data;
+
+  data.slave_position = position;
+  data.offset = 0;
+
+  if (!size || size % 2) {
+    fprintf(
+        stderr,
+        "Failed to write SII: Invalid data size (%ld) - must be non-zero and even.\n",
+        size);
+    return -1;
+  }
+
+  data.nwords = size / 2;
+
+  // allocate buffer and read file into buffer
+  data.words = malloc(size * sizeof(uint8_t));
+  memcpy((uint8_t*) data.words, content, size);
+
+  int ret;
+
+  ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
+  if (EC_IOCTL_IS_ERROR(ret)) {
+    fprintf(stderr, "Failed to write SII: %s\n", strerror(EC_IOCTL_ERRNO(ret)));
+  }
+
+  free(data.words);
+
+  return ret;
+}
+
+/****************************************************************************/
