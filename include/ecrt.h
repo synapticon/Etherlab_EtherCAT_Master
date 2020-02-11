@@ -1419,6 +1419,28 @@ int ecrt_master_write_sii(
         size_t size
         );
 
+/**
+ * Read a file from a slave
+ */
+int ecrt_master_read_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          uint8_t *content,
+          size_t *size
+          );
+
+/**
+ * Write a file to a slave
+ */
+int ecrt_master_write_foe(
+          ec_master_t *master,
+          uint16_t position,
+          const char* file_name,
+          const uint8_t *content,
+          size_t size
+          );
+
 /******************************************************************************
  * Slave configuration methods
  *****************************************************************************/
