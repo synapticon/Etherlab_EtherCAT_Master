@@ -1114,3 +1114,63 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
 }
 
 /****************************************************************************/
+
+int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
+                         const char* file_name, uint8_t *content, size_t *size)
+{
+  ec_ioctl_slave_foe_t data;
+
+  data.slave_position = position;
+  strncpy(data.file_name, file_name, sizeof(data.file_name));
+
+  /**
+   * IMPORTANT: The master code doesn't seem to allow reading larger files and
+   * the offset is never used, so there is absolutely no possibility of reading
+   * larger files even with sequential reading.
+   */
+  data.offset = 0;
+  data.buffer_size = 0x8800;
+  data.buffer = content;
+
+  int ret;
+
+  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
+  if (EC_IOCTL_IS_ERROR(ret)) {
+    fprintf(stderr, "Failed to read via FoE: %s\n",
+            strerror(EC_IOCTL_ERRNO(ret)));
+  }
+
+  *size = data.data_size;
+
+  return data.result;
+}
+
+/****************************************************************************/
+
+int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
+                          const char* file_name, const uint8_t *content,
+                          size_t size)
+{
+  ec_ioctl_slave_foe_t data;
+
+  data.slave_position = position;
+  strncpy(data.file_name, file_name, sizeof(data.file_name));
+  data.offset = 0;
+  data.buffer_size = size;
+  data.buffer = malloc(size * sizeof(uint8_t));
+  memcpy(data.buffer, content, size);
+
+  int ret;
+
+  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
+  if (EC_IOCTL_IS_ERROR(ret)) {
+    fprintf(stderr, "Failed to write via FoE: %s\n",
+            strerror(EC_IOCTL_ERRNO(ret)));
+  }
+
+  free(data.buffer);
+
+  return data.result;
+}
+
+/****************************************************************************/
