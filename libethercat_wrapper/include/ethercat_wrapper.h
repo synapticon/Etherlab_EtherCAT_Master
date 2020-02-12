@@ -14,34 +14,34 @@
 #include <unistd.h>
 
 /* Error codes */
-#define ECW_SUCCESS                           0
-#define ECW_ERROR_LINK_UP                    -2
-#define ECW_ERROR_UNKNOWN                    -128
-#define ECW_ERROR_SDO_REQUEST_BUSY            1
-#define ECW_ERROR_SDO_REQUEST_ERROR          -1
-#define ECW_ERROR_SDO_NOT_FOUND              -3
+#define ECW_SUCCESS 0
+#define ECW_ERROR_LINK_UP -2
+#define ECW_ERROR_UNKNOWN -128
+#define ECW_ERROR_SDO_REQUEST_BUSY 1
+#define ECW_ERROR_SDO_REQUEST_ERROR -1
+#define ECW_ERROR_SDO_NOT_FOUND -3
 #define ECW_ERROR_SDO_UNSUPPORTED_BIT_LENGTH -4
 #define ECW_ERROR_SDO_UNSUPPORTED_ENTRY_TYPE -4
-#define ECW_ERROR_SDO_REQUEST_INVALID        -5
+#define ECW_ERROR_SDO_REQUEST_INVALID -5
 
 /* -> Ethercat_Master_t */
 struct _ecw_master_t {
-  int id;
-  /* master information */
-  ec_master_t *master;
+    int id;
+    /* master information */
+    ec_master_t *master;
 
-  /* variables for data structures */
-  ec_domain_t *domain;
-  ec_pdo_entry_reg_t *domain_reg;
-  uint8_t *process_data; /* FIXME are they needed here? */
+    /* variables for data structures */
+    ec_domain_t *domain;
+    ec_pdo_entry_reg_t *domain_reg;
+    uint8_t *process_data; /* FIXME are they needed here? */
 
-  /* slaves */
-  Ethercat_Slave_t *slaves;  ///<< list of slaves
-  size_t slave_count;
+    /* slaves */
+    Ethercat_Slave_t *slaves;  ///<< list of slaves
+    size_t slave_count;
 
-  /* diagnostic data structures */
-  ec_master_state_t master_state;
-  ec_domain_state_t domain_state;
+    /* diagnostic data structures */
+    ec_master_state_t master_state;
+    ec_domain_state_t domain_state;
 };
 
 typedef struct _ecw_master_t Ethercat_Master_t;
@@ -170,7 +170,8 @@ int ecw_master_stop_cyclic(Ethercat_Master_t *master);
 #else
 
 /**
- * \brief This function has to be called in a real time context in a regular manner!
+ * \brief This function has to be called in a real time context in a regular
+ * manner!
  *
  * \param master  the master to use
  *
