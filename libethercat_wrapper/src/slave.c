@@ -13,7 +13,7 @@
 #include <string.h>
 #include <errno.h>
 
-/* list of supported ETherCAT slaves */
+/* list of supported EtherCAT slaves */
 static const Device_type_map_t type_map[] = { { 0x22d2, 0x201, 0x0a000002,
     SLAVE_TYPE_CIA402_DRIVE }, { 0x22d2, 0x202, 0, SLAVE_TYPE_DIGITAL_IO }, {
     0x22d2, 0x203, 0, SLAVE_TYPE_ENDEFFECTOR_IO }, { 0 } };
@@ -71,7 +71,7 @@ int sdo_read_value(Sdo_t *sdo)
     case ENTRY_TYPE_TIME_OF_DAY:
     case ENTRY_TYPE_NONE:
     default:
-      return ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE;
+      return ECW_ERROR_SDO_UNSUPPORTED_ENTRY_TYPE;
       break;
   }
   return 0;
@@ -124,7 +124,7 @@ static int sdo_write_value(Sdo_t *sdo)
       break;
     case ENTRY_TYPE_NONE:
     default:
-      return ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE;
+      return ECW_ERROR_SDO_UNSUPPORTED_ENTRY_TYPE;
       break;
   }
   return 0;
@@ -253,7 +253,7 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
       size_t value_size = sdo->bit_length / 8;
 
       ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                             sdo->subindex, value_string, value_size,
+                             sdo->subindex, (uint8_t *) value_string, value_size,
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
@@ -269,7 +269,7 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
       size_t value_size = sdo->bit_length / 8;
 
       ecrt_master_sdo_upload(s->master, s->info->position, sdo->index,
-                             sdo->subindex, value_string, value_size,
+                             sdo->subindex, (uint8_t *) value_string, value_size,
                              &result_size, &abort_code);
 
       if (abort_code == 0) {
@@ -288,7 +288,7 @@ static int slave_sdo_upload_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
       break;
     case ENTRY_TYPE_NONE:
     default:
-      // ERROR - UNKONWN ENTRY TYPE
+      // ERROR - UNKNOWN ENTRY TYPE
       return -EINVAL;
       break;
   }
@@ -319,16 +319,24 @@ static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     }
     case ENTRY_TYPE_VISIBLE_STRING: {
       size_t value_size = sdo->bit_length / 8;
-      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
-                                     sdo->subindex, sdo->value_string,
-                                     value_size, &abort_code);
+      ecrt_master_sdo_download(s->master,
+                               s->info->position,
+                               sdo->index,
+                               sdo->subindex,
+                               (const uint8_t *) sdo->value_string,
+                               value_size,
+                               &abort_code);
       break;
     }
     case ENTRY_TYPE_OCTET_STRING: {
       size_t value_size = sdo->bit_length / 8;
-      ecrt_master_sdo_download(s->master, s->info->position, sdo->index,
-                                     sdo->subindex, sdo->value_string,
-                                     value_size, &abort_code);
+      ecrt_master_sdo_download(s->master,
+                               s->info->position,
+                               sdo->index,
+                               sdo->subindex,
+                               (const uint8_t *)sdo->value_string,
+                               value_size,
+                               &abort_code);
       break;
     }
     case ENTRY_TYPE_UNICODE_STRING:
@@ -345,7 +353,7 @@ static int slave_sdo_download_direct(const Ethercat_Slave_t *s, Sdo_t *sdo)
     }
     case ENTRY_TYPE_NONE:
     default:
-      // ERROR - UNKONWN ENTRY TYPE
+      // ERROR - UNKNOWN ENTRY TYPE
       return -EINVAL;
       break;
   }
@@ -408,12 +416,6 @@ void ecw_slave_release(Ethercat_Slave_t *s)
   free(s);
 }
 
-int ecw_slave_scan(const Ethercat_Slave_t *s)
-{
-  /* rescan baby */
-  return -1;
-}
-
 #if 0
 int ecw_slave_set_pdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *value)
 {
@@ -440,51 +442,55 @@ enum eSlaveType ecw_slave_get_type(const Ethercat_Slave_t *s)
  * PDO handler
  */
 
-int ecw_slave_set_out_value(const Ethercat_Slave_t *s, size_t pdoindex,
+int ecw_slave_set_out_value(const Ethercat_Slave_t *s, size_t pdo_index,
                             int value)
 {
-  pdo_t *pdo = ecw_slave_get_outpdo(s, pdoindex);
+  pdo_t *pdo = ecw_slave_get_out_pdo(s, pdo_index);
   pdo->value = value;
 
   return 0;
 }
 
-int ecw_slave_get_in_value(const Ethercat_Slave_t *s, size_t pdoindex)
+int ecw_slave_get_in_value(const Ethercat_Slave_t *s, size_t pdo_index)
 {
-  pdo_t *pdo = ecw_slave_get_inpdo(s, pdoindex);
+  pdo_t *pdo = ecw_slave_get_in_pdo(s, pdo_index);
   return pdo->value;
 }
 
-int ecw_slave_set_inpdo(const Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+int ecw_slave_set_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index, pdo_t *value)
 {
-  if (pdo->value != (s->input_values + pdoindex)->value
-      || pdo->type != (s->input_values + pdoindex)->type
-      || pdo->offset != (s->input_values + pdoindex)->offset) {
-    memmove((s->input_values + pdoindex), pdo, sizeof(pdo_t));
+  if (value->value != (s->input_values + pdo_index)->value
+      ||
+        value->type != (s->input_values + pdo_index)->type
+      ||
+        value->offset != (s->input_values + pdo_index)->offset) {
+    memmove((s->input_values + pdo_index), value, sizeof(pdo_t));
   }
 
   return 0;
 }
 
-pdo_t *ecw_slave_get_inpdo(const Ethercat_Slave_t *s, size_t pdoindex)
+pdo_t *ecw_slave_get_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index)
 {
-  return (s->input_values + pdoindex);
+  return (s->input_values + pdo_index);
 }
 
-int ecw_slave_set_outpdo(const Ethercat_Slave_t *s, size_t pdoindex, pdo_t *pdo)
+int ecw_slave_set_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index, pdo_t *value)
 {
-  if (pdo->value != (s->output_values + pdoindex)->value
-      || pdo->type != (s->output_values + pdoindex)->type
-      || pdo->offset != (s->output_values + pdoindex)->offset) {
-    memmove((s->output_values + pdoindex), pdo, sizeof(pdo_t));
+  if (value->value != (s->output_values + pdo_index)->value
+      ||
+        value->type != (s->output_values + pdo_index)->type
+      ||
+        value->offset != (s->output_values + pdo_index)->offset) {
+    memmove((s->output_values + pdo_index), value, sizeof(pdo_t));
   }
 
   return 0;
 }
 
-pdo_t *ecw_slave_get_outpdo(const Ethercat_Slave_t *s, size_t pdoindex)
+pdo_t *ecw_slave_get_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index)
 {
-  return (s->output_values + pdoindex);
+  return (s->output_values + pdo_index);
 }
 
 /*
@@ -498,7 +504,7 @@ size_t ecw_slave_get_sdo_count(const Ethercat_Slave_t *s)
 
 Sdo_t *ecw_slave_get_sdo(const Ethercat_Slave_t *s, int index, int subindex)
 {
-  for (int i = 0; i < s->sdo_count; i++) {
+  for (size_t i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
       Sdo_t *sdo = malloc(sizeof(Sdo_t));
@@ -510,26 +516,26 @@ Sdo_t *ecw_slave_get_sdo(const Ethercat_Slave_t *s, int index, int subindex)
   return NULL;
 }
 
-Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdoindex)
+Sdo_t *ecw_slave_get_sdo_index(const Ethercat_Slave_t *s, size_t sdo_index)
 {
-  if (sdoindex >= s->sdo_count) {
+  if (sdo_index >= s->sdo_count) {
     return NULL;
   }
 
   Sdo_t *sdo = malloc(sizeof(Sdo_t));
-  Sdo_t *od = s->dictionary + sdoindex;
+  Sdo_t *od = s->dictionary + sdo_index;
   memmove(sdo, od, sizeof(Sdo_t));
 
   return sdo;
 }
 
-Sdo_t *ecw_slave_get_sdo_pointer(const Ethercat_Slave_t *s, size_t sdoindex)
+Sdo_t *ecw_slave_get_sdo_pointer(const Ethercat_Slave_t *s, size_t sdo_index)
 {
-  if (sdoindex >= s->sdo_count) {
+  if (sdo_index >= s->sdo_count) {
     return NULL;
   }
 
-  return s->dictionary + sdoindex;
+  return s->dictionary + sdo_index;
 }
 
 /*
@@ -540,7 +546,7 @@ int ecw_slave_set_sdo_int_value(const Ethercat_Slave_t *s, int index,
                                 int subindex, uint64_t value)
 {
   Sdo_t *sdo = NULL;
-  for (int i = 0; i < s->sdo_count; i++) {
+  for (size_t i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
       sdo = current;
@@ -562,7 +568,7 @@ int ecw_slave_set_sdo_string_value(const Ethercat_Slave_t *s, int index,
                                    int subindex, const char *value)
 {
   Sdo_t *sdo = NULL;
-  for (int i = 0; i < s->sdo_count; i++) {
+  for (size_t i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
       sdo = current;
@@ -585,7 +591,7 @@ int ecw_slave_get_sdo_int_value(const Ethercat_Slave_t *s, int index,
                                 int subindex, int *value)
 {
   Sdo_t *sdo = NULL;  //ecw_slave_get_sdo(s, index, subindex);
-  for (int i = 0; i < s->sdo_count; i++) {
+  for (size_t i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
       sdo = current;
@@ -609,7 +615,7 @@ int ecw_slave_get_sdo_string_value(const Ethercat_Slave_t *s, int index,
                                    int subindex, char *value)
 {
   Sdo_t *sdo = NULL;
-  for (int i = 0; i < s->sdo_count; i++) {
+  for (size_t i = 0; i < s->sdo_count; i++) {
     Sdo_t *current = s->dictionary + i;
     if (current->index == index && current->subindex == subindex) {
       sdo = current;

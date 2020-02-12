@@ -14,15 +14,15 @@
 #include <unistd.h>
 
 /* Error codes */
-#define ECW_SUCCESS                          0
-#define ECW_ERROR_LINK_UP                   -2
-#define ECW_ERROR_UNKNOWN                   -128
-#define ECW_ERROR_SDO_REQUEST_BUSY           1
-#define ECW_ERROR_SDO_REQUEST_ERROR         -1
-#define ECW_ERROR_SDO_NOT_FOUND             -3
-#define ECW_ERROR_SDO_UNSUPORTED_BITLENGTH  -4
-#define ECW_ERROR_SDO_UNSUPORTED_ENTRY_TYPE -4
-#define ECW_ERROR_SDO_REQUEST_INVALID       -5
+#define ECW_SUCCESS                           0
+#define ECW_ERROR_LINK_UP                    -2
+#define ECW_ERROR_UNKNOWN                    -128
+#define ECW_ERROR_SDO_REQUEST_BUSY            1
+#define ECW_ERROR_SDO_REQUEST_ERROR          -1
+#define ECW_ERROR_SDO_NOT_FOUND              -3
+#define ECW_ERROR_SDO_UNSUPPORTED_BIT_LENGTH -4
+#define ECW_ERROR_SDO_UNSUPPORTED_ENTRY_TYPE -4
+#define ECW_ERROR_SDO_REQUEST_INVALID        -5
 
 /* -> Ethercat_Master_t */
 struct _ecw_master_t {
@@ -33,7 +33,7 @@ struct _ecw_master_t {
   /* variables for data structures */
   ec_domain_t *domain;
   ec_pdo_entry_reg_t *domain_reg;
-  uint8_t *processdata; /* FIXME are they needed here? */
+  uint8_t *process_data; /* FIXME are they needed here? */
 
   /* slaves */
   Ethercat_Slave_t *slaves;  ///<< list of slaves
@@ -84,7 +84,7 @@ int ecw_preemptive_slave_count(int master_id);
  *
  * \return number of SDOs, or -1 on error
  */
-int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
+int ecw_preemptive_slave_sdo_count(int master_id, unsigned int slave_index);
 
 /**
  * \brief Return the current state of a slave without initializing or reserving
@@ -95,7 +95,7 @@ int ecw_preemptive_slave_sdo_count(int master_id, int slave_index);
  *
  * \return the state of the slave, or -1 on error
  */
-int ecw_preemptive_slave_state(int master_id, int slave_index);
+int ecw_preemptive_slave_state(int master_id, unsigned int slave_index);
 
 /**
  * \brief Return the vendor ID of a slave without initializing or reserving
@@ -106,7 +106,8 @@ int ecw_preemptive_slave_state(int master_id, int slave_index);
  *
  * \return the vendor ID
  */
-unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index);
+unsigned int ecw_preemptive_slave_vendor_id(int master_id,
+                                            unsigned int slave_index);
 
 /**
  * \brief Return the product code of a slave without initializing or reserving
@@ -117,7 +118,8 @@ unsigned int ecw_preemptive_slave_vendor_id(int master_id, int slave_index);
  *
  * \return the product code
  */
-unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index);
+unsigned int ecw_preemptive_slave_product_code(int master_id,
+                                               unsigned int slave_index);
 
 /**
  * \brief Create ethercat master object and initialize
@@ -125,10 +127,10 @@ unsigned int ecw_preemptive_slave_product_code(int master_id, int slave_index);
  * The init process scans the bus and configures all slaves.
  *
  * \param master_id   id of the master to use, for single master use 0
- * \param log         pointer to file descriptor for logging
+ *
  * \return initialized master object or NULL on error
  */
-Ethercat_Master_t *ecw_master_init(int master_id, FILE *log);
+Ethercat_Master_t *ecw_master_init(int master_id);
 
 /**
  * \brief clean up master object
@@ -171,6 +173,7 @@ int ecw_master_stop_cyclic(Ethercat_Master_t *master);
  * \brief This function has to be called in a real time context in a regular manner!
  *
  * \param master  the master to use
+ *
  * \return  0 no error != 0 something went wrong
  */
 int ecw_master_cyclic_function(Ethercat_Master_t *);
@@ -188,6 +191,7 @@ int ecw_master_cyclic_function(Ethercat_Master_t *);
  * then \c ecw_master_send_pdo()
  *
  * \param master  master to request
+ *
  * \return 0 on success
  */
 int ecw_master_pdo_exchange(Ethercat_Master_t *master);
@@ -214,26 +218,29 @@ int ecw_master_send_pdo(Ethercat_Master_t *master);
  * \brief Return pointer to slave by index
  *
  * \param master   master to request
- * \param slaveid  id of the slave
- * \return reference to the slave by slaveid, NULL on error
+ * \param slave_id  id of the slave
+ *
+ * \return reference to the slave by slave_id, NULL on error
  */
-Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slaveid);
+Ethercat_Slave_t *ecw_slave_get(Ethercat_Master_t *master, int slave_id);
 
 /**
  * \brief Request AL state from slave
  *
  * \param master   master to request
- * \param slaveid  id of the slave
+ * \param slave_id  id of the slave
  * \param state    state to request slave to enter
+ *
  * \return  0 on success, negative on error
  */
-int ecw_slave_set_state(Ethercat_Master_t *master, int slaveid,
+int ecw_slave_set_state(Ethercat_Master_t *master, int slave_id,
                         enum eALState state);
 
 /**
  * \brief Request the number of slaves the master has read
  *
  * \param master   master to request
+ *
  * \return number of slaves
  */
 size_t ecw_master_slave_count(Ethercat_Master_t *);
@@ -246,6 +253,7 @@ size_t ecw_master_slave_count(Ethercat_Master_t *);
  * of the situation.
  *
  * \param master   master to request
+ *
  * \return number of slaves responding
  */
 size_t ecw_master_slave_responding(Ethercat_Master_t *);
@@ -260,12 +268,12 @@ void ecw_print_topology(Ethercat_Master_t *master);
 /**
  * \brief Debug print of domain registration
  */
-void ecw_print_domainregs(Ethercat_Master_t *master);
+void ecw_print_domain_regs(Ethercat_Master_t *master);
 
 /**
  * \brief Debug print of all slaves object dictionary
  */
-void ecw_print_allslave_od(Ethercat_Master_t *master);
+void ecw_print_all_slave_od(Ethercat_Master_t *master);
 
 /**
  * \brief Debug print master state
@@ -277,10 +285,11 @@ void ecw_print_master_state(Ethercat_Master_t *master);
 /**
  * \brief Get error name from error number
  *
- * \param master   errnum to get
+ * \param master   error_num to get
+ *
  * \return string name of error
  */
-char *ecw_strerror(int errnum);
+char *ecw_strerror(int error_num);
 
 #ifdef __cplusplus
 }
