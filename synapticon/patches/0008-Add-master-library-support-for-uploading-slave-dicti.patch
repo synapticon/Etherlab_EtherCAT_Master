@@ -1,0 +1,61 @@
+From 6552730b14c790fe63b4507a0d388b137f01a78d Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Fri, 2 Aug 2019 17:44:00 +0200
+Subject: [PATCH 8/8] Add master library support for uploading slave
+ dictionaries
+
+---
+ include/ecrt.h |  9 +++++++++
+ lib/master.c   | 16 ++++++++++++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index c74b68a7..4b458963 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -1055,6 +1055,15 @@ int ecrt_master_activate(
+         ec_master_t *master /**< EtherCAT master. */
+         );
+ 
++/** Upload the dictionary from a slave
++ *
++ * \return 0 in case of success, else < 0
++ */
++int ecrt_master_slave_dictionary_upload(
++        ec_master_t *master,
++        uint16_t slave_position
++        );
++
+ /** Deactivates the slaves distributed clocks and sends the slaves into PREOP.
+  *
+  * This can be called prior to ecrt_master_deactivate to avoid the slaves
+diff --git a/lib/master.c b/lib/master.c
+index 2afee086..bab00345 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -658,6 +658,22 @@ int ecrt_master_activate(ec_master_t *master)
+ 
+ /****************************************************************************/
+ 
++int ecrt_master_slave_dictionary_upload(ec_master_t *master, uint16_t slave_position)
++{
++  ec_ioctl_slave_dict_upload_t data;
++  data.slave_position = slave_position;
++
++  int ret = ioctl(master->fd, EC_IOCTL_SLAVE_DICT_UPLOAD, &data);
++  if (EC_IOCTL_IS_ERROR(ret)) {
++          fprintf(stderr, "Failed to upload a slave dictionary: %s\n",
++                  strerror(EC_IOCTL_ERRNO(ret)));
++          return -EC_IOCTL_ERRNO(ret);
++      }
++      return 0;
++}
++
++/****************************************************************************/
++
+ void ecrt_master_deactivate_slaves(ec_master_t *master)
+ {
+     int ret;
+-- 
+2.17.1
+

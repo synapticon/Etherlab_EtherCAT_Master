@@ -1,0 +1,117 @@
+From a188550540de19e45f09fee550bf096b4412be15 Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Tue, 11 Feb 2020 15:20:56 +0100
+Subject: [PATCH 7/8] FoE support
+
+---
+ include/ecrt.h | 22 ++++++++++++++++++
+ lib/master.c   | 62 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 83 insertions(+), 1 deletion(-)
+
+diff --git a/include/ecrt.h b/include/ecrt.h
+index 9de4673e..c74b68a7 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -1419,6 +1419,28 @@ int ecrt_master_write_sii(
+         size_t size
+         );
+ 
++/**
++ * Read a file from a slave
++ */
++int ecrt_master_read_foe(
++          ec_master_t *master,
++          uint16_t position,
++          const char* file_name,
++          uint8_t *content,
++          size_t *size
++          );
++
++/**
++ * Write a file to a slave
++ */
++int ecrt_master_write_foe(
++          ec_master_t *master,
++          uint16_t position,
++          const char* file_name,
++          const uint8_t *content,
++          size_t size
++          );
++
+ /******************************************************************************
+  * Slave configuration methods
+  *****************************************************************************/
+diff --git a/lib/master.c b/lib/master.c
+index 58b5f4db..2afee086 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -1113,4 +1113,64 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
+   return ret;
+ }
+ 
+-/****************************************************************************/
+\ No newline at end of file
++/****************************************************************************/
++
++int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
++                         const char* file_name, uint8_t *content, size_t *size)
++{
++  ec_ioctl_slave_foe_t data;
++
++  data.slave_position = position;
++  strncpy(data.file_name, file_name, sizeof(data.file_name));
++
++  /**
++   * IMPORTANT: The master code doesn't seem to allow reading larger files and
++   * the offset is never used, so there is absolutely no possibility of reading
++   * larger files even with sequential reading.
++   */
++  data.offset = 0;
++  data.buffer_size = 0x8800;
++  data.buffer = content;
++
++  int ret;
++
++  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
++  if (EC_IOCTL_IS_ERROR(ret)) {
++    fprintf(stderr, "Failed to read via FoE: %s\n",
++            strerror(EC_IOCTL_ERRNO(ret)));
++  }
++
++  *size = data.data_size;
++
++  return data.result;
++}
++
++/****************************************************************************/
++
++int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
++                          const char* file_name, const uint8_t *content,
++                          size_t size)
++{
++  ec_ioctl_slave_foe_t data;
++
++  data.slave_position = position;
++  strncpy(data.file_name, file_name, sizeof(data.file_name));
++  data.offset = 0;
++  data.buffer_size = size;
++  data.buffer = malloc(size * sizeof(uint8_t));
++  memcpy(data.buffer, content, size);
++
++  int ret;
++
++  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
++  if (EC_IOCTL_IS_ERROR(ret)) {
++    fprintf(stderr, "Failed to write via FoE: %s\n",
++            strerror(EC_IOCTL_ERRNO(ret)));
++  }
++
++  free(data.buffer);
++
++  return data.result;
++}
++
++/****************************************************************************/
+-- 
+2.17.1
+

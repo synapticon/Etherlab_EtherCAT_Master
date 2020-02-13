@@ -4,3 +4,7 @@
 0003-Add-sdo-info-access-to-user-api-for-ethercat-library.patch
 0004-Add-a-function-to-trigger-bus-rescanning.patch
 0005-increased-datagram-timeout-which-is-necessary-for-so.patch
+0006-SII-file-write-support.patch
+0007-FoE-support.patch
+0008-Add-master-library-support-for-uploading-slave-dicti.patch
+
