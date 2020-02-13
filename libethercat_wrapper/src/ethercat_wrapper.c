@@ -870,8 +870,6 @@ int ecw_master_stop(Ethercat_Master_t *master)
    * counterpart to ecrt_master_activate(). */
   ecrt_master_deactivate(master->master);
 
-  free(master->domain);
-
   /* These pointer will become invalid after call to ecrt_master_deactivate() */
   master->domain = NULL;
   master->process_data = NULL;
