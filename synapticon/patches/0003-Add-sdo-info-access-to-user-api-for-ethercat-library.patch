@@ -1,17 +1,17 @@
-From 0c595deeca7519846c89ef8425916fb8d6601555 Mon Sep 17 00:00:00 2001
+From fe7e92fe6b8b45a714d2c3ba1a56c40965f3da1d Mon Sep 17 00:00:00 2001
 From: Frank Jeschke <fjeschke@synapticon.com>
 Date: Fri, 17 Jan 2020 16:01:38 +0100
-Subject: [PATCH 3/4] Add sdo info access to user api for ethercat library
+Subject: [PATCH 3/8] Add sdo info access to user api for ethercat library
 
 ---
  include/ecrt.h | 33 +++++++++++++++++++++++++++++++++
  1 file changed, 33 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index 9b83d22..d4e998d 100644
+index 81d496a..9025716 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
-@@ -225,6 +225,10 @@
+@@ -233,6 +233,10 @@
   */
  #define EC_COE_EMERGENCY_MSG_SIZE 8
  
@@ -22,7 +22,7 @@ index 9b83d22..d4e998d 100644
  /******************************************************************************
   * Data types
   *****************************************************************************/
-@@ -884,6 +888,35 @@ int ecrt_master_sdo_upload(
+@@ -961,6 +965,35 @@ int ecrt_master_sdo_upload_complete(
          uint32_t *abort_code /**< Abort code of the SDO upload. */
          );
  
