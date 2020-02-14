@@ -1,4 +1,4 @@
-From 6552730b14c790fe63b4507a0d388b137f01a78d Mon Sep 17 00:00:00 2001
+From b049832304ee51660f92c30a59aacd27cea94063 Mon Sep 17 00:00:00 2001
 From: Nikola Zivkovic <zivke85@gmail.com>
 Date: Fri, 2 Aug 2019 17:44:00 +0200
 Subject: [PATCH 8/8] Add master library support for uploading slave
@@ -10,7 +10,7 @@ Subject: [PATCH 8/8] Add master library support for uploading slave
  2 files changed, 25 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index c74b68a7..4b458963 100644
+index 02dab02..04bb74d 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -1055,6 +1055,15 @@ int ecrt_master_activate(
@@ -30,7 +30,7 @@ index c74b68a7..4b458963 100644
   *
   * This can be called prior to ecrt_master_deactivate to avoid the slaves
 diff --git a/lib/master.c b/lib/master.c
-index 2afee086..bab00345 100644
+index 2afee08..bab0034 100644
 --- a/lib/master.c
 +++ b/lib/master.c
 @@ -658,6 +658,22 @@ int ecrt_master_activate(ec_master_t *master)
@@ -57,5 +57,5 @@ index 2afee086..bab00345 100644
  {
      int ret;
 -- 
-2.17.1
+2.7.4
 

@@ -1,7 +1,7 @@
-From 140753fe2e4de756d00d161fa8f5d15028dae03e Mon Sep 17 00:00:00 2001
+From e347b5166199b1638357a13cb986c8ac2da38302 Mon Sep 17 00:00:00 2001
 From: Nikola Zivkovic <zivke85@gmail.com>
 Date: Thu, 31 Jan 2019 14:18:34 +0100
-Subject: [PATCH 4/4] Add a function to trigger bus rescanning
+Subject: [PATCH 4/8] Add a function to trigger bus rescanning
 
 ---
  include/ecrt.h |  8 ++++++++
@@ -9,10 +9,10 @@ Subject: [PATCH 4/4] Add a function to trigger bus rescanning
  2 files changed, 21 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index d4e998d..8b46314 100644
+index 9025716..ed1eeae 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
-@@ -978,6 +978,14 @@ int ecrt_master_activate(
+@@ -1068,6 +1068,14 @@ void ecrt_master_deactivate_slaves(
          ec_master_t *master /**< EtherCAT master. */
          );
  
@@ -28,12 +28,12 @@ index d4e998d..8b46314 100644
   *
   * Removes the bus configuration. All objects created by
 diff --git a/lib/master.c b/lib/master.c
-index 34c67da..eb83f00 100644
+index 90da0cc..1ece010 100644
 --- a/lib/master.c
 +++ b/lib/master.c
-@@ -574,6 +574,19 @@ int ecrt_master_activate(ec_master_t *master)
+@@ -672,6 +672,19 @@ void ecrt_master_deactivate_slaves(ec_master_t *master)
  
- /****************************************************************************/
+ /*****************************************************************************/
  
 +int ecrt_master_rescan(ec_master_t *master)
 +{

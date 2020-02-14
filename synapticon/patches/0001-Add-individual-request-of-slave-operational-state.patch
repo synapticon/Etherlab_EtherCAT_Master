@@ -1,7 +1,7 @@
-From 1afe01c37473cf6d1ea17dd77dd229e93a128854 Mon Sep 17 00:00:00 2001
+From 536bd00cd5ecda92f422134b3f83fe017e2653e9 Mon Sep 17 00:00:00 2001
 From: Frank Jeschke <fjeschke@synapticon.com>
 Date: Fri, 17 Jan 2020 15:55:29 +0100
-Subject: [PATCH 1/4] Add individual request of slave operational state
+Subject: [PATCH 1/8] Add individual request of slave operational state
 
 ---
  include/ecrt.h | 12 ++++++++++++
@@ -9,10 +9,10 @@ Subject: [PATCH 1/4] Add individual request of slave operational state
  2 files changed, 27 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index c306278..38639ed 100644
+index a0b48ae..68d0b37 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
-@@ -1012,6 +1012,18 @@ int ecrt_master_link_state(
+@@ -1167,6 +1167,18 @@ int ecrt_master_link_state(
                                         */
          );
  
@@ -32,10 +32,10 @@ index c306278..38639ed 100644
   *
   * The master has to know the application's time when operating slaves with
 diff --git a/lib/master.c b/lib/master.c
-index 7c21842..34c67da 100644
+index 29dcbee..90da0cc 100644
 --- a/lib/master.c
 +++ b/lib/master.c
-@@ -668,6 +668,21 @@ int ecrt_master_link_state(const ec_master_t *master, unsigned int dev_idx,
+@@ -856,6 +856,21 @@ int ecrt_master_link_state(const ec_master_t *master, unsigned int dev_idx,
      return 0;
  }
  
