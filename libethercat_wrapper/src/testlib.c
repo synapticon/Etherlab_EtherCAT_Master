@@ -264,7 +264,7 @@ static void get_slave_information(Ethercat_Master_t *master, int slaveid)
   printf("  Sync Manager Count: ... %d\n", sync_count);
 
   for (uint8_t i = 0; i < sync_count; i++) {
-    ec_sync_info_t *syncman_info = (slave->sminfo) + i;
+    ec_sync_info_t *syncman_info = (slave->sm_info) + i;
 
     /* FIMXE check if this still holds */
     printf("    Sync Manager:    %d\n", syncman_info->index);
@@ -377,16 +377,11 @@ int main(int argc, char **argv)
 {
   cmdline(argc, argv, NULL);
 
-  FILE *llecatlog = fopen("./llecat.log", "w+");
-  if (llecatlog == NULL) {
-    fprintf(stderr, "Warning, could not open the log file\n");
-  }
-
   //ec_slave_config_t *sc;
   struct sigaction sa;
   struct itimerval tv;
 
-  Ethercat_Master_t *master = ecw_master_init(0 /* master id */, llecatlog);
+  Ethercat_Master_t *master = ecw_master_init(0 /* master id */);
 
   if (master == NULL) {
     fprintf(stderr, "[ERROR %s] Cannot initialize master\n", __func__);
@@ -397,9 +392,9 @@ int main(int argc, char **argv)
     printf("\nPrint bus topology\n");
     ecw_print_topology(master);
     printf("\nprint domain registries\n");
-    ecw_print_domainregs(master);
+    ecw_print_domain_regs(master);
     printf("\nPrint all slaves object dictionary\n");
-    ecw_print_allslave_od(master);
+    ecw_print_all_slave_od(master);
 
     /* master information */
     get_master_information(master);
@@ -475,7 +470,6 @@ int main(int argc, char **argv)
 
   ecw_master_stop(master);
   ecw_master_release(master);
-  fclose(llecatlog);
 
   printf("Summary mean runtime of ecw_master_cyclic_function(): %f ns\n",
          time_mean);
