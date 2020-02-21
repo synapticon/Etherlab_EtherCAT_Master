@@ -403,32 +403,7 @@ int slave_sdo_download(const Ethercat_Slave_t *s, Sdo_t *sdo)
 /*
  * API functions
  */
-
-Ethercat_Slave_t *ecw_slave_init(void)
-{
-  Ethercat_Slave_t *s = malloc(sizeof(Ethercat_Slave_t));
-
-  return s;
-}
-
-void ecw_slave_release(Ethercat_Slave_t *s)
-{
-  free(s);
-}
-
-#if 0
-int ecw_slave_set_pdo(Ethercat_Slave_t *s, size_t pdoindex, pdo_t *value)
-{
-  s->output_values[pdoindex] = value;
-}
-
-pdo_t *ecw_slave_get_pdo(Ethercat_Slave_t *s, size_t pdoindex)
-{
-  return s->input_values[pdoindex];
-}
-#endif
-
-int ecw_slave_get_slaveid(const Ethercat_Slave_t *s)
+int ecw_slave_get_slave_id(const Ethercat_Slave_t *s)
 {
   return s->info->position;
 }
@@ -457,17 +432,16 @@ int ecw_slave_get_in_value(const Ethercat_Slave_t *s, size_t pdo_index)
   return pdo->value;
 }
 
-int ecw_slave_set_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index, pdo_t *value)
+int ecw_slave_set_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index,
+                         pdo_t *pdo)
 {
-  if (value->value != (s->input_values + pdo_index)->value
-      ||
-        value->type != (s->input_values + pdo_index)->type
-      ||
-        value->offset != (s->input_values + pdo_index)->offset) {
-    memmove((s->input_values + pdo_index), value, sizeof(pdo_t));
-  }
+    if (pdo->value != (s->input_values + pdo_index)->value ||
+        pdo->type != (s->input_values + pdo_index)->type ||
+        pdo->offset != (s->input_values + pdo_index)->offset) {
+        memmove((s->input_values + pdo_index), pdo, sizeof(pdo_t));
+    }
 
-  return 0;
+    return 0;
 }
 
 pdo_t *ecw_slave_get_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index)
@@ -475,17 +449,16 @@ pdo_t *ecw_slave_get_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index)
   return (s->input_values + pdo_index);
 }
 
-int ecw_slave_set_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index, pdo_t *value)
+int ecw_slave_set_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index,
+                          pdo_t *pdo)
 {
-  if (value->value != (s->output_values + pdo_index)->value
-      ||
-        value->type != (s->output_values + pdo_index)->type
-      ||
-        value->offset != (s->output_values + pdo_index)->offset) {
-    memmove((s->output_values + pdo_index), value, sizeof(pdo_t));
-  }
+    if (pdo->value != (s->output_values + pdo_index)->value ||
+        pdo->type != (s->output_values + pdo_index)->type ||
+        pdo->offset != (s->output_values + pdo_index)->offset) {
+        memmove((s->output_values + pdo_index), pdo, sizeof(pdo_t));
+    }
 
-  return 0;
+    return 0;
 }
 
 pdo_t *ecw_slave_get_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index)

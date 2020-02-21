@@ -52,11 +52,11 @@ struct _ecw_slave_t {
  */
 
 int ecw_slave_set_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index,
-                          pdo_t *value);
+                          pdo_t *pdo);
 pdo_t *ecw_slave_get_out_pdo(const Ethercat_Slave_t *s, size_t pdo_index);
 
 int ecw_slave_set_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index,
-                         pdo_t *value);
+                         pdo_t *pdo);
 pdo_t *ecw_slave_get_in_pdo(const Ethercat_Slave_t *s, size_t pdo_index);
 
 /*

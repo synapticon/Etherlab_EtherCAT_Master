@@ -149,10 +149,6 @@ typedef struct {
     enum eSlaveType type;     /**< Type of the device (if available) */
 } Device_type_map_t;
 
-/* FIXME this seem to be unused / unnecessary */
-Ethercat_Slave_t *ecw_slave_init(void);
-void ecw_slave_release(Ethercat_Slave_t *);
-
 /**
  * \brief Request the slave id
  *
@@ -162,7 +158,7 @@ void ecw_slave_release(Ethercat_Slave_t *);
  *
  * \return the id of the slave
  */
-int ecw_slave_get_slaveid(const Ethercat_Slave_t *s);
+int ecw_slave_get_slave_id(const Ethercat_Slave_t *s);
 
 /**
  * \brief Request the type of the slave
