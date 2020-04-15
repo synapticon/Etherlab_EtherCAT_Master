@@ -1,7 +1,7 @@
-From e347b5166199b1638357a13cb986c8ac2da38302 Mon Sep 17 00:00:00 2001
+From 7041e5814de7c6348ee225a8654a7e476818e07a Mon Sep 17 00:00:00 2001
 From: Nikola Zivkovic <zivke85@gmail.com>
 Date: Thu, 31 Jan 2019 14:18:34 +0100
-Subject: [PATCH 4/8] Add a function to trigger bus rescanning
+Subject: [PATCH 4/9] Add a function to trigger bus rescanning
 
 ---
  include/ecrt.h |  8 ++++++++
@@ -9,7 +9,7 @@ Subject: [PATCH 4/8] Add a function to trigger bus rescanning
  2 files changed, 21 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index 9025716..ed1eeae 100644
+index 9025716e..ed1eeaed 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -1068,6 +1068,14 @@ void ecrt_master_deactivate_slaves(
@@ -28,7 +28,7 @@ index 9025716..ed1eeae 100644
   *
   * Removes the bus configuration. All objects created by
 diff --git a/lib/master.c b/lib/master.c
-index 90da0cc..1ece010 100644
+index 90da0ccc..1ece010d 100644
 --- a/lib/master.c
 +++ b/lib/master.c
 @@ -672,6 +672,19 @@ void ecrt_master_deactivate_slaves(ec_master_t *master)
@@ -52,5 +52,5 @@ index 90da0cc..1ece010 100644
  {
      int ret;
 -- 
-2.7.4
+2.17.1
 

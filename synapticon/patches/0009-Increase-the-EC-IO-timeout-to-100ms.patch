@@ -1,0 +1,26 @@
+From c2fc7309db01bcfa0e9d1ae0b12f3dc423234222 Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Wed, 15 Apr 2020 21:25:49 +0200
+Subject: [PATCH 9/9] Increase the EC IO timeout to 100ms
+
+Enables the EtherCAT master to function on slower systems (e.g. virtual machines) without constantly disconnecting slaves if datagrams time out.
+---
+ master/globals.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/master/globals.h b/master/globals.h
+index 02d357cd..29911ad4 100755
+--- a/master/globals.h
++++ b/master/globals.h
+@@ -44,7 +44,7 @@
+  *****************************************************************************/
+ 
+ /** Datagram timeout in microseconds. */
+-#define EC_IO_TIMEOUT 1000
++#define EC_IO_TIMEOUT 100000
+ 
+ /** SDO injection timeout in microseconds. */
+ #define EC_SDO_INJECTION_TIMEOUT 10000
+-- 
+2.17.1
+

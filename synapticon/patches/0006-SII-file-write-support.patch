@@ -1,7 +1,7 @@
-From d0b5c7bc6c6d5226c03b474da2740f52ab07336f Mon Sep 17 00:00:00 2001
+From 3ddd9ff7c29791aea8102e88445bada5ffd12d7b Mon Sep 17 00:00:00 2001
 From: Nikola Zivkovic <zivke85@gmail.com>
 Date: Tue, 11 Feb 2020 15:13:41 +0100
-Subject: [PATCH 6/8] SII file write support
+Subject: [PATCH 6/9] SII file write support
 
 ---
  include/ecrt.h | 13 +++++++++++++
@@ -9,7 +9,7 @@ Subject: [PATCH 6/8] SII file write support
  2 files changed, 49 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index ed1eeae..42bb3a4 100644
+index ed1eeaed..42bb3a42 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -1406,6 +1406,19 @@ void ecrt_master_reset(
@@ -33,7 +33,7 @@ index ed1eeae..42bb3a4 100644
   * Slave configuration methods
   *****************************************************************************/
 diff --git a/lib/master.c b/lib/master.c
-index 1ece010..58b5f4d 100644
+index 1ece010d..58b5f4db 100644
 --- a/lib/master.c
 +++ b/lib/master.c
 @@ -1078,3 +1078,39 @@ void ecrt_master_reset(ec_master_t *master)
@@ -78,5 +78,5 @@ index 1ece010..58b5f4d 100644
 +/****************************************************************************/
 \ No newline at end of file
 -- 
-2.7.4
+2.17.1
 

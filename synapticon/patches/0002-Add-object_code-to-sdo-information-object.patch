@@ -1,7 +1,7 @@
-From c533e497b8c0f277fce0c25a4fa3ded7e84acd84 Mon Sep 17 00:00:00 2001
+From ee48806cc02a7a2c628f995c49f8924c99d01231 Mon Sep 17 00:00:00 2001
 From: Frank Jeschke <fjeschke@synapticon.com>
 Date: Fri, 17 Jan 2020 15:59:36 +0100
-Subject: [PATCH 2/8] Add object_code to sdo information object
+Subject: [PATCH 2/9] Add object_code to sdo information object
 
 The value is available in the kernel module but is not provided to the outside,
 this is now fixed and the object_code field is also available through the user
@@ -14,7 +14,7 @@ space library.
  4 files changed, 70 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index 68d0b37..81d496a 100644
+index 68d0b378..81d496aa 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -576,6 +576,31 @@ typedef enum {
@@ -50,7 +50,7 @@ index 68d0b37..81d496a 100644
   * Global functions
   *****************************************************************************/
 diff --git a/lib/sdo_request.c b/lib/sdo_request.c
-index 18f5e7c..babb1d7 100644
+index 18f5e7c2..babb1d7e 100644
 --- a/lib/sdo_request.c
 +++ b/lib/sdo_request.c
 @@ -220,3 +220,46 @@ void ecrt_sdo_request_write_with_size(ec_sdo_request_t *req, size_t size)
@@ -101,7 +101,7 @@ index 18f5e7c..babb1d7 100644
 +
 +/*****************************************************************************/
 diff --git a/master/ioctl.c b/master/ioctl.c
-index 810035d..85ad5fd 100755
+index 810035dd..85ad5fdf 100755
 --- a/master/ioctl.c
 +++ b/master/ioctl.c
 @@ -900,6 +900,7 @@ static ATTRIBUTES int ec_ioctl_slave_sdo(
@@ -113,7 +113,7 @@ index 810035d..85ad5fd 100755
  
      ec_lock_up(&master->master_sem);
 diff --git a/master/ioctl.h b/master/ioctl.h
-index 3d0c439..0aa88cf 100644
+index 3d0c4399..0aa88cf9 100644
 --- a/master/ioctl.h
 +++ b/master/ioctl.h
 @@ -407,6 +407,7 @@ typedef struct {
@@ -125,5 +125,5 @@ index 3d0c439..0aa88cf 100644
  } ec_ioctl_slave_sdo_t;
  
 -- 
-2.7.4
+2.17.1
 

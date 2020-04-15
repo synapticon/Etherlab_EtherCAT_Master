@@ -1,15 +1,15 @@
-From 91078a14343a2294d8318671a2f6f2d6506cfc60 Mon Sep 17 00:00:00 2001
+From 5f64131d5004c8492218ec8deebf55bbc86c9bd8 Mon Sep 17 00:00:00 2001
 From: Nikola Zivkovic <zivke85@gmail.com>
 Date: Tue, 11 Feb 2020 15:20:56 +0100
-Subject: [PATCH 7/8] FoE support
+Subject: [PATCH 7/9] FoE support
 
 ---
- include/ecrt.h | 22 +++++++++++++++++++++
- lib/master.c   | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ include/ecrt.h | 22 ++++++++++++++++++
+ lib/master.c   | 62 +++++++++++++++++++++++++++++++++++++++++++++++++-
  2 files changed, 83 insertions(+), 1 deletion(-)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index 42bb3a4..02dab02 100644
+index 42bb3a42..02dab02b 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -1419,6 +1419,28 @@ int ecrt_master_write_sii(
@@ -42,7 +42,7 @@ index 42bb3a4..02dab02 100644
   * Slave configuration methods
   *****************************************************************************/
 diff --git a/lib/master.c b/lib/master.c
-index 58b5f4d..2afee08 100644
+index 58b5f4db..2afee086 100644
 --- a/lib/master.c
 +++ b/lib/master.c
 @@ -1113,4 +1113,64 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
@@ -113,5 +113,5 @@ index 58b5f4d..2afee08 100644
 +
 +/****************************************************************************/
 -- 
-2.7.4
+2.17.1
 

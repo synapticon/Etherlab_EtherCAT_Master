@@ -7,4 +7,4 @@
 0006-SII-file-write-support.patch
 0007-FoE-support.patch
 0008-Add-master-library-support-for-uploading-slave-dicti.patch
-
+0009-Increase-the-EC-IO-timeout-to-100ms.patch
