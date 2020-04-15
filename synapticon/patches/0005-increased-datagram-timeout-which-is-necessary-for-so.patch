@@ -1,7 +1,7 @@
-From c7ff6e7877143db928b80c40e72ad4ae2627d0d6 Mon Sep 17 00:00:00 2001
+From 6dae175311d20b7e19360084812ce040952567ab Mon Sep 17 00:00:00 2001
 From: Alexey Zakharov <alexey@vectioneer.com>
 Date: Thu, 5 Dec 2019 10:42:28 +0100
-Subject: [PATCH 5/8] increased datagram timeout, which is necessary for some
+Subject: [PATCH 5/9] increased datagram timeout, which is necessary for some
  devices
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 5/8] increased datagram timeout, which is necessary for some
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/master/globals.h b/master/globals.h
-index 0334179..02d357c 100755
+index 0334179b..02d357cd 100755
 --- a/master/globals.h
 +++ b/master/globals.h
 @@ -44,7 +44,7 @@
@@ -22,5 +22,5 @@ index 0334179..02d357c 100755
  /** SDO injection timeout in microseconds. */
  #define EC_SDO_INJECTION_TIMEOUT 10000
 -- 
-2.7.4
+2.17.1
 

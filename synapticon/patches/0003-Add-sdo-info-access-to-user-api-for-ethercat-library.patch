@@ -1,14 +1,14 @@
-From fe7e92fe6b8b45a714d2c3ba1a56c40965f3da1d Mon Sep 17 00:00:00 2001
+From 3b979a70e12a03ec184466d9512e41c6aa7f547d Mon Sep 17 00:00:00 2001
 From: Frank Jeschke <fjeschke@synapticon.com>
 Date: Fri, 17 Jan 2020 16:01:38 +0100
-Subject: [PATCH 3/8] Add sdo info access to user api for ethercat library
+Subject: [PATCH 3/9] Add sdo info access to user api for ethercat library
 
 ---
  include/ecrt.h | 33 +++++++++++++++++++++++++++++++++
  1 file changed, 33 insertions(+)
 
 diff --git a/include/ecrt.h b/include/ecrt.h
-index 81d496a..9025716 100644
+index 81d496aa..9025716e 100644
 --- a/include/ecrt.h
 +++ b/include/ecrt.h
 @@ -233,6 +233,10 @@
@@ -59,5 +59,5 @@ index 81d496a..9025716 100644
   *
   * Starts writing an IDN and blocks until the request was processed, or an
 -- 
-2.7.4
+2.17.1
 
