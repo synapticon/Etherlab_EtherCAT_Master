@@ -50,21 +50,29 @@ static int setup_sdo_request(Ethercat_Slave_t *slave)
     Sdo_t *sdo = slave->dictionary + sdo_index;
 
     if (sdo->bit_length >= 8) {
-      sdo->request = ecrt_slave_config_create_sdo_request(
+      sdo->upload_request = ecrt_slave_config_create_sdo_request(
+          slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
+
+      sdo->download_request = ecrt_slave_config_create_sdo_request(
           slave->config, sdo->index, sdo->subindex, (sdo->bit_length / 8));
     } else {
-      sdo->request = ecrt_slave_config_create_sdo_request(slave->config,
-                                                          sdo->index,
-                                                          sdo->subindex, 1);
+      sdo->upload_request = ecrt_slave_config_create_sdo_request(
+          slave->config, sdo->index, sdo->subindex, 1);
+
+      sdo->download_request = ecrt_slave_config_create_sdo_request(
+        slave->config, sdo->index, sdo->subindex, 1);
     }
 
-    if (sdo->request == NULL) {
+    if (sdo->upload_request == NULL || sdo->download_request == NULL) {
       syslog(LOG_ERR,
-             "Warning, could not create sdo request for cyclic operation!");
+             "Warning, could not create SDO requests for cyclic operation!");
       return -1;
     } else {
-      ecrt_sdo_request_timeout(sdo->request, SDO_REQUEST_TIMEOUT);
-      sdo->request_state = ecrt_sdo_request_state(sdo->request);
+      ecrt_sdo_request_timeout(sdo->upload_request, SDO_REQUEST_TIMEOUT);
+      sdo->upload_request_state = ecrt_sdo_request_state(sdo->upload_request);
+
+      ecrt_sdo_request_timeout(sdo->download_request, SDO_REQUEST_TIMEOUT);
+      sdo->download_request_state = ecrt_sdo_request_state(sdo->download_request);
     }
   }
 
@@ -222,7 +230,8 @@ static int slave_config(Ethercat_Master_t *master, Ethercat_Slave_t *slave)
 
       /* SDO requests are uploaded at master_start(), they are only
        * needed when master and slave are in real time context. */
-      sdo->request = NULL;
+      sdo->upload_request = NULL;
+      sdo->download_request = NULL;
     }
   }
 

@@ -27,30 +27,30 @@ int sdo_read_value(Sdo_t *sdo)
   switch (sdo->entry_type) {
     case ENTRY_TYPE_BOOLEAN:
     case ENTRY_TYPE_INTEGER8:
-      sdo->value = EC_READ_S8(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_S8(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_INTEGER16:
-      sdo->value = EC_READ_S16(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_S16(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_INTEGER32:
-      sdo->value = EC_READ_S32(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_S32(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_UNSIGNED8:
-      sdo->value = EC_READ_U8(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_U8(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_UNSIGNED16:
-      sdo->value = EC_READ_U16(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_U16(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_UNSIGNED32:
-      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_REAL32:
-      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->request));
+      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_VISIBLE_STRING: {
-      size_t data_size = ecrt_sdo_request_data_size(sdo->request);
+      size_t data_size = ecrt_sdo_request_data_size(sdo->upload_request);
 
-      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->request),
+      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->upload_request),
               data_size);
 
       // Null-terminate the string
@@ -58,9 +58,9 @@ int sdo_read_value(Sdo_t *sdo)
       break;
     }
     case ENTRY_TYPE_OCTET_STRING: {
-      size_t data_size = ecrt_sdo_request_data_size(sdo->request);
+      size_t data_size = ecrt_sdo_request_data_size(sdo->upload_request);
 
-      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->request),
+      memmove(sdo->value_string, ecrt_sdo_request_data(sdo->upload_request),
               data_size);
 
       // Null-terminate the string
@@ -82,44 +82,44 @@ static int sdo_write_value(Sdo_t *sdo)
   switch (sdo->entry_type) {
     case ENTRY_TYPE_BOOLEAN:
     case ENTRY_TYPE_INTEGER8:
-      EC_WRITE_S8(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_S8(ecrt_sdo_request_data(sdo->download_request),
                   (uint8_t )(sdo->value & 0xff));
       break;
     case ENTRY_TYPE_INTEGER16:
-      EC_WRITE_S16(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_S16(ecrt_sdo_request_data(sdo->download_request),
                    (uint16_t )(sdo->value & 0xffff));
       break;
     case ENTRY_TYPE_INTEGER32:
-      EC_WRITE_S32(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_S32(ecrt_sdo_request_data(sdo->download_request),
                    (uint32_t )(sdo->value & 0xffffffff));
       break;
     case ENTRY_TYPE_UNSIGNED8:
-      EC_WRITE_U8(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_U8(ecrt_sdo_request_data(sdo->download_request),
                   (uint8_t )(sdo->value & 0xff));
       break;
     case ENTRY_TYPE_UNSIGNED16:
-      EC_WRITE_U16(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_U16(ecrt_sdo_request_data(sdo->download_request),
                    (uint16_t )(sdo->value & 0xffff));
       break;
     case ENTRY_TYPE_UNSIGNED32:
-      EC_WRITE_U32(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_U32(ecrt_sdo_request_data(sdo->download_request),
                    (uint32_t )(sdo->value & 0xffffffff));
       break;
     case ENTRY_TYPE_REAL32:
-      EC_WRITE_U32(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_U32(ecrt_sdo_request_data(sdo->download_request),
                    (uint32_t )(sdo->value & 0xffffffff));
       break;
     case ENTRY_TYPE_VISIBLE_STRING:
-      memmove(ecrt_sdo_request_data(sdo->request), sdo->value_string,
-              ecrt_sdo_request_data_size(sdo->request));
+      memmove(ecrt_sdo_request_data(sdo->download_request), sdo->value_string,
+              ecrt_sdo_request_data_size(sdo->download_request));
       break;
     case ENTRY_TYPE_OCTET_STRING:
-      memmove(ecrt_sdo_request_data(sdo->request), sdo->value_string,
-                    ecrt_sdo_request_data_size(sdo->request));
+      memmove(ecrt_sdo_request_data(sdo->download_request), sdo->value_string,
+                    ecrt_sdo_request_data_size(sdo->download_request));
       break;
     case ENTRY_TYPE_UNICODE_STRING:
     case ENTRY_TYPE_TIME_OF_DAY:
-      EC_WRITE_U64(ecrt_sdo_request_data(sdo->request),
+      EC_WRITE_U64(ecrt_sdo_request_data(sdo->download_request),
                    sdo->value & 0xffffffffffff);
       break;
     case ENTRY_TYPE_NONE:
@@ -133,25 +133,25 @@ static int sdo_write_value(Sdo_t *sdo)
 static int slave_sdo_upload_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
-  if (!sdo->request) {
+  if (!sdo->upload_request) {
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
   // If the previous request succeeded or failed, schedule a new one
-  if (sdo->request_state == EC_REQUEST_SUCCESS
-      || sdo->request_state == EC_REQUEST_ERROR) {
-    ecrt_sdo_request_read(sdo->request);
-    sdo->request_state = EC_REQUEST_BUSY;
+  if (sdo->upload_request_state == EC_REQUEST_SUCCESS
+      || sdo->upload_request_state == EC_REQUEST_ERROR) {
+    ecrt_sdo_request_read(sdo->upload_request);
+    sdo->upload_request_state = EC_REQUEST_BUSY;
     return ECW_ERROR_SDO_REQUEST_BUSY;
   }
 
   int ret = ECW_ERROR_UNKNOWN;
 
-  sdo->request_state = ecrt_sdo_request_state(sdo->request);
-  switch (sdo->request_state) {
+  sdo->upload_request_state = ecrt_sdo_request_state(sdo->upload_request);
+  switch (sdo->upload_request_state) {
     case EC_REQUEST_UNUSED:
       // here I can schedule
-      ecrt_sdo_request_read(sdo->request);
+      ecrt_sdo_request_read(sdo->upload_request);
       ret = ECW_ERROR_SDO_REQUEST_BUSY;
       break;
     case EC_REQUEST_BUSY:
@@ -178,33 +178,33 @@ static int slave_sdo_upload_request(Sdo_t *sdo)
 static int slave_sdo_download_request(Sdo_t *sdo)
 {
   // Check if the request is a valid pointer
-  if (!sdo->request) {
+  if (!sdo->download_request) {
     return ECW_ERROR_SDO_REQUEST_INVALID;
   }
 
   // If the previous request succeeded or failed, schedule a new one first
-  if (sdo->request_state == EC_REQUEST_SUCCESS
-      || sdo->request_state == EC_REQUEST_ERROR) {
+  if (sdo->download_request_state == EC_REQUEST_SUCCESS
+      || sdo->download_request_state == EC_REQUEST_ERROR) {
     int ret = sdo_write_value(sdo);
     if (ret != 0) {
       return ret;
     }
-    ecrt_sdo_request_write(sdo->request);
-    sdo->request_state = EC_REQUEST_BUSY;
+    ecrt_sdo_request_write(sdo->download_request);
+    sdo->download_request_state = EC_REQUEST_BUSY;
     return ECW_ERROR_SDO_REQUEST_BUSY;
   }
 
   int ret = ECW_ERROR_UNKNOWN;
 
-  sdo->request_state = ecrt_sdo_request_state(sdo->request);
-  switch (sdo->request_state) {
+  sdo->download_request_state = ecrt_sdo_request_state(sdo->download_request);
+  switch (sdo->download_request_state) {
     case EC_REQUEST_UNUSED:
       // here I can schedule
       ret = sdo_write_value(sdo);
       if (ret != 0) {
         return ret;
       }
-      ecrt_sdo_request_write(sdo->request);
+      ecrt_sdo_request_write(sdo->download_request);
       ret = ECW_ERROR_SDO_REQUEST_BUSY;
       break;
     case EC_REQUEST_BUSY:

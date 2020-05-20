@@ -117,8 +117,11 @@ typedef struct _sdo_t {
     uint8_t read_access[EC_SDO_ENTRY_ACCESS_COUNTER];
     uint8_t write_access[EC_SDO_ENTRY_ACCESS_COUNTER];
 
-    ec_sdo_request_t *request;
-    ec_request_state_t request_state;
+    ec_sdo_request_t *upload_request;
+    ec_request_state_t upload_request_state;
+
+    ec_sdo_request_t *download_request;
+    ec_request_state_t download_request_state;
 } Sdo_t;
 
 /**
