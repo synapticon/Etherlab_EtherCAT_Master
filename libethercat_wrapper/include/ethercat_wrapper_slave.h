@@ -315,7 +315,8 @@ int ecw_slave_set_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
  *
  * \return 0 on success
  */
-int ecw_slave_get_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo, int *value);
+int ecw_slave_get_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
+                            uint64_t *value);
 
 /**
  * \brief Request the current value of one (string) object

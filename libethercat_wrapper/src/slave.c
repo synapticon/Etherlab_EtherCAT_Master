@@ -42,8 +42,6 @@ int sdo_read_value(Sdo_t *sdo)
       sdo->value = EC_READ_U16(ecrt_sdo_request_data(sdo->upload_request));
       break;
     case ENTRY_TYPE_UNSIGNED32:
-      sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->upload_request));
-      break;
     case ENTRY_TYPE_REAL32:
       sdo->value = EC_READ_U32(ecrt_sdo_request_data(sdo->upload_request));
       break;
@@ -102,9 +100,6 @@ static int sdo_write_value(Sdo_t *sdo)
                    (uint16_t )(sdo->value & 0xffff));
       break;
     case ENTRY_TYPE_UNSIGNED32:
-      EC_WRITE_U32(ecrt_sdo_request_data(sdo->download_request),
-                   (uint32_t )(sdo->value & 0xffffffff));
-      break;
     case ENTRY_TYPE_REAL32:
       EC_WRITE_U32(ecrt_sdo_request_data(sdo->download_request),
                    (uint32_t )(sdo->value & 0xffffffff));
@@ -636,7 +631,7 @@ int ecw_slave_set_string_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
 }
 
 int ecw_slave_get_int_value(const Ethercat_Slave_t *s, Sdo_t *sdo,
-                                int *value)
+                                uint64_t *value)
 {
   if (sdo == NULL) {
     return ECW_ERROR_SDO_NOT_FOUND;
