@@ -1,0 +1,93 @@
+From 531c3a8891f3d658b46a0814413d69bf255aa9b6 Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Mon, 25 May 2020 20:57:08 +0200
+Subject: [PATCH] Port to kernel v5
+
+---
+ master/cdev.c   | 22 +++++++++++++---------
+ master/device.c | 13 +++++++++++++
+ master/master.c |  2 +-
+ 3 files changed, 27 insertions(+), 10 deletions(-)
+
+diff --git a/master/cdev.c b/master/cdev.c
+index da22339c..44cc5226 100644
+--- a/master/cdev.c
++++ b/master/cdev.c
+@@ -62,11 +62,13 @@ static int eccdev_mmap(struct file *, struct vm_area_struct *);
+ #define PAGE_FAULT_VERSION KERNEL_VERSION(2, 6, 23)
+ 
+ #if LINUX_VERSION_CODE >= PAGE_FAULT_VERSION
+-static int eccdev_vma_fault(
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+-        struct vm_area_struct *,
++#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 0, 0)
++static vm_fault_t eccdev_vma_fault(struct vm_fault *);
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
++static int eccdev_vma_fault(struct vm_area_struct *, struct vm_fault *);
++#else
++static int eccdev_vma_fault(struct vm_fault *);
+ #endif
+-        struct vm_fault *);
+ #else
+ static struct page *eccdev_vma_nopage(
+         struct vm_area_struct *, unsigned long, int *);
+@@ -256,12 +258,14 @@ int eccdev_mmap(
+  *
+  * \return Zero on success, otherwise a negative error code.
+  */
+-static int eccdev_vma_fault(
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+-        struct vm_area_struct *vma, /**< Virtual memory area. */
++#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 0, 0)
++static vm_fault_t eccdev_vma_fault(struct vm_fault *vmf /**< Fault data. */)
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
++static int eccdev_vma_fault(struct vm_area_struct *vma, /**< Virtual memory area. */
++                            struct vm_fault *vmf /**< Fault data. */)
++#else
++static int eccdev_vma_fault(struct vm_fault *vmf /**< Fault data. */)
+ #endif
+-        struct vm_fault *vmf /**< Fault data. */
+-        )
+ {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+     struct vm_area_struct *vma = vmf->vma;
+diff --git a/master/device.c b/master/device.c
+index 07172c84..6546a8b3 100644
+--- a/master/device.c
++++ b/master/device.c
+@@ -441,6 +441,19 @@ void ec_device_clear_stats(
+     }
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
++
++static void do_gettimeofday(struct timeval *tv)
++{
++	struct timespec ts;
++
++	ktime_get_ts(&ts);
++	tv->tv_sec = ts.tv_sec;
++	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++}
++
++#endif
++
+ /*****************************************************************************/
+ 
+ #ifdef EC_DEBUG_RING
+diff --git a/master/master.c b/master/master.c
+index bbd67714..fcf9a2b2 100644
+--- a/master/master.c
++++ b/master/master.c
+@@ -47,7 +47,7 @@
+ #include <linux/vmalloc.h>
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+-#include <linux/sched/types.h> // struct sched_param
++#include <uapi/linux/sched/types.h> // struct sched_param
+ #include <linux/sched/signal.h> // signal_pending
+ #endif
+ 
+-- 
+2.25.1
+
