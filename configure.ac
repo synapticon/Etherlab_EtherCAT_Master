@@ -905,8 +905,10 @@ AC_ARG_ENABLE([userlib],
 )
 
 if test "x${userlib}" = "x1"; then
+    AC_DEFINE([ENABLE_USERLIB], [1], [Build the EtherCAT userspace libraries])
     AC_MSG_RESULT([yes])
 else
+    AC_DEFINE([ENABLE_USERLIB], [0], [Do not build the EtherCAT userspace libraries])
     AC_MSG_RESULT([no])
 fi
 
@@ -935,12 +937,14 @@ AC_ARG_ENABLE([ethercat_wrapper],
 )
 
 if test "x${ethercat_wrapper}" = "x1"; then
+    AC_DEFINE([ENABLE_WRAPPERLIB], [1], [Build the EtherCAT wrapper library])
     AC_MSG_RESULT([yes])
 else
+    AC_DEFINE([ENABLE_WRAPPERLIB], [0], [Do not build the EtherCAT wrapper library])
     AC_MSG_RESULT([no])
 fi
 
-AM_CONDITIONAL(ENABLE_USERLIB, test "x$ethercat_wrapper" = "x1")
+AM_CONDITIONAL(ENABLE_WRAPPERLIB, test "x$ethercat_wrapper" = "x1")
 
 #------------------------------------------------------------------------------
 # TTY driver

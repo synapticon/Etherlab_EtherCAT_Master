@@ -44,6 +44,9 @@ endif
 
 if ENABLE_USERLIB
 SUBDIRS += lib
+endif
+
+if ENABLE_WRAPPERLIB
 SUBDIRS += libethercat_wrapper
 endif
 
