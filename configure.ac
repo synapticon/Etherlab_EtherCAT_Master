@@ -919,7 +919,7 @@ AM_CONDITIONAL(ENABLE_USERLIB, test "x$userlib" = "x1")
 AC_MSG_CHECKING([whether to build the ethercat wrapper library])
 
 AC_ARG_ENABLE([ethercat_wrapper],
-    AS_HELP_STRING([--enable-libethercat_wrapper],
+    AS_HELP_STRING([--enable-ethercat_wrapper],
                    [Generation of the ethercat wrapper library (default: yes)]),
     [
         case "${enableval}" in
@@ -927,7 +927,7 @@ AC_ARG_ENABLE([ethercat_wrapper],
                 ;;
             no) ethercat_wrapper=0
                 ;;
-            *) AC_MSG_ERROR([Invalid value for --enable-libethercat_wrapper])
+            *) AC_MSG_ERROR([Invalid value for --enable-ethercat_wrapper])
                 ;;
         esac
     ],
