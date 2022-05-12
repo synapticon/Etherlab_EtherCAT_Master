@@ -9,3 +9,8 @@
 0008-Add-master-library-support-for-uploading-slave-dicti.patch
 0009-Increase-the-EC-IO-timeout-to-100ms.patch
 0010-Port-to-kernel-v5.patch
+0011-cdev-Port-to-kernel-5.1.patch
+0012-mini-Fix-builds-on-kernels-4.14.69.patch
+0013-mini.c-Fix-build-on-old-kernels.patch
+0014-master-device-Add-workaround-for-kernel-5.6.patch
+0015-master-Fix-build-on-kernel-5.9.0.patch

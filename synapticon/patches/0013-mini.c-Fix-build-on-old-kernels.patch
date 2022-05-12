@@ -1,0 +1,61 @@
+From b2a0182a0726072b5dfa7eac573a128e8e748a38 Mon Sep 17 00:00:00 2001
+From: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+Date: Mon, 22 Jul 2019 09:41:38 +0200
+Subject: [PATCH 13/15] mini.c: Fix build on old kernels
+
+I have merged wrongly the changes from our private branch.
+
+Reported-by: David Bensoussan <david@bensoussan.xyz>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+---
+ examples/mini/mini.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/examples/mini/mini.c b/examples/mini/mini.c
+index 327e22ae..4e43bdc0 100644
+--- a/examples/mini/mini.c
++++ b/examples/mini/mini.c
+@@ -307,11 +307,7 @@ void read_voe(void)
+ 
+ /*****************************************************************************/
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+-void cyclic_task(struct timer_list *t)
+-#else
+-void cyclic_task(unsigned long data)
+-#endif
++static void cyclic_task(struct timer_list *ts)
+ {
+     // receive process data
+     down(&master_sem);
+@@ -360,6 +356,10 @@ void cyclic_task(unsigned long data)
+     add_timer(&timer);
+ }
+ 
++static void cyclic_task_old(long unsigned int t) {
++	cyclic_task(NULL);
++}
++
+ /*****************************************************************************/
+ 
+ void send_callback(void *cb_data)
+@@ -496,12 +496,11 @@ int __init init_mini_module(void)
+ #endif
+ 
+     printk(KERN_INFO PFX "Starting cyclic sample thread.\n");
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 69)
+-    setup_timer(&timer, cyclic_task, 0);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++    timer_setup(&timer, cyclic_task, 0);
+ #else
+-     timer_setup(&timer, cyclic_task, 0);
+-#endif
+-    timer.function = cyclic_task;
++    init_timer(&timer);
++    timer.function = cyclic_task_old;
+ #endif
+     timer.expires = jiffies + 10;
+     add_timer(&timer);
+-- 
+2.25.1
+

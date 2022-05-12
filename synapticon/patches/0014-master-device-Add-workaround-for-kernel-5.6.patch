@@ -1,0 +1,57 @@
+From 7d73d5b2b372b37b95ce5d7bf16aa5b032190004 Mon Sep 17 00:00:00 2001
+From: Ricardo Ribalda <ricardo@ribalda.com>
+Date: Thu, 7 May 2020 17:17:11 +0200
+Subject: [PATCH 14/15] master/device: Add workaround for kernel 5.6
+
+Kernel 5.6 has removed the timeval structure.
+---
+ master/device.c | 4 ++--
+ master/device.h | 9 +++++++++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/master/device.c b/master/device.c
+index 6546a8b3..b95a74cc 100644
+--- a/master/device.c
++++ b/master/device.c
+@@ -445,9 +445,9 @@ void ec_device_clear_stats(
+ 
+ static void do_gettimeofday(struct timeval *tv)
+ {
+-	struct timespec ts;
++	struct timespec64 ts;
+ 
+-	ktime_get_ts(&ts);
++	ktime_get_ts64(&ts);
+ 	tv->tv_sec = ts.tv_sec;
+ 	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+ }
+diff --git a/master/device.h b/master/device.h
+index 51db0d60..2f8eaf02 100644
+--- a/master/device.h
++++ b/master/device.h
+@@ -38,6 +38,7 @@
+ #define __EC_DEVICE_H__
+ 
+ #include <linux/interrupt.h>
++#include <linux/version.h>
+ 
+ #include "../devices/ecdev.h"
+ #include "globals.h"
+@@ -54,6 +55,14 @@
+ #include "debug.h"
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
++struct timeval {
++	__kernel_old_time_t	tv_sec;		/* seconds */
++	__kernel_suseconds_t	tv_usec;	/* microseconds */
++};
++#endif
++
++
+ #ifdef EC_DEBUG_RING
+ #define EC_DEBUG_RING_SIZE 10
+ 
+-- 
+2.25.1
+

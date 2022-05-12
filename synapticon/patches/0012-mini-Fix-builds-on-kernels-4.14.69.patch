@@ -1,0 +1,32 @@
+From c13ce47a7ebffabc79e0a0a4968cade66b684186 Mon Sep 17 00:00:00 2001
+From: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+Date: Thu, 20 Jun 2019 10:12:05 +0200
+Subject: [PATCH 12/15] mini: Fix builds on kernels < 4.14.69
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+---
+ examples/mini/mini.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/examples/mini/mini.c b/examples/mini/mini.c
+index f01934ae..327e22ae 100644
+--- a/examples/mini/mini.c
++++ b/examples/mini/mini.c
+@@ -496,10 +496,11 @@ int __init init_mini_module(void)
+ #endif
+ 
+     printk(KERN_INFO PFX "Starting cyclic sample thread.\n");
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+-    timer_setup(&timer, cyclic_task, 0);
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 69)
++    setup_timer(&timer, cyclic_task, 0);
+ #else
+-    init_timer(&timer);
++     timer_setup(&timer, cyclic_task, 0);
++#endif
+     timer.function = cyclic_task;
+ #endif
+     timer.expires = jiffies + 10;
+-- 
+2.25.1
+
