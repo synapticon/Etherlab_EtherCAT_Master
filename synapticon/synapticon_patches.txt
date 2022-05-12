@@ -14,3 +14,6 @@
 0013-mini.c-Fix-build-on-old-kernels.patch
 0014-master-device-Add-workaround-for-kernel-5.6.patch
 0015-master-Fix-build-on-kernel-5.9.0.patch
+0016-Properly-free-the-process-data-memory-when-deactivat.patch
+0017-Fix-the-memory-leak-when-fetching-a-slave-config.patch
+0018-Properly-clear-the-master-process-data.patch

@@ -1,0 +1,31 @@
+From 16455653cfe3466919e333a0afc91a2e171d40eb Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Thu, 12 May 2022 11:42:09 +0200
+Subject: [PATCH 3/3] Properly free the process data memory when deactivating
+ the master
+
+Since the process data memory is not being properly freed during master deactivation, reactivating the master with a different sized process data, without completely deinitializing it first, is not possible. This is because the master activation procedure completely skips the process data memory allocation if it has already been previously allocated (or not freed in this case).
+---
+ master/ioctl.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/master/ioctl.c b/master/ioctl.c
+index 85ad5fdf..92ee7d29 100755
+--- a/master/ioctl.c
++++ b/master/ioctl.c
+@@ -2350,6 +2350,12 @@ static ATTRIBUTES int ec_ioctl_deactivate(
+         return -EPERM;
+ 
+     ecrt_master_deactivate(master);
++
++    if (ctx->process_data_size && ctx->process_data != NULL) {
++		vfree(ctx->process_data);
++		ctx->process_data = NULL;
++		ctx->process_data_size = 0;
++    }
+     return 0;
+ }
+ 
+-- 
+2.25.1
+

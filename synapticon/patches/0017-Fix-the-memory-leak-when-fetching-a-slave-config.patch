@@ -1,0 +1,87 @@
+From 54bdab668b70d567c45c19e887a4ee0f66a95ecb Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Thu, 12 May 2022 11:33:06 +0200
+Subject: [PATCH 2/3] Fix the memory leak when fetching a slave config
+
+The ecrt_master_slave_config function keeps creating a new  slave config struct on each call, which should not happen. The correct behavior should be that the ecrt_master_slave_config function would create a new slave config only if it doesn't already exist for the used slave, or if it does exist, just return a pointer to it.
+---
+ lib/master.c | 51 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 21 deletions(-)
+
+diff --git a/lib/master.c b/lib/master.c
+index 3fb9c509..f4e3d29e 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -167,39 +167,48 @@ ec_slave_config_t *ecrt_master_slave_config(ec_master_t *master,
+         uint32_t product_code)
+ {
+     ec_ioctl_config_t data;
+-    ec_slave_config_t *sc;
+-    int ret;
+-
+-    sc = malloc(sizeof(ec_slave_config_t));
+-    if (!sc) {
+-        EC_PRINT_ERR("Failed to allocate memory.\n");
+-        return 0;
+-    }
+ 
+     data.alias = alias;
+     data.position = position;
+     data.vendor_id = vendor_id;
+     data.product_code = product_code;
+ 
+-    ret = ioctl(master->fd, EC_IOCTL_CREATE_SLAVE_CONFIG, &data);
++    int ret = ioctl(master->fd, EC_IOCTL_CREATE_SLAVE_CONFIG, &data);
+     if (EC_IOCTL_IS_ERROR(ret)) {
+         EC_PRINT_ERR("Failed to create slave config: %s\n",
+                 strerror(EC_IOCTL_ERRNO(ret)));
+-        free(sc);
+         return 0;
+     }
+ 
+-    sc->next = NULL;
+-    sc->master = master;
+-    sc->index = data.config_index;
+-    sc->alias = alias;
+-    sc->position = position;
+-    sc->first_sdo_request = NULL;
+-    sc->first_foe_request = NULL;
+-    sc->first_reg_request = NULL;
+-    sc->first_voe_handler = NULL;
+-
+-    ec_master_add_slave_config(master, sc);
++    // Find the slave config if it already exists
++    ec_slave_config_t *sc = master->first_config;
++    while (sc) {
++    	if (sc->alias == alias && sc->position==position) {
++    		break;
++    	}
++    	sc = sc->next;
++    }
++
++    // Create a new slave config if it doesn't already exist
++    if (!sc) {
++    	sc = malloc(sizeof(ec_slave_config_t));
++		if (!sc) {
++			EC_PRINT_ERR("Failed to allocate memory.\n");
++			return 0;
++		}
++
++		sc->next = NULL;
++		sc->master = master;
++		sc->index = data.config_index;
++		sc->alias = alias;
++		sc->position = position;
++		sc->first_sdo_request = NULL;
++		sc->first_foe_request = NULL;
++		sc->first_reg_request = NULL;
++		sc->first_voe_handler = NULL;
++
++		ec_master_add_slave_config(master, sc);
++    }
+ 
+     return sc;
+ }
+-- 
+2.25.1
+
