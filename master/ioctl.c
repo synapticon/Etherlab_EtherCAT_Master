@@ -2350,6 +2350,12 @@ static ATTRIBUTES int ec_ioctl_deactivate(
         return -EPERM;
 
     ecrt_master_deactivate(master);
+
+    if (ctx->process_data_size && ctx->process_data != NULL) {
+		vfree(ctx->process_data);
+		ctx->process_data = NULL;
+		ctx->process_data_size = 0;
+    }
     return 0;
 }
 
