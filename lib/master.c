@@ -172,39 +172,48 @@ ec_slave_config_t *ecrt_master_slave_config(ec_master_t *master,
         uint32_t product_code)
 {
     ec_ioctl_config_t data;
-    ec_slave_config_t *sc;
-    int ret;
-
-    sc = malloc(sizeof(ec_slave_config_t));
-    if (!sc) {
-        EC_PRINT_ERR("Failed to allocate memory.\n");
-        return 0;
-    }
 
     data.alias = alias;
     data.position = position;
     data.vendor_id = vendor_id;
     data.product_code = product_code;
 
-    ret = ioctl(master->fd, EC_IOCTL_CREATE_SLAVE_CONFIG, &data);
+    int ret = ioctl(master->fd, EC_IOCTL_CREATE_SLAVE_CONFIG, &data);
     if (EC_IOCTL_IS_ERROR(ret)) {
         EC_PRINT_ERR("Failed to create slave config: %s\n",
                 strerror(EC_IOCTL_ERRNO(ret)));
-        free(sc);
         return 0;
     }
 
-    sc->next = NULL;
-    sc->master = master;
-    sc->index = data.config_index;
-    sc->alias = alias;
-    sc->position = position;
-    sc->first_sdo_request = NULL;
-    sc->first_foe_request = NULL;
-    sc->first_reg_request = NULL;
-    sc->first_voe_handler = NULL;
+    // Find the slave config if it already exists
+    ec_slave_config_t *sc = master->first_config;
+    while (sc) {
+    	if (sc->alias == alias && sc->position==position) {
+    		break;
+    	}
+    	sc = sc->next;
+    }
 
-    ec_master_add_slave_config(master, sc);
+    // Create a new slave config if it doesn't already exist
+    if (!sc) {
+    	sc = malloc(sizeof(ec_slave_config_t));
+		if (!sc) {
+			EC_PRINT_ERR("Failed to allocate memory.\n");
+			return 0;
+		}
+
+		sc->next = NULL;
+		sc->master = master;
+		sc->index = data.config_index;
+		sc->alias = alias;
+		sc->position = position;
+		sc->first_sdo_request = NULL;
+		sc->first_foe_request = NULL;
+		sc->first_reg_request = NULL;
+		sc->first_voe_handler = NULL;
+
+		ec_master_add_slave_config(master, sc);
+    }
 
     return sc;
 }
