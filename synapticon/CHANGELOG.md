@@ -3,13 +3,34 @@ All notable changes to this project made by SYNAPTICON will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [1.5.2-sncn-8] - 2020-01-xx
+## [1.5.2-sncn-11] - 2020-07-08
+### Fixed
+- Port to kernel v5
+
+## [1.5.2-sncn-10] - 2020-04-15
+### Changed
+- Increase the EC IO timeout to 100ms
+
+## [1.5.2-sncn-9] - 2020-02-20
+### Added
+- Add README description how to patch the Master
+- Library support for SII write
+- Library support for FoE operations
+- Library support for on-demand slave dictionary upload
+
+### Fixed
+- Update the Synapticon changelog
+
+## [1.5.2-sncn-8] - 2020-01-30
 ### Added
 - Tool to apply the unofficial patches from Gavin Lambert and local Synapticon
   patches.
 - Tracking of the original upstream repository.
 - New workflow to prepare a release to be used by Synapticon GmbH. Description
   in `synapticon/REAMDE.md`
+  
+### Changed
+- Increase the EC IO timeout to 1ms
 
 ## [1.5.2-sncn-7] - 2019-04-17
 #### Added
@@ -78,8 +99,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Fix compilation on kernels > 4.2.0
 - Fix FoE timeout calculation bug
 
-[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-8...HEAD
-[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-7...HEAD
+[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-11...HEAD
+[1.5.2-sncn-11]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-10...v1.5.2-sncn-11
+[1.5.2-sncn-10]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-9...v1.5.2-sncn-10
+[1.5.2-sncn-9]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-8...v1.5.2-sncn-9
+[1.5.2-sncn-8]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-7...v1.5.2-sncn-8
 [1.5.2-sncn-7]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-6...v1.5.2-sncn-7
 [1.5.2-sncn-6]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-5...v1.5.2-sncn-6
 [1.5.2-sncn-5]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-4...v1.5.2-sncn-5
