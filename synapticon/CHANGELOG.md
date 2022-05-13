@@ -3,6 +3,14 @@ All notable changes to this project made by SYNAPTICON will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [1.5.2-sncn-12] - 2022-05-13
+### Fixed
+- Add Riblada ports and fixes for various kernel versions (v4.14 - v5.9)
+- Properly clear the master process data (library)
+- Fix the memory leak when fetching a slave config (library)
+- Properly free the process data memory when deactivating the master
+- Update and fix the Synapticon changelog
+
 ## [1.5.2-sncn-11] - 2020-07-08
 ### Fixed
 - Port to kernel v5
@@ -99,7 +107,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Fix compilation on kernels > 4.2.0
 - Fix FoE timeout calculation bug
 
-[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-11...HEAD
+[Unreleased]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-12...HEAD
+[1.5.2-sncn-12]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-11...v1.5.2-sncn-12
 [1.5.2-sncn-11]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-10...v1.5.2-sncn-11
 [1.5.2-sncn-10]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-9...v1.5.2-sncn-10
 [1.5.2-sncn-9]: https://github.com/synapticon/Etherlab_EtherCAT_Master/compare/v1.5.2-sncn-8...v1.5.2-sncn-9
