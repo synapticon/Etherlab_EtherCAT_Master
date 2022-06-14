@@ -17,3 +17,4 @@
 0016-Properly-free-the-process-data-memory-when-deactivat.patch
 0017-Fix-the-memory-leak-when-fetching-a-slave-config.patch
 0018-Properly-clear-the-master-process-data.patch
+0019-Smaller-fixes.patch

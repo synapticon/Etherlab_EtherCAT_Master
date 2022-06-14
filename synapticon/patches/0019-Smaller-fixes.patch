@@ -1,0 +1,171 @@
+From 4cd6e26ff15cd6f154eaacfca602c88c59b243c8 Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Tue, 14 Jun 2022 13:18:49 +0200
+Subject: [PATCH] Smaller fixes
+
+- Use the standard EC_PRINT_ERR() function instead of the fprintf() one.
+- Reformat.
+---
+ lib/master.c | 114 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 57 insertions(+), 57 deletions(-)
+
+diff --git a/lib/master.c b/lib/master.c
+index f4e3d29e..5468a75c 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -1102,95 +1102,95 @@ void ecrt_master_reset(ec_master_t *master)
+ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
+                           const uint8_t *content, size_t size)
+ {
+-  ec_ioctl_slave_sii_t data;
++    ec_ioctl_slave_sii_t data;
+ 
+-  data.slave_position = position;
+-  data.offset = 0;
++    data.slave_position = position;
++    data.offset = 0;
+ 
+-  if (!size || size % 2) {
+-    fprintf(
+-        stderr,
+-        "Failed to write SII: Invalid data size (%ld) - must be non-zero and even.\n",
+-        size);
+-    return -1;
+-  }
++    if (!size || size % 2) {
++        EC_PRINT_ERR("Failed to write SII: Invalid data size (%ld) - must be "
++                     "non-zero and even.\n",
++                     size);
++        return -1;
++    }
+ 
+-  data.nwords = size / 2;
++    data.nwords = size / 2;
+ 
+-  // allocate buffer and read file into buffer
+-  data.words = malloc(size * sizeof(uint8_t));
+-  memcpy((uint8_t*) data.words, content, size);
++    // allocate buffer and read file into buffer
++    data.words = malloc(size * sizeof(uint8_t));
++    memcpy((uint8_t *)data.words, content, size);
+ 
+-  int ret;
++    int ret;
+ 
+-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
+-  if (EC_IOCTL_IS_ERROR(ret)) {
+-    fprintf(stderr, "Failed to write SII: %s\n", strerror(EC_IOCTL_ERRNO(ret)));
+-  }
++    ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        EC_PRINT_ERR("Failed to write SII: %s\n",
++                     strerror(EC_IOCTL_ERRNO(ret)));
++    }
+ 
+-  free(data.words);
++    free(data.words);
+ 
+-  return ret;
++    return ret;
+ }
+ 
+ /****************************************************************************/
+ 
+ int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
+-                         const char* file_name, uint8_t *content, size_t *size)
++                         const char *file_name, uint8_t *content, size_t *size)
+ {
+-  ec_ioctl_slave_foe_t data;
++    ec_ioctl_slave_foe_t data;
+ 
+-  data.slave_position = position;
+-  strncpy(data.file_name, file_name, sizeof(data.file_name));
++    data.slave_position = position;
++    strncpy(data.file_name, file_name, sizeof(data.file_name));
+ 
+-  /**
+-   * IMPORTANT: The master code doesn't seem to allow reading larger files and
+-   * the offset is never used, so there is absolutely no possibility of reading
+-   * larger files even with sequential reading.
+-   */
+-  data.offset = 0;
+-  data.buffer_size = 0x8800;
+-  data.buffer = content;
++    /**
++     * IMPORTANT: The master code doesn't seem to allow reading larger files and
++     * the offset is never used, so there is absolutely no possibility of
++     * reading larger files even with sequential reading.
++     */
++    data.offset = 0;
++    data.buffer_size = 0x8800;
++    data.buffer = content;
+ 
+-  int ret;
++    int ret;
+ 
+-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
+-  if (EC_IOCTL_IS_ERROR(ret)) {
+-    fprintf(stderr, "Failed to read via FoE: %s\n",
+-            strerror(EC_IOCTL_ERRNO(ret)));
+-  }
++    ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        EC_PRINT_ERR("Failed to read via FoE: %s\n",
++                     strerror(EC_IOCTL_ERRNO(ret)));
++    }
+ 
+-  *size = data.data_size;
++    *size = data.data_size;
+ 
+-  return data.result;
++    return data.result;
+ }
+ 
+ /****************************************************************************/
+ 
+ int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
+-                          const char* file_name, const uint8_t *content,
++                          const char *file_name, const uint8_t *content,
+                           size_t size)
+ {
+-  ec_ioctl_slave_foe_t data;
++    ec_ioctl_slave_foe_t data;
+ 
+-  data.slave_position = position;
+-  strncpy(data.file_name, file_name, sizeof(data.file_name));
+-  data.offset = 0;
+-  data.buffer_size = size;
+-  data.buffer = malloc(size * sizeof(uint8_t));
+-  memcpy(data.buffer, content, size);
++    data.slave_position = position;
++    strncpy(data.file_name, file_name, sizeof(data.file_name));
++    data.offset = 0;
++    data.buffer_size = size;
++    data.buffer = malloc(size * sizeof(uint8_t));
++    memcpy(data.buffer, content, size);
+ 
+-  int ret;
++    int ret;
+ 
+-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
+-  if (EC_IOCTL_IS_ERROR(ret)) {
+-    fprintf(stderr, "Failed to write via FoE: %s\n",
+-            strerror(EC_IOCTL_ERRNO(ret)));
+-  }
++    ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        EC_PRINT_ERR("Failed to write via FoE: %s\n",
++                     strerror(EC_IOCTL_ERRNO(ret)));
++    }
+ 
+-  free(data.buffer);
++    free(data.buffer);
+ 
+-  return data.result;
++    return data.result;
+ }
+ 
+ /****************************************************************************/
+-- 
+2.25.1
+
