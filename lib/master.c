@@ -1120,17 +1120,20 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
     data.words = malloc(size * sizeof(uint8_t));
     memcpy((uint8_t *)data.words, content, size);
 
-    int ret;
-
-    ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
-    if (EC_IOCTL_IS_ERROR(ret)) {
-        EC_PRINT_ERR("Failed to write SII: %s\n",
-                     strerror(EC_IOCTL_ERRNO(ret)));
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        error = EC_IOCTL_ERRNO(error);
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
     }
 
     free(data.words);
 
-    return ret;
+    return error;
 }
 
 /****************************************************************************/
