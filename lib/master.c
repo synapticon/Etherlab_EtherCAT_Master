@@ -846,31 +846,48 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
 int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
                          const char* file_name, uint8_t *content, size_t *size)
 {
-  ec_ioctl_slave_foe_t data;
+	ec_ioctl_slave_foe_t data;
 
-  data.slave_position = position;
-  strncpy(data.file_name, file_name, sizeof(data.file_name));
+	data.slave_position = position;
+	strncpy(data.file_name, file_name, sizeof(data.file_name));
 
-  /**
-   * IMPORTANT: The master code doesn't seem to allow reading larger files and
-   * the offset is never used, so there is absolutely no possibility of reading
-   * larger files even with sequential reading.
-   */
-  data.offset = 0;
-  data.buffer_size = 0x8800;
-  data.buffer = content;
+    /**
+     * IMPORTANT: The master code doesn't seem to allow reading larger files and
+     * the offset is never used, so there is absolutely no possibility of reading
+     * larger files even with sequential reading.
+     */
+    data.offset = 0;
+    data.buffer_size = 0x8800;
+    data.buffer = content;
 
-  int ret;
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        int errno_saved = EC_IOCTL_ERRNO(error);
+        if (data.result) {
+            if (data.result == FOE_OPCODE_ERROR) {
+                error = (int)data.error_code;
+            } else {
+                // Use ec_foe_error_t + 1
+                error = (int)data.result + 1;
+            }
+        } else {
+            if (errno_saved > 0) {
+                error = -errno_saved;
+            } else {
+                error = errno_saved;
+            }
+        }
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
+    }
 
-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
-  if (EC_IOCTL_IS_ERROR(ret)) {
-    fprintf(stderr, "Failed to read via FoE: %s\n",
-            strerror(EC_IOCTL_ERRNO(ret)));
-  }
+    *size = data.data_size;
 
-  *size = data.data_size;
-
-  return data.result;
+    return error;
 }
 
 /****************************************************************************/
@@ -879,26 +896,43 @@ int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
                           const char* file_name, const uint8_t *content,
                           size_t size)
 {
-  ec_ioctl_slave_foe_t data;
+    ec_ioctl_slave_foe_t data;
 
-  data.slave_position = position;
-  strncpy(data.file_name, file_name, sizeof(data.file_name));
-  data.offset = 0;
-  data.buffer_size = size;
-  data.buffer = malloc(size * sizeof(uint8_t));
-  memcpy(data.buffer, content, size);
+    data.slave_position = position;
+    strncpy(data.file_name, file_name, sizeof(data.file_name));
+    data.offset = 0;
+    data.buffer_size = size;
+    data.buffer = malloc(size * sizeof(uint8_t));
+    memcpy(data.buffer, content, size);
 
-  int ret;
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        int errno_saved = EC_IOCTL_ERRNO(error);
+        if (data.result) {
+            if (data.result == FOE_OPCODE_ERROR) {
+                error = (int)data.error_code;
+            } else {
+                // Use ec_foe_error_t + 1
+                error = (int)data.result + 1;
+            }
+        } else {
+            if (errno_saved > 0) {
+                error = -errno_saved;
+            } else {
+                error = errno_saved;
+            }
+        }
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
+    }
 
-  ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
-  if (EC_IOCTL_IS_ERROR(ret)) {
-    fprintf(stderr, "Failed to write via FoE: %s\n",
-            strerror(EC_IOCTL_ERRNO(ret)));
-  }
+    free(data.buffer);
 
-  free(data.buffer);
-
-  return data.result;
+    return error;
 }
 
 /****************************************************************************/
