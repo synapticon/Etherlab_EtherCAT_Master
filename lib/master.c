@@ -864,7 +864,9 @@ int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
     if (EC_IOCTL_IS_ERROR(error)) {
         int errno_saved = EC_IOCTL_ERRNO(error);
         if (data.result) {
-            if (data.result == FOE_OPCODE_ERROR) {
+        	// WORKAROUND: FOE_OPCODE_ERROR == 8
+        	// Enum ec_foe_error_t was still private in sncn-7
+            if (data.result == 8) {
                 error = (int)data.error_code;
             } else {
                 // Use ec_foe_error_t + 1
@@ -909,7 +911,9 @@ int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
     if (EC_IOCTL_IS_ERROR(error)) {
         int errno_saved = EC_IOCTL_ERRNO(error);
         if (data.result) {
-            if (data.result == FOE_OPCODE_ERROR) {
+            // WORKAROUND: FOE_OPCODE_ERROR == 8
+        	// Enum ec_foe_error_t was still private in sncn-7
+            if (data.result == 8) {
                 error = (int)data.error_code;
             } else {
                 // Use ec_foe_error_t + 1
