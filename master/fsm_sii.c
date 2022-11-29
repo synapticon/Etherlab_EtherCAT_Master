@@ -55,7 +55,7 @@
  * \attention Must be more than 10 to avoid problems on kernels that run with
  * a timer interupt frequency of 100 Hz.
  */
-#define SII_TIMEOUT 20
+#define SII_TIMEOUT 30
 
 /** Time before evaluating answer at writing [ms].
  */
