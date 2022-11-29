@@ -59,7 +59,7 @@
 
 /** Time before evaluating answer at writing [ms].
  */
-#define SII_INHIBIT 5
+#define SII_INHIBIT 10
 
 //#define SII_DEBUG
 
