@@ -1,0 +1,25 @@
+From 8874aa13a8022ce37f1bece214078ff80a2fa333 Mon Sep 17 00:00:00 2001
+From: Nikola Zivkovic <zivke85@gmail.com>
+Date: Tue, 29 Nov 2022 17:23:02 +0100
+Subject: [PATCH 2/2] Increase the SII read/write timeout from 20ms to 30ms
+
+---
+ master/fsm_sii.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/master/fsm_sii.c b/master/fsm_sii.c
+index 1a65294e..7c756b16 100644
+--- a/master/fsm_sii.c
++++ b/master/fsm_sii.c
+@@ -55,7 +55,7 @@
+  * \attention Must be more than 10 to avoid problems on kernels that run with
+  * a timer interupt frequency of 100 Hz.
+  */
+-#define SII_TIMEOUT 20
++#define SII_TIMEOUT 30
+ 
+ /** Time before evaluating answer at writing [ms].
+  */
+-- 
+2.34.1
+

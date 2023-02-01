@@ -18,3 +18,8 @@
 0017-Fix-the-memory-leak-when-fetching-a-slave-config.patch
 0018-Properly-clear-the-master-process-data.patch
 0019-Smaller-fixes.patch
+0020-Fix-error-handling-for-SII-write.patch
+0021-Make-FoE-read-write-return-proper-error-codes.patch
+0022-Update-the-library-version-to-1.1.1.patch
+0023-Increase-the-SII-write-delay-from-5ms-to-10ms.patch
+0024-Increase-the-SII-read-write-timeout-from-20ms-to-30m.patch
