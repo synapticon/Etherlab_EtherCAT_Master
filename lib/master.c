@@ -1120,17 +1120,20 @@ int ecrt_master_write_sii(ec_master_t *master, uint16_t position,
     data.words = malloc(size * sizeof(uint8_t));
     memcpy((uint8_t *)data.words, content, size);
 
-    int ret;
-
-    ret = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
-    if (EC_IOCTL_IS_ERROR(ret)) {
-        EC_PRINT_ERR("Failed to write SII: %s\n",
-                     strerror(EC_IOCTL_ERRNO(ret)));
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_SII_WRITE, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        error = EC_IOCTL_ERRNO(error);
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
     }
 
     free(data.words);
 
-    return ret;
+    return error;
 }
 
 /****************************************************************************/
@@ -1152,17 +1155,34 @@ int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
     data.buffer_size = 0x8800;
     data.buffer = content;
 
-    int ret;
-
-    ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
-    if (EC_IOCTL_IS_ERROR(ret)) {
-        EC_PRINT_ERR("Failed to read via FoE: %s\n",
-                     strerror(EC_IOCTL_ERRNO(ret)));
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        int errno_saved = EC_IOCTL_ERRNO(error);
+        if (data.result) {
+            if (data.result == FOE_OPCODE_ERROR) {
+                error = (int)data.error_code;
+            } else {
+                // Use ec_foe_error_t + 1
+                error = (int)data.result + 1;
+            }
+        } else {
+            if (errno_saved > 0) {
+                error = -errno_saved;
+            } else {
+                error = errno_saved;
+            }
+        }
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
     }
 
     *size = data.data_size;
 
-    return data.result;
+    return error;
 }
 
 /****************************************************************************/
@@ -1180,17 +1200,34 @@ int ecrt_master_write_foe(ec_master_t *master, uint16_t position,
     data.buffer = malloc(size * sizeof(uint8_t));
     memcpy(data.buffer, content, size);
 
-    int ret;
-
-    ret = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
-    if (EC_IOCTL_IS_ERROR(ret)) {
-        EC_PRINT_ERR("Failed to write via FoE: %s\n",
-                     strerror(EC_IOCTL_ERRNO(ret)));
+    int error = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_WRITE, &data);
+    if (EC_IOCTL_IS_ERROR(error)) {
+        int errno_saved = EC_IOCTL_ERRNO(error);
+        if (data.result) {
+            if (data.result == FOE_OPCODE_ERROR) {
+                error = (int)data.error_code;
+            } else {
+                // Use ec_foe_error_t + 1
+                error = (int)data.result + 1;
+            }
+        } else {
+            if (errno_saved > 0) {
+                error = -errno_saved;
+            } else {
+                error = errno_saved;
+            }
+        }
+    } else {
+        /**
+         * A few ioctl() requests use the return value as an output parameter
+         * and return a nonnegative value on success
+         */
+        error = 0;
     }
 
     free(data.buffer);
 
-    return data.result;
+    return error;
 }
 
 /****************************************************************************/
