@@ -857,7 +857,7 @@ int ecrt_master_read_foe(ec_master_t *master, uint16_t position,
      * larger files even with sequential reading.
      */
     data.offset = 0;
-    data.buffer_size = 0x8800;
+    data.buffer_size = 100000;
     data.buffer = content;
 
     int error = ioctl(master->fd, EC_IOCTL_SLAVE_FOE_READ, &data);
