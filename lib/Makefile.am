@@ -51,7 +51,7 @@ noinst_HEADERS = \
 	voe_handler.h
 
 libethercat_la_CFLAGS = -fno-strict-aliasing -Wall
-libethercat_la_LDFLAGS = -version-info 1:1:0
+libethercat_la_LDFLAGS = -version-info 1:2:0
 
 #------------------------------------------------------------------------------
 
