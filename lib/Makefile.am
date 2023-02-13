@@ -73,7 +73,7 @@ libethercat_la_CFLAGS = -fno-strict-aliasing -Wall -I$(top_srcdir)
 # 	ecrt_master_sync_reference_clock_to() added.
 # 2:0:1
 #
-libethercat_la_LDFLAGS = -version-info 2:1:1
+libethercat_la_LDFLAGS = -version-info 2:2:1
 
 #------------------------------------------------------------------------------
 
