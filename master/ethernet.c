@@ -129,7 +129,7 @@ ec_eoedev_set_mac(struct net_device *netdev, void *p)
  *
  * \return 0 on success, else < 0
  */
-int ec_eoe_parse(const char *eoe, int *master_idx, 
+int ec_eoe_parse(const char *eoe, int *master_idx,
         uint16_t *alias, uint16_t *posn)
 {
     unsigned int value;
@@ -140,7 +140,7 @@ int ec_eoe_parse(const char *eoe, int *master_idx,
         EC_ERR("EOE interface may not be empty.\n");
         return -EINVAL;
     }
-    
+
     // must start with "eoe"
     if (strncmp(eoe, "eoe", 3) != 0) {
         EC_ERR("Invalid EOE interface \"%s\".\n", orig);
@@ -157,13 +157,13 @@ int ec_eoe_parse(const char *eoe, int *master_idx,
     }
     *master_idx = value;
     eoe = rem;
-    
+
     // get alias or position specifier
     if (eoe[0] == 'a') {
         eoe++;
         value = simple_strtoul(eoe, &rem, 10);
         if ((value <= 0) || (value >= 0xFFFF)) {
-            EC_ERR("Invalid EOE interface \"%s\", invalid alias: %d\n", 
+            EC_ERR("Invalid EOE interface \"%s\", invalid alias: %d\n",
                     orig, value);
             return -EINVAL;
         }
@@ -184,7 +184,7 @@ int ec_eoe_parse(const char *eoe, int *master_idx,
                 orig, eoe[0]);
         return -EINVAL;
     }
-    
+
     // check no remainder
     if (rem[0] != '\0') {
         EC_ERR("Invalid EOE interface \"%s\", unexpected end characters: %s\n",
@@ -199,7 +199,7 @@ int ec_eoe_parse(const char *eoe, int *master_idx,
 
 /** EoE explicit init constructor.
  *
- * Initializes the EoE handler before a slave is configured, creates a 
+ * Initializes the EoE handler before a slave is configured, creates a
  * net_device and registers it.
  *
  * \return Zero on success, otherwise a negative error code.
@@ -284,6 +284,9 @@ int ec_eoe_init(
     eoe->dev->get_stats = ec_eoedev_stats;
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+    unsigned char *dev_addr_uc = (unsigned char *)eoe->dev->dev_addr;
+#endif
     // First check if the MAC address assigned to the master is globally
     // unique
     if ((master->devices[EC_DEVICE_MAIN].dev->dev_addr[0] & 0x02) !=
@@ -317,9 +320,15 @@ int ec_eoe_init(
                 EC_MASTER_INFO(master, "%s MAC address derived from"
                         " NIC part of %s MAC address\n",
                     eoe->dev->name, dev->name);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+                dev_addr_uc[1] = dev->dev_addr[3];
+                dev_addr_uc[2] = dev->dev_addr[4];
+                dev_addr_uc[3] = dev->dev_addr[5];
+#else
                 eoe->dev->dev_addr[1] = dev->dev_addr[3];
                 eoe->dev->dev_addr[2] = dev->dev_addr[4];
                 eoe->dev->dev_addr[3] = dev->dev_addr[5];
+#endif
             }
             else {
                 use_master_mac = 1;
@@ -327,6 +336,28 @@ int ec_eoe_init(
         }
     }
     if (eoe->dev->addr_len == ETH_ALEN) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+        if (use_master_mac) {
+            EC_MASTER_INFO(master, "%s MAC address derived"
+                    " from NIC part of %s MAC address\n",
+                eoe->dev->name,
+                master->devices[EC_DEVICE_MAIN].dev->name);
+            dev_addr_uc[1] =
+                master->devices[EC_DEVICE_MAIN].dev->dev_addr[3];
+            dev_addr_uc[2] =
+                master->devices[EC_DEVICE_MAIN].dev->dev_addr[4];
+            dev_addr_uc[3] =
+                master->devices[EC_DEVICE_MAIN].dev->dev_addr[5];
+        }
+        dev_addr_uc[0] = 0x02;
+        if (alias) {
+            dev_addr_uc[4] = (uint8_t)(alias >> 8);
+            dev_addr_uc[5] = (uint8_t)(alias);
+        } else {
+            dev_addr_uc[4] = (uint8_t)(ring_position >> 8);
+            dev_addr_uc[5] = (uint8_t)(ring_position);
+        }
+#else
         if (use_master_mac) {
             EC_MASTER_INFO(master, "%s MAC address derived"
                     " from NIC part of %s MAC address\n",
@@ -347,6 +378,7 @@ int ec_eoe_init(
             eoe->dev->dev_addr[4] = (uint8_t)(ring_position >> 8);
             eoe->dev->dev_addr[5] = (uint8_t)(ring_position);
         }
+#endif
     }
 
     // initialize private data
@@ -393,7 +425,7 @@ int ec_eoe_auto_init(
             slave->ring_position)) != 0) {
         return ret;
     }
-    
+
     // set auto created flag
     eoe->auto_created = 1;
 
@@ -470,7 +502,7 @@ void ec_eoe_clear_slave(ec_eoe_t *eoe /**< EoE handler */)
     }
 
     eoe->state = ec_eoe_state_rx_start;
-        
+
     eoe->slave = NULL;
 
 #if EOE_DEBUG_LEVEL >= 1
@@ -976,9 +1008,15 @@ void ec_eoe_state_rx_fetch_data(ec_eoe_t *eoe /**< EoE handler */)
         eoe->rx_skb->dev = eoe->dev;
         eoe->rx_skb->protocol = eth_type_trans(eoe->rx_skb, eoe->dev);
         eoe->rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+        if (netif_rx(eoe->rx_skb)) {
+            EC_SLAVE_WARN(eoe->slave, "EoE RX netif_rx failed.\n");
+        }
+#else
         if (netif_rx_ni(eoe->rx_skb)) {
             EC_SLAVE_WARN(eoe->slave, "EoE RX netif_rx failed.\n");
         }
+#endif
         eoe->rx_skb = NULL;
 
         eoe->state = ec_eoe_state_tx_start;
@@ -1167,7 +1205,7 @@ int ec_eoedev_open(struct net_device *dev /**< EoE net_device */)
 #if EOE_DEBUG_LEVEL >= 2
     EC_MASTER_DBG(eoe->master, 0, "%s opened.\n", dev->name);
 #endif
-    
+
     // update carrier link status
     if (eoe->slave) {
         EC_MASTER_DBG(eoe->master, 1, "%s: carrier on.\n", dev->name);
@@ -1186,7 +1224,7 @@ int ec_eoedev_open(struct net_device *dev /**< EoE net_device */)
 int ec_eoedev_stop(struct net_device *dev /**< EoE net_device */)
 {
     ec_eoe_t *eoe = *((ec_eoe_t **) netdev_priv(dev));
-    
+
     EC_MASTER_DBG(eoe->master, 1, "%s: carrier off.\n", dev->name);
     netif_carrier_off(dev);
     netif_stop_queue(dev);
@@ -1218,10 +1256,10 @@ int ec_eoedev_tx(struct sk_buff *skb, /**< transmit socket buffer */
             dev_kfree_skb(skb);
             eoe->stats.tx_dropped++;
         }
-        
+
         return NETDEV_TX_OK;
     }
-    
+
 #if 0
     if (skb->len > eoe->slave->configured_tx_mailbox_size - 10) {
         EC_SLAVE_WARN(eoe->slave, "EoE TX frame (%u octets)"
