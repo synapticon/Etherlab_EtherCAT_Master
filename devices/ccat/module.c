@@ -71,7 +71,11 @@ static int __init ccat_class_init(struct ccat_class *base)
 			return -1;
 		}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
 		base->class = class_create(THIS_MODULE, base->name);
+#else
+		base->class = class_create(base->name);
+#endif
 		if (!base->class) {
 			pr_warn("Create device class '%s' failed\n",
 				base->name);
