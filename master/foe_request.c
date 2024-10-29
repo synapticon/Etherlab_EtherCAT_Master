@@ -33,6 +33,7 @@
 
 /*****************************************************************************/
 
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/jiffies.h>
 #include <linux/slab.h>
@@ -194,7 +195,12 @@ void ecrt_foe_request_file(
         uint32_t password /** password */
         )
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+    strscpy((char*) req->file_name, file_name, sizeof(req->file_name));
+#else
     strlcpy((char*) req->file_name, file_name, sizeof(req->file_name));
+#endif
+
     req->password = password;
 }
 
