@@ -12,7 +12,7 @@ automake \
 libtool 
 
 # Setup parameters
-ETHERCAT_USER_GROUP="$(logname)"
+ETHERCAT_USER_GROUP="${SUDO_USER}"
 UDEV_RULES_FILE="/etc/udev/rules.d/99-EtherCAT.rules"
 SCRIPT_DIR="$(cd "$( dirname "$0" )" && pwd)"
 WORK_DIR="${SCRIPT_DIR}/.."
