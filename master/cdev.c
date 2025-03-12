@@ -246,7 +246,11 @@ int eccdev_mmap(
     EC_MASTER_DBG(priv->cdev->master, 1, "mmap()\n");
 
     vma->vm_ops = &eccdev_vm_ops;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+    vm_flags_set(vma, VM_DONTDUMP);
+#else
     vma->vm_flags |= VM_DONTDUMP; /* Pages will not be swapped out */
+#endif
     vma->vm_private_data = priv;
 
     return 0;
