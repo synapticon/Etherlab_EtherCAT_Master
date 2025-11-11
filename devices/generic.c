@@ -416,14 +416,15 @@ int __init ec_gen_init_module(void)
     INIT_LIST_HEAD(&generic_devices);
     INIT_LIST_HEAD(&descs);
 
-    read_lock(&dev_base_lock);
-    for_each_netdev(&init_net, netdev) {
+    rcu_read_lock();
+    for_each_netdev_rcu(&init_net, netdev) {
+
         if (netdev->type != ARPHRD_ETHER)
             continue;
         desc = kmalloc(sizeof(ec_gen_interface_desc_t), GFP_ATOMIC);
         if (!desc) {
             ret = -ENOMEM;
-            read_unlock(&dev_base_lock);
+            rcu_read_unlock();
             goto out_err;
         }
         strncpy(desc->name, netdev->name, IFNAMSIZ);
@@ -432,7 +433,7 @@ int __init ec_gen_init_module(void)
         memcpy(desc->dev_addr, netdev->dev_addr, ETH_ALEN);
         list_add_tail(&desc->list, &descs);
     }
-    read_unlock(&dev_base_lock);
+    rcu_read_unlock();
 
     list_for_each_entry_safe(desc, next, &descs, list) {
         ret = offer_device(desc);
