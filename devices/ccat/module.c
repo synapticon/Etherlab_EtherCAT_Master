@@ -398,7 +398,11 @@ static int ccat_eim_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
+static void ccat_eim_remove(struct platform_device *pdev)
+#else
 static int ccat_eim_remove(struct platform_device *pdev)
+#endif
 {
 	struct ccat_device *ccatdev = platform_get_drvdata(pdev);
 
@@ -407,7 +411,10 @@ static int ccat_eim_remove(struct platform_device *pdev)
 		iounmap(ccatdev->bar_0);
 		release_mem_region(0xf0000000, 0x02000000);
 	}
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,11,0)
 	return 0;
+#endif
+
 }
 
 static const struct of_device_id bhf_eim_ccat_ids[] = {
