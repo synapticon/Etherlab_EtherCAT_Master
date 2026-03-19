@@ -211,7 +211,7 @@ int ec_tty_init(ec_tty_t *t, int minor,
     timer_setup(&t->timer, ec_tty_wakeup, 0);
 #else
     init_timer(&t->timer);
-#endif    
+#endif
     t->tty = NULL;
 
     t->open_count = 0;
@@ -267,7 +267,12 @@ int ec_tty_init(ec_tty_t *t, int minor,
 
 void ec_tty_clear(ec_tty_t *tty)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+    timer_delete_sync(&tty->timer);
+#else
     del_timer_sync(&tty->timer);
+#endif
+
     tty_unregister_device(tty_driver, tty->minor);
 }
 
@@ -336,15 +341,22 @@ int ec_tty_get_serial_info(ec_tty_t *tty, struct serial_struct *data)
 
 /** Timer function.
  */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
-void ec_tty_wakeup(struct timer_list *timer)
-{
-	ec_tty_t *tty = from_timer(tty, timer, timer);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+static void ec_tty_wakeup(struct timer_list *t)
 #else
-void ec_tty_wakeup(unsigned long data)
+static void ec_tty_wakeup(unsigned long data)
+#endif
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+    ec_tty_t *tty = timer_container_of(tty, t, timer);
+#else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+    ec_tty_t *tty = from_timer(tty, t, timer);
+#else
     ec_tty_t *tty = (ec_tty_t *) data;
 #endif
+#endif
+
     size_t to_recv;
 
     /* Wake up any process waiting to send data */
